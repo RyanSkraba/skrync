@@ -2,11 +2,7 @@ package com.skraba.skrync
 
 import org.docopt.{Docopt, DocoptExitException}
 
-import java.io.IOException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import scala.collection.JavaConverters._
-import scala.reflect.io._
 
 /** My synchronization tool.
   */
@@ -28,10 +24,14 @@ object SkryncGo {
   )
 
   /** [[DocoptExitException]] constructors are protected. */
-  class InternalDocoptException(msg: String, val docopt: String = Doc)
-      extends RuntimeException(msg)
+  class InternalDocoptException(
+      msg: String,
+      ex: Throwable = None.orNull,
+      val docopt: String = Doc
+  ) extends RuntimeException(msg, ex)
 
-  val Tasks: Seq[Task] = Seq()
+  val Tasks: Seq[Task] =
+    Seq(DigestTask.Task, CompareTask.Task, ExecuteTask.Task)
 
   val Doc: String =
     """My file synchronization and backup tool.
@@ -81,7 +81,7 @@ object SkryncGo {
 
     // This is only here to rewrap any internal docopt exception with the current docopt
     if (cmd == "???")
-      throw new InternalDocoptException("Missing command", Doc)
+      throw new InternalDocoptException("Missing command")
 
     // Reparse with the specific command.
     val task = Tasks
@@ -95,9 +95,9 @@ object SkryncGo {
         .parse(args.toList.asJava)
       task.go(opts)
     } catch {
-      // This is only here to rewrap any internal docopt exception with the current docopt
-      case ex: InternalDocoptException =>
-        throw new InternalDocoptException(ex.getMessage, task.doc)
+      // Rewrap any internal exception with the current docopt
+      case ex @ (_: DocoptExitException | _: InternalDocoptException) =>
+        throw new InternalDocoptException(ex.getMessage, ex, task.doc)
     }
   }
 
@@ -115,8 +115,10 @@ object SkryncGo {
         System.exit(ex.getExitCode)
       case ex: InternalDocoptException =>
         println(ex.docopt)
-        println()
-        println(ex.getMessage)
+        if (ex.getMessage != null) {
+          println()
+          println(ex.getMessage)
+        }
         System.exit(1)
       case ex: Exception =>
         println(Doc)

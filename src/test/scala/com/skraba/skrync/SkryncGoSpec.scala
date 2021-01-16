@@ -6,8 +6,6 @@ import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
-import scala.reflect.io.{Directory, File, Path, Streamable}
-
 /** Unit tests for [[SkryncGo]]
   */
 class SkryncGoSpec
@@ -16,7 +14,6 @@ class SkryncGoSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll {
 
-  /** Temporary directory root for all tests. */
   describe("SkryncGo docopt check") {
     it("should have less than 80 characters per string for readability.") {
       for (line <- SkryncGo.Doc.split("\n")) {
@@ -34,6 +31,7 @@ class SkryncGoSpec
       }
     }
   }
+
   describe("SkryncGo valid commands") {
     it("throw an exception with --version") {
       val t = intercept[DocoptExitException] {
