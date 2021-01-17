@@ -3,6 +3,7 @@ package com.skraba.skrync
 import org.docopt.{Docopt, DocoptExitException}
 
 import scala.collection.JavaConverters._
+import scala.reflect.io.Directory
 
 /** My synchronization tool.
   */
@@ -22,6 +23,16 @@ object SkryncGo {
       description: String,
       go: java.util.Map[String, AnyRef] => Unit
   )
+
+  /** An analysis contains all of the information discovered while reading a directory.
+    *
+    * This can be persisted to disk and used to communicate between the tasks.
+    *
+    * @param src The root of the directory that was digested/analysed.
+    * @param created The time that the the analysis was performed.
+    * @param info All of the information information discovered at that location.
+    */
+  case class Analysis(src: Directory, created: Long, info: SkryncDir)
 
   /** [[DocoptExitException]] constructors are protected. */
   class InternalDocoptException(

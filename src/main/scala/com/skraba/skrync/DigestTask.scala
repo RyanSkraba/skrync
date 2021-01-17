@@ -1,5 +1,7 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.SkryncGo.Analysis
+
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -59,10 +61,45 @@ object DigestTask {
         s"Source is not a directory: $srcDirString"
       )
 
-    // TODO: implement
-    println("DIGEST")
-    println("===========")
-    println("srcDir:" + srcDirString)
-    println("dstDigest:" + dstString)
+    // If no destination is specified, this will be null and standard out will be used.
+    val dst: Option[File] = dstString
+      .map(Path(_))
+      .map(p => {
+        // If the destination is a directory, auto-create the filename based on the time.
+        if (p.exists && p.isDirectory)
+          p / File(getDefaultDigestName(srcDirString, LocalDateTime.now))
+        else p.toFile
+      })
+
+    // Get all of the file information from the source directory, and add the SHA1 digests.
+    val source = SkryncDir(srcDir).digest(srcDir)
+
+    // And write the analysis to disk in gzipped JSON format.
+    Json.write(
+      Analysis(
+        src = srcDir,
+        created = System.currentTimeMillis(),
+        info = source
+      ),
+      dst,
+      gzipped = true
+    )
+  }
+
+  /** Create a default filename for a digest file.
+    * @param srcDirString The source directory being analysed (included in the file name)
+    * @param time The time to include in the file name.
+    * @return The filename for the digest file.
+    */
+  def getDefaultDigestName(
+      srcDirString: String,
+      time: LocalDateTime
+  ): String = {
+    var defaultName = srcDirString.replaceAll("""[/\\]""", " ").trim
+    defaultName += "_" + time.format(
+      DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+    )
+    defaultName = defaultName.replace(" ", "_")
+    defaultName
   }
 }
