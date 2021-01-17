@@ -57,11 +57,16 @@ object CompareTask {
         s"Destination is not a file: $dstDigestString"
       )
 
+    val src = Json.read(srcDigest).copy(created = -1).copy(src = Directory("."))
+    val dst = Json.read(dstDigest).copy(created = -1).copy(src = Directory("."))
+
+    val compares = src.equals(dst)
+
     // TODO: implement
     println("COMPARE")
     println("===========")
     println("srcDigest:" + srcDigestString)
     println("dstDigest:" + dstDigestString)
+    println("Compares:" + compares)
   }
-
 }

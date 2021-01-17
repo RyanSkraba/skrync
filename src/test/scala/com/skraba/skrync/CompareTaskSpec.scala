@@ -1,34 +1,33 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.{InternalDocoptException, go}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
-import scala.reflect.io.{Directory, File, Path, Streamable}
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
+import scala.reflect.io.{Directory, File, Streamable}
 
 /** Unit tests for [[CompareTask]]
   */
 class CompareTaskSpec
     extends AnyFunSpecLike
     with Matchers
-    with BeforeAndAfterEach
     with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
-  val TempFolder: Path = Directory.makeTemp("skryncGo")
+  val Small: ScenarioSingleFile = new ScenarioSingleFile(
+    Directory.makeTemp(getClass.getSimpleName),
+    deleteRootOnCleanup = true
+  )
 
-  /** Create a pre-existing file. */
-  val ExistingFile = TempFolder / File("exists")
+  /** A pre-existing file outside the small scenario. */
+  val ExistingFile: File = Small.root / File("exists")
   Streamable.closing(ExistingFile.outputStream())(_.write(1))
 
   override protected def afterAll(): Unit =
-    try {
-      TempFolder.deleteRecursively()
-    } catch {
-      case ex: Exception =>
-        ex.printStackTrace()
-    }
+    Small.cleanup()
 
   describe("SkryncGo compare command line") {
     it("throws an exception with --help") {
@@ -92,12 +91,12 @@ class CompareTaskSpec
         go(
           "compare",
           "--srcDigest",
-          TempFolder.toString(),
+          Small.src.toString(),
           "--dstDigest",
           ExistingFile.toString
         )
       }
-      tSrc.getMessage shouldBe s"Source is not a file: $TempFolder"
+      tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
 
       val tDst = intercept[IllegalArgumentException] {
         go(
@@ -105,10 +104,50 @@ class CompareTaskSpec
           "--srcDigest",
           ExistingFile.toString,
           "--dstDigest",
-          TempFolder.toString()
+          Small.src.toString()
         )
       }
-      tDst.getMessage shouldBe s"Destination is not a file: $TempFolder"
+      tDst.getMessage shouldBe s"Destination is not a file: ${Small.src}"
+    }
+  }
+
+  describe("SkryncGo compare two identical folders") {
+
+    // Create two analysis files from the same directory.  This is like comparing two identical
+    // folders, or the same unchanged folder at two different times.
+    val dstDir: Directory = Small.root.resolve("dst").toDirectory
+    dstDir.createDirectory()
+    go(
+      "digest",
+      "--srcDir",
+      Small.src.toString,
+      "--dstDigest",
+      (dstDir / File("compare.gz")).toString
+    )
+    go(
+      "digest",
+      "--srcDir",
+      Small.src.toString,
+      "--dstDigest",
+      (dstDir / File("compare2.gz")).toString
+    )
+
+    it("Compares two identical analysis files") {
+      // No exception should occur, and output is dumped to the console.
+      val out = new ByteArrayOutputStream()
+      Console.withOut(out) {
+        go(
+          "compare",
+          "--srcDigest",
+          (dstDir / File("compare.gz")).toString(),
+          "--dstDigest",
+          (dstDir / File("compare2.gz")).toString()
+        )
+      }
+
+      val stdout = new String(out.toByteArray, StandardCharsets.UTF_8)
+      stdout should not have size(0)
+      stdout should include("Compares:true")
     }
   }
 }
