@@ -62,6 +62,23 @@ case class SkryncDir(
 
     copy(path = rootWithDigest, files = filesWithDigest, dirs = dirsWithDigest)
   }
+
+  /** Flattens the contents of this directory recursively so that all of its contents are
+    * in the sequence.
+    *
+    * @param path The path at which this directory is considered to exist.  All of the contents are resolved relative to this path.
+    * @return A sequence of Path -> SkryncPath of all of the file contents inside his directory.
+    */
+  def flattenPaths(path: Path): Seq[(Path, SkryncPath)] = {
+    // The files directly in this source directory.
+    val fs: Seq[(Path, SkryncPath)] =
+      files.map(file => path.resolve(file.name) -> file)
+    // And then recursively do the children.
+    val ds: Seq[(Path, SkryncPath)] =
+      dirs.flatMap(dir => dir.flattenPaths(path.resolve(dir.path.name)))
+    // Return the two lists concatenated.
+    fs ++ ds
+  }
 }
 
 object SkryncDir {

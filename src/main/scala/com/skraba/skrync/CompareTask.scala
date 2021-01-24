@@ -1,8 +1,5 @@
 package com.skraba.skrync
 
-import java.io.IOException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import scala.reflect.io._
 
 /** This task compares two digest files.
@@ -34,6 +31,28 @@ object CompareTask {
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
+  case class Comparison(
+      srcOnly: Set[Path],
+      dstOnly: Set[Path],
+      modified: Set[Path]
+  )
+
+  def compare(src: SkryncDir, dst: SkryncDir): Comparison = {
+    val srcMap = src.flattenPaths(Path(src.path.name)).toMap
+    val dstMap = dst.flattenPaths(Path(dst.path.name)).toMap
+
+    val srcKeys = srcMap.keySet
+    val dstKeys = dstMap.keySet
+
+    Comparison(
+      srcKeys.diff(dstKeys),
+      dstKeys.diff(srcKeys),
+      srcKeys.union(dstKeys).filter { p =>
+        srcMap(p) != dstMap(p)
+      }
+    )
+  }
+
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
     val srcDigestString = opts.get("--srcDigest").asInstanceOf[String]
     val dstDigestString = opts.get("--dstDigest").asInstanceOf[String]
@@ -57,16 +76,20 @@ object CompareTask {
         s"Destination is not a file: $dstDigestString"
       )
 
-    val src = Json.read(srcDigest).copy(created = -1).copy(src = Directory("."))
-    val dst = Json.read(dstDigest).copy(created = -1).copy(src = Directory("."))
+    // Read all of the information from the two digest files.
+    val src: SkryncGo.Analysis = Json.read(srcDigest)
+    val dst: SkryncGo.Analysis = Json.read(dstDigest)
 
-    val compares = src.equals(dst)
+    // Check the two digests for differences.
+    val compares = compare(src.info, dst.info)
 
     // TODO: implement
     println("COMPARE")
     println("===========")
     println("srcDigest:" + srcDigestString)
     println("dstDigest:" + dstDigestString)
-    println("Compares:" + compares)
+    println(
+      "Compares:" + (compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.modified.isEmpty)
+    )
   }
 }

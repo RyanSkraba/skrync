@@ -76,6 +76,13 @@ class ScenarioLargeFilesSpec
       Digests.toHex(dirWithSha1.path.digest.get) should equal(
         Digests.toHex(Large.dirDigest)
       )
+
+      // Check flattening the directory.
+      val paths = dirWithSha1.flattenPaths(Path("flatten"))
+      paths should have size 1000
+      paths should contain(
+        Path(s"flatten/${Large.bigFile.name}") -> fileWithSha1
+      )
     }
 
     describe("running the digest command") {

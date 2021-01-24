@@ -14,7 +14,6 @@ import scala.reflect.io._
 class SkryncDirSpec
     extends AnyFunSpecLike
     with Matchers
-    with BeforeAndAfterEach
     with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
@@ -92,6 +91,13 @@ class SkryncDirSpec
         SkryncPath(Small.src / Directory("dir-does-not-exist"))
       }
       t.getMessage should include("tmp/small/dir-does-not-exist")
+    }
+
+    it("can flatten its path contents.") {
+      val src = SkryncDir(Small.src)
+      val paths = src.flattenPaths(Path("."))
+      paths should have size (1)
+      paths should contain(Path("./ids.txt") -> src.files.head)
     }
   }
 }
