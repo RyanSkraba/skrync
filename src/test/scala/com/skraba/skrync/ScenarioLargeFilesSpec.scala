@@ -69,6 +69,9 @@ class ScenarioLargeFilesSpec
 
       dirWithSha1.files should have size 1
       val fileWithSha1 = dirWithSha1.files.head
+      Digests.toHex(fileWithSha1.digest.get) should equal(
+        Digests.toHex(Large.bigFileDigest)
+      )
       fileWithSha1 should equal(
         fileWithoutSha1.copy(digest = Some(Large.bigFileDigest))
       )

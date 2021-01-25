@@ -12,7 +12,7 @@ import scala.reflect.io.{Directory, File}
 class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSingleFile = new ScenarioSingleFile(
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
     Directory.makeTemp(getClass.getSimpleName),
     deleteRootOnCleanup = true
   )
@@ -48,7 +48,7 @@ class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
   describe("From files") {
     it("calculates digests.") {
       Digests.getSha1(Small.src / File("ids.txt")) should equal(
-        Small.fileDigest
+        Small.fileIdTxtDigest
       )
     }
   }

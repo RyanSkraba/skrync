@@ -17,7 +17,7 @@ class CompareTaskSpec
     with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSingleFile = new ScenarioSingleFile(
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
     Directory.makeTemp(getClass.getSimpleName),
     deleteRootOnCleanup = true
   )

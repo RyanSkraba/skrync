@@ -18,7 +18,7 @@ class SkryncPathSpec
     with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSingleFile = new ScenarioSingleFile(
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
     Directory.makeTemp(getClass.getSimpleName),
     deleteRootOnCleanup = true
   )
@@ -38,7 +38,9 @@ class SkryncPathSpec
 
       // Only the digest is added by this method.  You have to respecify the location on disk.
       val withSha1 = withoutSha1.digest(Small.src / File("ids.txt"))
-      withSha1 should equal(withoutSha1.copy(digest = Some(Small.fileDigest)))
+      withSha1 should equal(
+        withoutSha1.copy(digest = Some(Small.fileIdTxtDigest))
+      )
     }
 
     it("can be stripped of time information.") {
@@ -56,7 +58,7 @@ class SkryncPathSpec
       // Only the digest is added by this method, and it uses the specified location even if it
       // doesn't match the name.
       val withSha1 = Example.digest(Small.src / File("ids.txt"))
-      withSha1 should equal(Example.copy(digest = Some(Small.fileDigest)))
+      withSha1 should equal(Example.copy(digest = Some(Small.fileIdTxtDigest)))
     }
 
     it("fails when digesting on a path that doesn't exist.") {

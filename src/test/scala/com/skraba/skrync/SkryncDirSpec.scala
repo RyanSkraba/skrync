@@ -1,13 +1,14 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncDirSpec.Example
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import java.io.FileNotFoundException
 import java.nio.file.NoSuchFileException
 import scala.reflect.io._
+import org.scalatest.OptionValues._
 
 /** Unit tests for [[SkryncDir]] using a small generated source directory.
   */
@@ -17,7 +18,7 @@ class SkryncDirSpec
     with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSingleFile = new ScenarioSingleFile(
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
     Directory.makeTemp(getClass.getSimpleName),
     deleteRootOnCleanup = true
   )
@@ -29,27 +30,27 @@ class SkryncDirSpec
     it("can initialize itself from a path.") {
       val withoutSha1 = SkryncDir(Small.src)
       withoutSha1.path.name should equal("small")
-      withoutSha1.path.size should equal(12L)
+      withoutSha1.path.size should equal(27L)
       // creation uses the modification time and access is based on the current time.
       withoutSha1.path.creation should equal(2000L)
       withoutSha1.path.access should equal(1000L)
       withoutSha1.path.modification should equal(2000L)
       withoutSha1.path.digest should equal(None)
-      withoutSha1.deepFileCount should equal(1)
-      withoutSha1.files should equal(
-        List(SkryncPath("ids.txt", 12, 2000, 1000, 2000, None))
+      withoutSha1.deepFileCount should equal(2)
+      withoutSha1.files should contain(
+        SkryncPath("ids.txt", 12, 2000, 1000, 2000, None)
       )
-      withoutSha1.dirs should have size 0
+      withoutSha1.dirs should have size 1
 
       // Only the digest is added by this method.  You have to respecify the location on disk.
       val digestedDir = withoutSha1.path.copy(digest = Some(Small.dirDigest))
       val digestedFile =
-        withoutSha1.files.head.copy(digest = Some(Small.fileDigest))
+        withoutSha1.files.head.copy(digest = Some(Small.fileIdTxtDigest))
 
       val withSha1 = withoutSha1.digest(Small.src)
-      withSha1 should equal(
-        withoutSha1.copy(path = digestedDir, files = List(digestedFile))
-      )
+      withSha1.path shouldBe digestedDir
+      withSha1.files shouldBe List(digestedFile)
+      withSha1.dirs.headOption.value.files should have size 1
     }
 
     it("can be stripped of time information.") {
@@ -96,7 +97,7 @@ class SkryncDirSpec
     it("can flatten its path contents.") {
       val src = SkryncDir(Small.src)
       val paths = src.flattenPaths(Path("."))
-      paths should have size (1)
+      paths should have size 2
       paths should contain(Path("./ids.txt") -> src.files.head)
     }
   }

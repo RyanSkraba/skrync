@@ -1,10 +1,9 @@
 package com.skraba.skrync
 
-import java.io.{FileOutputStream, IOException}
+import java.nio.file.Files
 import java.nio.file.attribute.{BasicFileAttributeView, FileTime}
-import java.nio.file.{Files, Path}
-import java.util.Random
-import java.util.stream.IntStream
+import scala.reflect.io.{Path, Streamable}
+import scala.util.Random
 
 /** Utilities for generating random files in a directory for testing.
   *
@@ -42,15 +41,8 @@ object RandomFiles {
     * @param length The exact length of the string to generate.
     * @return A random alphanumeric string.
     */
-  def nextString(rnd: Random, length: Int): String = {
-    val sb = new StringBuilder
-    IntStream
-      .range(0, length)
-      .forEach((i: Int) =>
-        sb.append(Alphanumeric(rnd.nextInt(Alphanumeric.length)))
-      )
-    sb.toString
-  }
+  def nextString(rnd: Random, length: Int): String =
+    List.fill(length)(Alphanumeric(rnd.nextInt(Alphanumeric.length))).mkString
 
   /** Generate a random string.
     *
@@ -73,9 +65,32 @@ object RandomFiles {
     Stream
       .continually(nextString(rnd, 5, 10))
       .map(_ + extension.map("." + _).getOrElse(""))
-      .map(dir.resolve)
-      .filter(!Files.exists(_))
+      .map(dir.resolve(_))
+      .filter(!_.exists)
       .head
+
+  /** Create a randomly named text file in the specified directory with the specified contents.
+    *
+    * @param rnd       PRNG for repeatability.
+    * @param dir       The directory to generate the file.
+    * @param contents  The string contents of the file.
+    * @param name      The name of the file, or None if generated outside this method.
+    * @return the path to the created file.
+    */
+  def createTxtFileWithContents(
+      rnd: Random,
+      dir: Path,
+      contents: String,
+      name: Option[String] = None
+  ): Path = {
+    val file =
+      name.map(dir.resolve(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
+    Streamable.closing(file.toFile.outputStream()) { fos =>
+      fos.write(contents.getBytes)
+    }
+    setTimeAttributes(file, 0)
+    file
+  }
 
   /** Create a random text file in the specified directory.
     *
@@ -86,22 +101,23 @@ object RandomFiles {
     * @param maxLineLength The maximum line length.
     * @return the path to the created file.
     */
-  @throws[IOException]
   def createTxtFile(
       rnd: Random,
       dir: Path,
       numLines: Int,
       minLineLength: Int,
-      maxLineLength: Int
+      maxLineLength: Int,
+      name: Option[String] = None
   ): Path = {
-    val file = getNewFile(rnd, dir, Option("txt"))
-    val fos = new FileOutputStream(file.toFile)
-    try {
+    val file =
+      name.map(dir.resolve(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
+    Streamable.closing(file.toFile.outputStream()) { fos =>
       (0 until numLines).foreach { _ =>
         fos.write(nextString(rnd, minLineLength, maxLineLength).getBytes)
         fos.write("\n".getBytes)
       }
-    } finally if (fos != null) fos.close()
+    }
+    setTimeAttributes(file, 0)
     file
   }
 
@@ -113,17 +129,17 @@ object RandomFiles {
     * @param maxSize The maximum size in bytes.
     * @return the path to the created file.
     */
-  @throws[IOException]
   def createBinaryFile(
       rnd: Random,
       dir: Path,
       minSize: Int,
-      maxSize: Int
+      maxSize: Int,
+      name: Option[String] = None
   ): Path = {
-    val file = getNewFile(rnd, dir, Option("bin"))
+    val file =
+      name.map(dir.resolve(_)).getOrElse(getNewFile(rnd, dir, Option("bin")))
     val size = nextInt(rnd, minSize, maxSize)
-    val fos = new FileOutputStream(file.toFile)
-    try {
+    Streamable.closing(file.toFile.outputStream()) { fos =>
       val buffer = new Array[Byte](1024)
       Stream
         .from(0, buffer.length)
@@ -137,8 +153,8 @@ object RandomFiles {
             else buffer.length
           )
         }
-    } finally if (fos != null) fos.close()
-
+    }
+    setTimeAttributes(file, 0)
     file
   }
 
@@ -154,7 +170,6 @@ object RandomFiles {
     * @param time     If present, a base time to use when generating file attributes.  All files and
     *                 directories will be generated consistently after this time.
     */
-  @throws[IOException]
   def fillDirectory(
       rnd: Random,
       dir: Path,
@@ -162,12 +177,12 @@ object RandomFiles {
       minFiles: Int,
       maxFiles: Int,
       maxDirs: Int,
-      oneLarge: Option[Int] = None,
+      oneLarge: Option[(String, Int)] = None,
       time: Option[Long]
   ): Unit = { // Create files in the given directory.
 
     // Incrementing path times in this directory.
-    var pathTime: Option[Long] = time;
+    var pathTime: Option[Long] = time
 
     // The number of files to create inside this directory.  The rest will be placed in subdirs.
     val createFiles = Math.min(numFiles, nextInt(rnd, minFiles, maxFiles))
@@ -184,7 +199,7 @@ object RandomFiles {
 
     // Create subdirectories to place the remaining files.
     var remainingFiles =
-      numFiles - createFiles - oneLarge.map(_ => 1).getOrElse(0)
+      numFiles - createFiles - oneLarge.size
     if (remainingFiles > 0) {
       val createDirs = nextInt(rnd, 1, maxDirs)
       val filesPer = remainingFiles.toDouble / createDirs
@@ -194,7 +209,7 @@ object RandomFiles {
           if (i == createDirs - 1) remainingFiles
           else (filesPer * (i + 1) + 0.5).toInt - (filesPer * i + 0.5).toInt
         val newDir = getNewFile(rnd, dir, None)
-        Files.createDirectory(newDir)
+        newDir.createDirectory(force = false, failIfExists = true)
         fillDirectory(
           rnd,
           newDir,
@@ -215,7 +230,15 @@ object RandomFiles {
 
     // If requested, create the one large binary file.
     oneLarge
-      .map(size => createBinaryFile(rnd, dir, size, size))
+      .map(nameAndSize =>
+        createBinaryFile(
+          rnd,
+          dir,
+          minSize = nameAndSize._2,
+          maxSize = nameAndSize._2,
+          name = Some(nameAndSize._1)
+        )
+      )
       .foreach(largeFile =>
         pathTime.map((t: Long) => {
           setTimeAttributes(largeFile, t)
@@ -231,7 +254,10 @@ object RandomFiles {
     */
   def setTimeAttributes(path: Path, time: Long): Unit = {
     val attributes =
-      Files.getFileAttributeView(path, classOf[BasicFileAttributeView])
+      Files.getFileAttributeView(
+        path.jfile.toPath,
+        classOf[BasicFileAttributeView]
+      )
     // last modified, last access, creation
     attributes.setTimes(
       FileTime.fromMillis((time + 2) * 1000),
