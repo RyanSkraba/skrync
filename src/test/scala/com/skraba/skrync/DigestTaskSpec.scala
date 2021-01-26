@@ -115,7 +115,7 @@ class DigestTaskSpec
         SkryncDir(Small.src).digest(Small.src).copyWithoutTimes()
       dstRoot.info
         .copy(path = dstRoot.info.path.copy(name = "small"))
-        .copyWithoutTimes() should equal(expected)
+        .copyWithoutTimes() shouldBe expected
     }
 
     it("creates the file when a destination is explicitly specified.") {
@@ -136,7 +136,7 @@ class DigestTaskSpec
 
       // It should have the specified name.
       val dstDigestFile = dst.headOption.value.toFile
-      dstDigestFile.name should equal("output.gz")
+      dstDigestFile.name shouldBe "output.gz"
 
       // The contents of the file should be readable.
       val dstRoot = Json.read(dstDigestFile)
@@ -144,7 +144,7 @@ class DigestTaskSpec
         SkryncDir(Small.src).digest(Small.src).copyWithoutTimes()
       dstRoot.info.copy(path =
         dstRoot.info.path.copy(name = "small")
-      ) should equal(expected)
+      ) shouldBe expected
     }
   }
 

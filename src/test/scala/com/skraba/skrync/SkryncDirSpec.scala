@@ -29,14 +29,14 @@ class SkryncDirSpec
 
     it("can initialize itself from a path.") {
       val withoutSha1 = SkryncDir(Small.src)
-      withoutSha1.path.name should equal("small")
-      withoutSha1.path.size should equal(27L)
+      withoutSha1.path.name shouldBe "small"
+      withoutSha1.path.size shouldBe 27L
       // creation uses the modification time and access is based on the current time.
-      withoutSha1.path.creation should equal(2000L)
-      withoutSha1.path.access should equal(1000L)
-      withoutSha1.path.modification should equal(2000L)
-      withoutSha1.path.digest should equal(None)
-      withoutSha1.deepFileCount should equal(2)
+      withoutSha1.path.creation shouldBe 2000L
+      withoutSha1.path.access shouldBe 1000L
+      withoutSha1.path.modification shouldBe 2000L
+      withoutSha1.path.digest shouldBe None
+      withoutSha1.deepFileCount shouldBe 2
       withoutSha1.files should contain(
         SkryncPath("ids.txt", 12, 2000, 1000, 2000, None)
       )
@@ -55,19 +55,18 @@ class SkryncDirSpec
 
     it("can be stripped of time information.") {
       val withoutTimes = Example.copyWithoutTimes()
-      withoutTimes.path.name should equal("dir")
-      withoutTimes.path.size should equal(54321L)
+      withoutTimes.path.name shouldBe "dir"
+      withoutTimes.path.size shouldBe 54321L
       // creation uses the modification time and access is based on the current time.
-      withoutTimes.path.creation should equal(-1L)
-      withoutTimes.path.access should equal(-1L)
-      withoutTimes.path.modification should equal(-1L)
-      withoutTimes.path.digest should equal(Example.path.digest)
-      withoutTimes.deepFileCount should equal(1)
-      withoutTimes.files should equal(
+      withoutTimes.path.creation shouldBe -1L
+      withoutTimes.path.access shouldBe -1L
+      withoutTimes.path.modification shouldBe -1L
+      withoutTimes.path.digest shouldBe Example.path.digest
+      withoutTimes.deepFileCount shouldBe 1
+      withoutTimes.files shouldBe
         List(
           SkryncPath("file", 12345, -1, -1, -1, withoutTimes.files.head.digest)
         )
-      )
       withoutTimes.dirs should have size 0
     }
 

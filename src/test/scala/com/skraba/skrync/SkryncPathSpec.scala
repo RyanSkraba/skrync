@@ -29,36 +29,35 @@ class SkryncPathSpec
 
     it("can initialize itself from a path.") {
       val withoutSha1 = SkryncPath(Small.src / File("ids.txt"))
-      withoutSha1.name should equal("ids.txt")
-      withoutSha1.size should equal(12L)
+      withoutSha1.name shouldBe "ids.txt"
+      withoutSha1.size shouldBe 12L
       // creation uses the modification time and access is based on the current time.
-      withoutSha1.creation should equal(2000L)
-      withoutSha1.modification should equal(2000L)
-      withoutSha1.digest should equal(None)
+      withoutSha1.creation shouldBe 2000L
+      withoutSha1.modification shouldBe 2000L
+      withoutSha1.digest shouldBe None
 
       // Only the digest is added by this method.  You have to respecify the location on disk.
       val withSha1 = withoutSha1.digest(Small.src / File("ids.txt"))
-      withSha1 should equal(
+      withSha1 shouldBe
         withoutSha1.copy(digest = Some(Small.fileIdTxtDigest))
-      )
     }
 
     it("can be stripped of time information.") {
       val withoutTimes = Example.copyWithoutTimes()
-      withoutTimes.name should equal("file")
-      withoutTimes.size should equal(12345L)
+      withoutTimes.name shouldBe "file"
+      withoutTimes.size shouldBe 12345L
       // creation uses the modification time and access is based on the current time.
-      withoutTimes.creation should equal(-1L)
-      withoutTimes.access should equal(-1L)
-      withoutTimes.modification should equal(-1L)
-      withoutTimes.digest should equal(Example.digest)
+      withoutTimes.creation shouldBe -1L
+      withoutTimes.access shouldBe -1L
+      withoutTimes.modification shouldBe -1L
+      withoutTimes.digest shouldBe Example.digest
     }
 
     it("can be initialised with digest information from an existing file.") {
       // Only the digest is added by this method, and it uses the specified location even if it
       // doesn't match the name.
       val withSha1 = Example.digest(Small.src / File("ids.txt"))
-      withSha1 should equal(Example.copy(digest = Some(Small.fileIdTxtDigest)))
+      withSha1 shouldBe Example.copy(digest = Some(Small.fileIdTxtDigest))
     }
 
     it("fails when digesting on a path that doesn't exist.") {
