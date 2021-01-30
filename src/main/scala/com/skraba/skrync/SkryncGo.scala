@@ -53,7 +53,7 @@ object SkryncGo {
       |Options:
       |  -h --help  Show this screen.
       |  --version  Show version.
-      |  --debug            Log extra information to the console while executing.
+      |  --debug    Log extra information to the console while executing.
       |
       |Commands:
       |%s

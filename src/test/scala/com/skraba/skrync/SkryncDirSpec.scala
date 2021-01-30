@@ -2,13 +2,15 @@ package com.skraba.skrync
 
 import com.skraba.skrync.SkryncDirSpec.Example
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import java.io.FileNotFoundException
+import java.io.{ByteArrayOutputStream, FileNotFoundException}
+import java.nio.charset.StandardCharsets
 import java.nio.file.NoSuchFileException
+import scala.collection.mutable
 import scala.reflect.io._
-import org.scalatest.OptionValues._
 
 /** Unit tests for [[SkryncDir]] using a small generated source directory.
   */
@@ -28,7 +30,7 @@ class SkryncDirSpec
   describe("SkryncDir") {
 
     it("can initialize itself from a path.") {
-      val withoutSha1 = SkryncDir(Small.src)
+      val withoutSha1 = SkryncDir.scan(Small.src)
       withoutSha1.path.name shouldBe "small"
       withoutSha1.path.size shouldBe 27L
       // creation uses the modification time and access is based on the current time.
@@ -94,7 +96,7 @@ class SkryncDirSpec
     }
 
     it("can flatten its path contents.") {
-      val src = SkryncDir(Small.src)
+      val src = SkryncDir.scan(Small.src)
       val paths = src.flattenPaths(Path("."))
       paths should have size 2
       paths should contain(Path("./ids.txt") -> src.files.head)

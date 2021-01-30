@@ -31,10 +31,12 @@ case class SkryncDir(
 
   /** Recalculate and add the sha1 digest.
     */
-  def digest(location: Path): SkryncDir = {
-    val filesWithDigest = files.map(f => f.digest(location / File(f.name)))
+  def digest(location: Path, w: DigestProgress = IgnoreProgress): SkryncDir = {
+    w.digestingDir(location, this)
+
+    val filesWithDigest = files.map(f => f.digest(location / File(f.name), w))
     val dirsWithDigest =
-      dirs.map(d => d.digest(location / Directory(d.path.name)))
+      dirs.map(d => d.digest(location / Directory(d.path.name), w))
 
     // For a directory, use the stream of its children digests *and* their names.
     val fileNamesAndSha1: Seq[Stream[Byte]] =
@@ -60,7 +62,14 @@ case class SkryncDir(
       Some(Digests.getSha1(fileNamesAndSha1 ++ dirNamesAndSha1))
     )
 
-    copy(path = rootWithDigest, files = filesWithDigest, dirs = dirsWithDigest)
+    w.digestedDir(
+      location,
+      copy(
+        path = rootWithDigest,
+        files = filesWithDigest,
+        dirs = dirsWithDigest
+      )
+    )
   }
 
   /** Flattens the contents of this directory recursively so that all of its contents are
@@ -87,24 +96,30 @@ object SkryncDir {
     * recursively.  This does not calculate the digest.
     *
     * @param d The path to get from the filesystem.
+    * @param w A class that is notified as the file system is being traversed.
     */
-  def apply(d: Directory): SkryncDir = {
+  def scan(d: Directory, w: DigestProgress = IgnoreProgress): SkryncDir = {
     val root = SkryncPath(d)
+    w.scanningDir(d)
 
     // Get all of the files and subdirectories.
     val files = (for (f <- d.list.toList if f.isFile)
-      yield SkryncPath(f.toFile)).sortWith(_.name < _.name)
+      yield w.scannedFile(f, SkryncPath(f.toFile))).sortWith(_.name < _.name)
     val dirs = (for (sub <- d.list.toList if sub.isDirectory)
-      yield SkryncDir(sub.toDirectory)).sortWith(_.path.name < _.path.name)
+      yield SkryncDir.scan(sub.toDirectory, w))
+      .sortWith(_.path.name < _.path.name)
 
     val deepSize = files.map(_.size).sum + dirs.map(_.path.size).sum
     val deepFileCount = dirs.map(_.deepFileCount).sum + files.size
 
-    SkryncDir(
-      path = root.copy(size = deepSize),
-      deepFileCount = deepFileCount,
-      files = files,
-      dirs = dirs
+    w.scannedDir(
+      d,
+      SkryncDir(
+        path = root.copy(size = deepSize),
+        deepFileCount = deepFileCount,
+        files = files,
+        dirs = dirs
+      )
     )
   }
 }

@@ -72,7 +72,7 @@ object DigestTask {
       })
 
     // Get all of the file information from the source directory, and add the SHA1 digests.
-    val source = SkryncDir(srcDir).digest(srcDir)
+    val source = SkryncDir.scan(srcDir).digest(srcDir)
 
     // And write the analysis to disk in gzipped JSON format.
     Json.write(

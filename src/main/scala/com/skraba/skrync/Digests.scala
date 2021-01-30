@@ -1,11 +1,8 @@
 package com.skraba.skrync
 
 import java.io.{IOException, InputStream}
-import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
 import java.security.{DigestInputStream, MessageDigest}
-import scala.collection.immutable.BitSet
-import scala.reflect.io.{File, Path}
+import scala.reflect.io.{File, Streamable}
 
 /** Tools and utilities for calculating digests on objects. */
 object Digests {
@@ -27,24 +24,32 @@ object Digests {
   private[this] def fromBytes(in: Iterable[Byte]): Digest = in.toSeq
 
   /** Get a SHA1 digest for a file.
+    * @param file The file to get the SHA1 digest for
+    * @param w A watcher to notify with progress on the digest
     */
   @throws[IOException]
-  def getSha1(file: File): Digest =
-    fromBytes(getDigestUsingStream(sha1Digest(), file.inputStream()))
+  def getSha1(
+      file: File,
+      w: DigestProgress = IgnoreProgress
+  ): Digest =
+    fromBytes(getDigestUsingStream(sha1Digest(), file.inputStream(), w))
 
   @throws[IOException]
   private[this] def getDigestUsingStream(
       digest: MessageDigest,
-      in: InputStream
+      in: InputStream,
+      w: DigestProgress
   ): Array[Byte] = {
-    val din = new DigestInputStream(in, digest)
-    try {
+    Streamable.closing(new DigestInputStream(in, digest)) { din =>
       val buffer = new Array[Byte](1 << 20)
-      while (din.read(buffer) != -1) {
-        // Just scan through the entire stream.
-      }
-      digest.digest
-    } finally if (din != null) din.close()
+      Stream
+        .continually(din.read(buffer))
+        .takeWhile { len =>
+          len != -1
+        }
+        .foreach(len => w.digestingFileProgress(len))
+    }
+    digest.digest
   }
 
   /** Get a SHA1 digest for a bunch of bytes.

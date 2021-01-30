@@ -42,7 +42,7 @@ class ScenarioLargeFilesSpec
     }
 
     it("generates a SkryncDir with directory attributes and digest.") {
-      val dirWithoutSha1 = SkryncDir(Large.src)
+      val dirWithoutSha1 = SkryncDir.scan(Large.src)
       dirWithoutSha1.path.name shouldBe "large"
       // creation uses the modification time and access is not affected by reading files.
       // dirWithoutSha1.root.creation shouldBe 2000L
@@ -108,7 +108,8 @@ class ScenarioLargeFilesSpec
 
         // The contents of the file should be readable.
         val dstRoot = Json.read(dstDigestFile)
-        val expected = SkryncDir(Large.src).digest(Large.src).copyWithoutTimes()
+        val expected =
+          SkryncDir.scan(Large.src).digest(Large.src).copyWithoutTimes()
         dstRoot.info.copy(path =
           dstRoot.info.path.copy(name = "large")
         ) shouldBe expected

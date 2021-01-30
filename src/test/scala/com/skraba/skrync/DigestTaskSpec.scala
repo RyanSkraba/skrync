@@ -112,7 +112,7 @@ class DigestTaskSpec
       // The contents of the file should be readable.
       val dstRoot = Json.read(dstDigestFile)
       val expected =
-        SkryncDir(Small.src).digest(Small.src).copyWithoutTimes()
+        SkryncDir.scan(Small.src).digest(Small.src).copyWithoutTimes()
       dstRoot.info
         .copy(path = dstRoot.info.path.copy(name = "small"))
         .copyWithoutTimes() shouldBe expected
@@ -141,7 +141,7 @@ class DigestTaskSpec
       // The contents of the file should be readable.
       val dstRoot = Json.read(dstDigestFile)
       val expected =
-        SkryncDir(Small.src).digest(Small.src).copyWithoutTimes()
+        SkryncDir.scan(Small.src).digest(Small.src).copyWithoutTimes()
       dstRoot.info.copy(path =
         dstRoot.info.path.copy(name = "small")
       ) shouldBe expected

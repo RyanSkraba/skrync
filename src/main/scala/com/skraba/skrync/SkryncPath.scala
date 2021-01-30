@@ -35,9 +35,11 @@ case class SkryncPath(
 
   /** Recalculate and add the sha1 digest.
     */
-  def digest(location: Path): SkryncPath = {
+  def digest(location: Path, w: DigestProgress = IgnoreProgress): SkryncPath = {
     // This should not be called on a directory.
-    copy(digest = Some(Digests.getSha1(location.toFile)))
+    w.digestingFile(location, this)
+    val digest = Digests.getSha1(location.toFile, w)
+    w.digestedFile(location, copy(digest = Some(digest)))
   }
 }
 

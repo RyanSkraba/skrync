@@ -44,7 +44,7 @@ class ScenarioSmallFiles(
 
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =
-    Digests.fromHex("d732cfe0c7e77139a6a479a4c385a31aa2907cd2")
+    Digests.fromHex("D732CFE0C7E77139A6A479A4C385A31AA2907CD2")
 
   /** The SHA1 digest of the src directory. */
   val dirDigest: Digest =
