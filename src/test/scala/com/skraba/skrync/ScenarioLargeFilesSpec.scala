@@ -1,13 +1,15 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.go
+import com.skraba.skrync.SkryncGoSpec.{
+  withConsoleMatch,
+  withSkryncGoMatch,
+  withSkryncGo
+}
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncGo]] using a large generated source directory.
@@ -45,34 +47,33 @@ class ScenarioLargeFilesSpec
 
     it("generates a SkryncDir with directory attributes and digest.") {
 
-      val (dirWithoutSha1, scanProgress) =
-        Streamable.closing(new ByteArrayOutputStream()) { out =>
-          Console.withOut(out) {
-            val w = new PrintDigestProgress(Console.out)
-            val dir = SkryncDir
-              .scan(Large.src, w)
-            out.flush()
-            (dir, new String(out.toByteArray, StandardCharsets.UTF_8))
-          }
-        }
+      // Fetch an undigested SkryncDir from the large scenario.
+      val dirWithoutSha1: SkryncDir = withConsoleMatch {
+        val w = new PrintDigestProgress(Console.out)
+        SkryncDir.scan(Large.src, w)
+      } { case (dir: SkryncDir, stdout, stderr) =>
+        // Ensure that all of the directories and files have been counted.
+        stdout.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
+          '[' -> 798,
+          '!' -> 1000,
+          ']' -> 798
+        )
+        stderr shouldBe ""
 
-      // Ensure that all of the directories and files have been counted.
-      scanProgress.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
-        '[' -> 798,
-        '!' -> 1000,
-        ']' -> 798
-      )
+        dir.path.name shouldBe "large"
+        // creation uses the modification time and access is not affected by reading files.
+        // dir.root.creation shouldBe 2000L
+        // dir.root.access shouldBe 1000L
+        // dir.root.modification shouldBe 2000L
+        dir.path.size shouldBe 229520625L
+        dir.path.digest shouldBe None
+        dir.deepFileCount shouldBe 1000
+        dir.dirs should have size 9
+        dir.files should have size 1
 
-      dirWithoutSha1.path.name shouldBe "large"
-      // creation uses the modification time and access is not affected by reading files.
-      // dirWithoutSha1.root.creation shouldBe 2000L
-      //dirWithoutSha1.root.access shouldBe 1000L
-      //dirWithoutSha1.root.modification shouldBe 2000L
-      dirWithoutSha1.path.size shouldBe 229520625L
-      dirWithoutSha1.path.digest shouldBe None
-      dirWithoutSha1.deepFileCount shouldBe 1000
-      dirWithoutSha1.dirs should have size 9
-      dirWithoutSha1.files should have size 1
+        // continue testing on the dir
+        dir
+      }
 
       val fileWithoutSha1 = dirWithoutSha1.files.head
       fileWithoutSha1.name shouldBe Large.bigFile.name
@@ -82,25 +83,25 @@ class ScenarioLargeFilesSpec
       fileWithoutSha1.size shouldBe Int.MaxValue / 10
       fileWithoutSha1.digest shouldBe None
 
-      // Only digests are added by this method.
-      val (dirWithSha1, digestProgress) =
-        Streamable.closing(new ByteArrayOutputStream()) { out =>
-          Console.withOut(out) {
-            val w = new PrintDigestProgress(Console.out)
-            val dir = dirWithoutSha1.digest(Large.src, w)
-            out.flush()
-            (dir, new String(out.toByteArray, StandardCharsets.UTF_8))
-          }
-        }
+      // Add digests
+      val dirWithSha1: SkryncDir = withConsoleMatch {
+        val w = new PrintDigestProgress(Console.out)
+        dirWithoutSha1.digest(Large.src, w)
+      } { case (dir: SkryncDir, stdout, stderr) =>
+        // Ensure that all of the directories and files have been counted.
+        // Ensure that all of the directories and files have been counted.
+        stdout.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
+          '{' -> 798,
+          '<' -> 1000,
+          '.' -> 1204,
+          '>' -> 1000,
+          '}' -> 798
+        )
+        stderr shouldBe ""
 
-      // Ensure that all of the directories and files have been counted.
-      digestProgress.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
-        '{' -> 798,
-        '<' -> 1000,
-        '.' -> 1204,
-        '>' -> 1000,
-        '}' -> 798
-      )
+        // continue testing on the dir
+        dir
+      }
 
       dirWithSha1.files should have size 1
       val fileWithSha1 = dirWithSha1.files.head
@@ -127,13 +128,16 @@ class ScenarioLargeFilesSpec
         // Run the application and check the output files.
         val dstDir: Directory = Large.root.resolve("dstDigest").toDirectory
         dstDir.createDirectory()
-        go(
+        withSkryncGoMatch(
           "digest",
           "--srcDir",
           Large.src.toString,
           "--dstDigest",
           (dstDir / File("output.gz")).toString
-        )
+        ) { case (stdout, stderr) =>
+          stdout should have size 7396
+          stderr shouldBe ""
+        }
 
         // One file is created.
         val dst: Seq[Path] = dstDir.list.toSeq
@@ -156,28 +160,35 @@ class ScenarioLargeFilesSpec
 
   describe("Comparing two digests") {
 
-    // Create the digest once for reuse
     val dstDir: Directory = Large.root.resolve("dstCompare").toDirectory
     dstDir.createDirectory()
-    go(
+
+    // Create a digests on the input.
+    withSkryncGoMatch(
       "digest",
       "--srcDir",
       Large.src.toString,
       "--dstDigest",
       (dstDir / File("compare.gz")).toString
-    )
+    ) { case (stdout, stderr) =>
+      stdout should have size 7396
+      stderr shouldBe ""
+    }
 
     describe("compare running the compare command") {
       it(
         "finds no differences when run on digests created on the same directory."
       ) {
-        go(
+        withSkryncGoMatch(
           "digest",
           "--srcDir",
           Large.src.toString,
           "--dstDigest",
           (dstDir / File("compare2.gz")).toString
-        )
+        ) { case (stdout, stderr) =>
+          stdout should have size 7396
+          stderr shouldBe ""
+        }
 
         // Ignore the time the backup was created.
         val root =
@@ -186,7 +197,7 @@ class ScenarioLargeFilesSpec
           Json.read(dstDir / File("compare2.gz")).copy(created = -1)
         root shouldBe root2
 
-        go(
+        withSkryncGo(
           "compare",
           "--srcDigest",
           (dstDir / File("compare.gz")).toString,

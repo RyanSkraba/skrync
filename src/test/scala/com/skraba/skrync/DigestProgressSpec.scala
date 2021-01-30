@@ -1,14 +1,11 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncDirSpec.Example
+import com.skraba.skrync.SkryncGoSpec.withConsoleMatch
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import java.io.{ByteArrayOutputStream, FileNotFoundException}
-import java.nio.charset.StandardCharsets
-import java.nio.file.NoSuchFileException
 import scala.collection.mutable
 import scala.reflect.io._
 
@@ -30,17 +27,14 @@ class DigestProgressSpec
   describe("Reporting progress while scanning and digesting") {
 
     it("can use a short, visual form streaming a character") {
-      Streamable.closing(new ByteArrayOutputStream()) { out =>
-        Console.withOut(out) {
-          val w = new PrintDigestProgress(Console.out)
-          SkryncDir
-            .scan(Small.src, w)
-            .digest(Small.src, w)
-        }
-        out.flush()
-        val stdout = new String(out.toByteArray, StandardCharsets.UTF_8)
-        // See the interpretation below.
+      withConsoleMatch {
+        val w = new PrintDigestProgress(Console.out)
+        SkryncDir
+          .scan(Small.src, w)
+          .digest(Small.src, w)
+      } { case (_, stdout, stderr) =>
         stdout shouldBe "[![!]]{<.>{<.>}}"
+        stderr shouldBe ""
       }
     }
 
@@ -109,7 +103,7 @@ class MockDigestProgress(
   }
   override def digestingFileProgress(len: Long): Long = {
     msgs.enqueue(
-      s"Digesting... : ${len}"
+      s"Digesting... : $len"
     )
     len
   }
