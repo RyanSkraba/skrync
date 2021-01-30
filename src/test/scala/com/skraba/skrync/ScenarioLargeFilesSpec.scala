@@ -6,6 +6,8 @@ import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncGo]] using a large generated source directory.
@@ -42,7 +44,25 @@ class ScenarioLargeFilesSpec
     }
 
     it("generates a SkryncDir with directory attributes and digest.") {
-      val dirWithoutSha1 = SkryncDir.scan(Large.src)
+
+      val (dirWithoutSha1, scanProgress) =
+        Streamable.closing(new ByteArrayOutputStream()) { out =>
+          Console.withOut(out) {
+            val w = new PrintDigestProgress(Console.out)
+            val dir = SkryncDir
+              .scan(Large.src, w)
+            out.flush()
+            (dir, new String(out.toByteArray, StandardCharsets.UTF_8))
+          }
+        }
+
+      // Ensure that all of the directories and files have been counted.
+      scanProgress.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
+        '[' -> 798,
+        '!' -> 1000,
+        ']' -> 798
+      )
+
       dirWithoutSha1.path.name shouldBe "large"
       // creation uses the modification time and access is not affected by reading files.
       // dirWithoutSha1.root.creation shouldBe 2000L
@@ -63,7 +83,24 @@ class ScenarioLargeFilesSpec
       fileWithoutSha1.digest shouldBe None
 
       // Only digests are added by this method.
-      val dirWithSha1: SkryncDir = dirWithoutSha1.digest(Large.src)
+      val (dirWithSha1, digestProgress) =
+        Streamable.closing(new ByteArrayOutputStream()) { out =>
+          Console.withOut(out) {
+            val w = new PrintDigestProgress(Console.out)
+            val dir = dirWithoutSha1.digest(Large.src, w)
+            out.flush()
+            (dir, new String(out.toByteArray, StandardCharsets.UTF_8))
+          }
+        }
+
+      // Ensure that all of the directories and files have been counted.
+      digestProgress.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
+        '{' -> 798,
+        '<' -> 1000,
+        '.' -> 1204,
+        '>' -> 1000,
+        '}' -> 798
+      )
 
       dirWithSha1.files should have size 1
       val fileWithSha1 = dirWithSha1.files.head

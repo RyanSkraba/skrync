@@ -39,16 +39,13 @@ object DigestTask {
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
-  /** Creates a digest file from the input directory containing the file info and digests.
-    *
-    * @param srcDirString The source directory to read.
-    * @param dstString    The destination, if present.  If this is already a directory, a default
-    *                     file name will be generated, including the date.  If not present, dumps
-    *                     to stdout.
-    */
+  /** Creates a digest file from the input directory containing the file info and digests. */
   @throws[IOException]
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
+
+    // The source directory to read.
     val srcDirString = opts.get("--srcDir").asInstanceOf[String]
+    // The destination, if present.  If this is already a directory, a default file name will be generated, including the date.  If not present, dumps to stdout
     val dstString = Option(opts.get("--dstDigest").asInstanceOf[String])
 
     val srcDir: Directory = Directory(srcDirString).toAbsolute
@@ -72,7 +69,8 @@ object DigestTask {
       })
 
     // Get all of the file information from the source directory, and add the SHA1 digests.
-    val source = SkryncDir.scan(srcDir).digest(srcDir)
+    val w = new PrintDigestProgress(Console.out)
+    val source = SkryncDir.scan(srcDir, w).digest(srcDir, w)
 
     // And write the analysis to disk in gzipped JSON format.
     Json.write(
