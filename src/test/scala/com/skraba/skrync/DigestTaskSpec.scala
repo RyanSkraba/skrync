@@ -1,13 +1,12 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.{InternalDocoptException, go}
+import com.skraba.skrync.SkryncGo.InternalDocoptException
+import com.skraba.skrync.SkryncGoSpec.withSkryncGo
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
@@ -35,7 +34,7 @@ class DigestTaskSpec
 
     it("throws an exception with --help") {
       val t = intercept[InternalDocoptException] {
-        go("digest", "--help")
+        withSkryncGo("digest", "--help")
       }
       t.getMessage shouldBe DigestTask.Doc
       t.docopt shouldBe DigestTask.Doc
@@ -49,7 +48,7 @@ class DigestTaskSpec
       )
       for (args <- invalid) {
         val t = intercept[InternalDocoptException] {
-          go(args: _*)
+          withSkryncGo(args: _*)
         }
         t.docopt shouldBe DigestTask.Doc
       }
@@ -57,42 +56,39 @@ class DigestTaskSpec
 
     it("throws an exception with unknown option") {
       val t = intercept[InternalDocoptException] {
-        go("digest", "--srcDigest")
+        withSkryncGo("digest", "--srcDigest")
       }
       t.docopt shouldBe DigestTask.Doc
     }
 
     it("throws an exception when the source doesn't exist") {
       val t = intercept[IllegalArgumentException] {
-        go("digest", "--srcDir", "/doesnt-exist")
+        withSkryncGo("digest", "--srcDir", "/doesnt-exist")
       }
       t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source is a file") {
       val t = intercept[IllegalArgumentException] {
-        go("digest", "--srcDir", ExistingFile.toString)
+        withSkryncGo("digest", "--srcDir", ExistingFile.toString)
       }
       t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
     }
 
     it("prints to standard out when no destination") {
       // No exception should occur, and output is dumped to the console.
-      val out = new ByteArrayOutputStream()
-      Console.withOut(out) {
-        go("digest", "--srcDir", Small.src.toString)
-      }
-
-      val stdout = new String(out.toByteArray, StandardCharsets.UTF_8)
+      val (stdout, stderr) =
+        withSkryncGo("digest", "--srcDir", Small.src.toString)
       stdout should not have size(0)
       stdout should include("ids.txt")
+      stderr shouldBe ""
     }
 
     it("generates a destination file automatically.") {
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("autoDst").toDirectory
       dstDir.createDirectory()
-      go(
+      withSkryncGo(
         "digest",
         "--srcDir",
         Small.src.toString,
@@ -122,7 +118,7 @@ class DigestTaskSpec
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("dst").toDirectory
       dstDir.createDirectory()
-      go(
+      withSkryncGo(
         "digest",
         "--srcDir",
         Small.src.toString,

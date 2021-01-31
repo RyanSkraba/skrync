@@ -1,12 +1,11 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.{InternalDocoptException, go}
+import com.skraba.skrync.SkryncGo.InternalDocoptException
+import com.skraba.skrync.SkryncGoSpec.withSkryncGo
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import scala.reflect.io.{Directory, File, Streamable}
 
 /** Unit tests for [[CompareTask]]
@@ -32,7 +31,7 @@ class CompareTaskSpec
   describe("SkryncGo compare command line") {
     it("throws an exception with --help") {
       val t = intercept[InternalDocoptException] {
-        go("compare", "--help")
+        withSkryncGo("compare", "--help")
       }
       t.getMessage shouldBe CompareTask.Doc
       t.docopt shouldBe CompareTask.Doc
@@ -49,7 +48,7 @@ class CompareTaskSpec
       )
       for (args <- invalid) {
         val t = intercept[InternalDocoptException] {
-          go(args: _*)
+          withSkryncGo(args: _*)
         }
         t.docopt shouldBe CompareTask.Doc
       }
@@ -57,14 +56,14 @@ class CompareTaskSpec
 
     it("throws an exception with unknown option") {
       val t = intercept[InternalDocoptException] {
-        go("compare", "--garbage")
+        withSkryncGo("compare", "--garbage")
       }
       t.docopt shouldBe CompareTask.Doc
     }
 
     it("throws an exception when the source or destination doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "compare",
           "--srcDigest",
           "/doesnt-exist",
@@ -75,7 +74,7 @@ class CompareTaskSpec
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
       val tDst = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "compare",
           "--srcDigest",
           ExistingFile.toString,
@@ -88,7 +87,7 @@ class CompareTaskSpec
 
     it("throws an exception when the source or destination is a directory") {
       val tSrc = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "compare",
           "--srcDigest",
           Small.src.toString(),
@@ -99,7 +98,7 @@ class CompareTaskSpec
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
 
       val tDst = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "compare",
           "--srcDigest",
           ExistingFile.toString,
@@ -117,14 +116,14 @@ class CompareTaskSpec
     // folders, or the same unchanged folder at two different times.
     val dstDir: Directory = Small.root.resolve("dst").toDirectory
     dstDir.createDirectory()
-    go(
+    withSkryncGo(
       "digest",
       "--srcDir",
       Small.src.toString,
       "--dstDigest",
       (dstDir / File("compare.gz")).toString
     )
-    go(
+    withSkryncGo(
       "digest",
       "--srcDir",
       Small.src.toString,
@@ -134,20 +133,17 @@ class CompareTaskSpec
 
     it("Compares two identical analysis files") {
       // No exception should occur, and output is dumped to the console.
-      val out = new ByteArrayOutputStream()
-      Console.withOut(out) {
-        go(
-          "compare",
-          "--srcDigest",
-          (dstDir / File("compare.gz")).toString(),
-          "--dstDigest",
-          (dstDir / File("compare2.gz")).toString()
-        )
-      }
+      val (stdout, stderr) = withSkryncGo(
+        "compare",
+        "--srcDigest",
+        (dstDir / File("compare.gz")).toString(),
+        "--dstDigest",
+        (dstDir / File("compare2.gz")).toString()
+      )
 
-      val stdout = new String(out.toByteArray, StandardCharsets.UTF_8)
       stdout should not have size(0)
       stdout should include("Compares:true")
+      stderr shouldBe ""
     }
   }
 }

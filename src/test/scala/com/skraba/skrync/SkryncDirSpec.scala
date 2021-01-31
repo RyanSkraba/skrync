@@ -6,10 +6,8 @@ import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import java.io.{ByteArrayOutputStream, FileNotFoundException}
-import java.nio.charset.StandardCharsets
+import java.io.FileNotFoundException
 import java.nio.file.NoSuchFileException
-import scala.collection.mutable
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncDir]] using a small generated source directory.

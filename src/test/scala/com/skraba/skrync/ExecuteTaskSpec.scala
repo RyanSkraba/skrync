@@ -1,6 +1,7 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.{InternalDocoptException, go}
+import com.skraba.skrync.SkryncGo.InternalDocoptException
+import com.skraba.skrync.SkryncGoSpec.withSkryncGo
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
@@ -19,7 +20,7 @@ class ExecuteTaskSpec
   val TempFolder: Path = Directory.makeTemp("skryncGo")
 
   /** Create a pre-existing file. */
-  val ExistingFile = TempFolder / File("exists")
+  val ExistingFile: File = TempFolder / File("exists")
   Streamable.closing(ExistingFile.outputStream())(_.write(1))
 
   override protected def afterAll(): Unit =
@@ -33,7 +34,7 @@ class ExecuteTaskSpec
   describe("SkryncGo execute command line") {
     it("throws an exception with --help") {
       val t = intercept[InternalDocoptException] {
-        go("execute", "--help")
+        withSkryncGo("execute", "--help")
       }
       t.getMessage shouldBe ExecuteTask.Doc
       t.docopt shouldBe ExecuteTask.Doc
@@ -54,7 +55,7 @@ class ExecuteTaskSpec
       )
       for (args <- invalid) {
         val t = intercept[InternalDocoptException] {
-          go(args: _*)
+          withSkryncGo(args: _*)
         }
         t.docopt shouldBe ExecuteTask.Doc
       }
@@ -62,14 +63,14 @@ class ExecuteTaskSpec
 
     it("throws an exception with unknown option") {
       val t = intercept[InternalDocoptException] {
-        go("execute", "--garbage")
+        withSkryncGo("execute", "--garbage")
       }
       t.docopt shouldBe ExecuteTask.Doc
     }
 
     it("throws an exception when the source or destination doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "execute",
           "--srcDigest",
           "/doesnt-exist",
@@ -80,7 +81,7 @@ class ExecuteTaskSpec
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
       val tDst = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "execute",
           "--srcDigest",
           ExistingFile.toString,
@@ -93,7 +94,7 @@ class ExecuteTaskSpec
 
     it("throws an exception when the source or destination is a directory") {
       val tSrc = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "execute",
           "--srcDigest",
           TempFolder.toString(),
@@ -104,7 +105,7 @@ class ExecuteTaskSpec
       tSrc.getMessage shouldBe s"Source is not a file: $TempFolder"
 
       val tDst = intercept[IllegalArgumentException] {
-        go(
+        withSkryncGo(
           "execute",
           "--srcDigest",
           ExistingFile.toString,
