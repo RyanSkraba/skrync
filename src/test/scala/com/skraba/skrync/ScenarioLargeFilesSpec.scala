@@ -1,6 +1,10 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{withConsoleMatch, withSkryncGo, withSkryncGoMatch}
+import com.skraba.skrync.SkryncGoSpec.{
+  withConsoleMatch,
+  withSkryncGo,
+  withSkryncGoMatch
+}
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers

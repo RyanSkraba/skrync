@@ -69,7 +69,7 @@ class ScenarioSmallFiles(
       RandomFiles.setTimeAttributes(d, 0L)
     }
 
-    // Create the ids2.txt file in all of the directories.
+    // Create the second ids2.txt file in the src scenario.
     RandomFiles.createTxtFileWithContents(
       rnd,
       src.resolve("sub"),
@@ -77,20 +77,20 @@ class ScenarioSmallFiles(
       Some("ids2.txt")
     )
 
-    // Create the ids2.txt file in all of the directories.
-    RandomFiles.createTxtFileWithContents(
-      rnd,
-      srcModifiedFile.resolve("sub"),
-      "4;four\n3;three\n",
-      Some("ids2.txt")
-    )
-
-    // Create the ids2.txt file in all of the directories.
+    // Create it with the same contents but different name in the renamed scenario.
     RandomFiles.createTxtFileWithContents(
       rnd,
       srcRenamedFile.resolve("sub"),
       "3;three\n4;four\n",
       Some("ids3.txt")
+    )
+
+    // Create it with different contents in the modified scenario.
+    RandomFiles.createTxtFileWithContents(
+      rnd,
+      srcModifiedFile.resolve("sub"),
+      "4;four\n3;three\n",
+      Some("ids2.txt")
     )
   }
 }
