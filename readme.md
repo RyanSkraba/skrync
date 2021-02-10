@@ -12,7 +12,7 @@ Goals
    size and MD5 or SHA1, date, attributes
    - As a file :heavy_check_mark:
    - Automatically generating a descriptive, dated filename :heavy_check_mark:
-   - Showing progress 
+   - Showing progress :heavy_check_mark:
    - Interruptable and resumable. 
 2. Compare two states to find the differences.
    - Equals only. :heavy_check_mark:
