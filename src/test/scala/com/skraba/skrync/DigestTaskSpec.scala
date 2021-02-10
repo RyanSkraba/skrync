@@ -88,13 +88,15 @@ class DigestTaskSpec
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("autoDst").toDirectory
       dstDir.createDirectory()
-      withSkryncGo(
+      val (stdout, stderr) = withSkryncGo(
         "digest",
         "--srcDir",
         Small.src.toString,
         "--dstDigest",
         dstDir.toString
       )
+      stdout shouldBe "[![!]]{<.>{<.>}}"
+      stderr shouldBe ""
 
       // One file is created.
       val dst: Seq[Path] = dstDir.list.toSeq
@@ -118,13 +120,15 @@ class DigestTaskSpec
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("dst").toDirectory
       dstDir.createDirectory()
-      withSkryncGo(
+      val (stdout, stderr) = withSkryncGo(
         "digest",
         "--srcDir",
         Small.src.toString,
         "--dstDigest",
         (dstDir / File("output.gz")).toString
       )
+      stdout shouldBe "[![!]]{<.>{<.>}}"
+      stderr shouldBe ""
 
       // One file is created.
       val dst: Seq[Path] = dstDir.list.toSeq
