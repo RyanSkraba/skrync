@@ -3,7 +3,7 @@ package com.skraba.skrync
 import com.skraba.skrync.SkryncGo.Analysis
 
 import java.io.IOException
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import scala.reflect.io._
 
@@ -31,10 +31,13 @@ object DigestTask {
       |
       |Examples:
       |
-      | SkryncGo digest --srcDir /run/media/%s/backup --dstDigest $$HOME/skrync/
+      | SkryncGo digest --srcDir %s --dstDigest $$HOME/skrync/
       |
       |""".stripMargin
-      .format(Description, sys.env.getOrElse("BACKUP_DISK_MAIN", "MYDISK"))
+      .format(
+        Description,
+        sys.env.getOrElse("BACKUP_DISK_MAIN", "/run/media/BACKUP/backup")
+      )
       .trim
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
@@ -42,6 +45,9 @@ object DigestTask {
   /** Creates a digest file from the input directory containing the file info and digests. */
   @throws[IOException]
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
+
+    // The current date/time
+    val now = LocalDateTime.now
 
     // The source directory to read.
     val srcDirString = opts.get("--srcDir").asInstanceOf[String]
@@ -59,13 +65,13 @@ object DigestTask {
         s"Source is not a directory: $srcDirString"
       )
 
-    // If no destination is specified, this will be null and standard out will be used.
+    // If no destination is specified, this will be None and standard out will be used.
     val dst: Option[File] = dstString
       .map(Path(_))
       .map(p => {
         // If the destination is a directory, auto-create the filename based on the time.
         if (p.exists && p.isDirectory)
-          p / File(getDefaultDigestName(srcDirString, LocalDateTime.now))
+          p / File(getDefaultDigestName(srcDirString, now))
         else p.toFile
       })
 
@@ -79,7 +85,7 @@ object DigestTask {
     Json.write(
       Analysis(
         src = srcDir,
-        created = System.currentTimeMillis(),
+        created = now.toInstant(ZoneOffset.UTC).toEpochMilli,
         info = source
       ),
       dst,

@@ -7,7 +7,8 @@ import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.format.DateTimeFormatter
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[DigestTask]]
@@ -107,13 +108,29 @@ class DigestTaskSpec
       dstDigestFile.name should include("_small_")
       dstDigestFile.name should endWith regex """_\d{14}"""
 
-      // The contents of the file should be readable.
-      val dstRoot = Json.read(dstDigestFile)
+      // This is the actual time taken from the file name in YYYYMMDDHHMMSS format.
+      val dstDigestFileTime = """\d{14}$""".r.findFirstIn(dstDigestFile.name)
+
+      // The contents of the file should be readable and match the contents of the directory.
+      val analysis = Json.read(dstDigestFile)
       val expected =
         SkryncDir.scan(Small.src).digest(Small.src).copyWithoutTimes()
-      dstRoot.info
-        .copy(path = dstRoot.info.path.copy(name = "small"))
+
+      analysis.src shouldBe Small.src
+      analysis.info
+        .copy(path = analysis.info.path.copy(name = "small"))
         .copyWithoutTimes() shouldBe expected
+
+      // The internal file time should match the filename.
+      LocalDateTime
+        .ofInstant(
+          Instant.ofEpochMilli(analysis.created),
+          ZoneOffset.UTC
+        )
+        .format(
+          DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+        ) shouldBe dstDigestFileTime.value
+
     }
 
     it("creates the file when a destination is explicitly specified.") {
