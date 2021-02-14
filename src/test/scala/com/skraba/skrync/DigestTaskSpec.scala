@@ -130,7 +130,6 @@ class DigestTaskSpec
         .format(
           DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
         ) shouldBe dstDigestFileTime.value
-
     }
 
     it("creates the file when a destination is explicitly specified.") {
@@ -159,6 +158,37 @@ class DigestTaskSpec
       val dstRoot = Json.read(dstDigestFile)
       val expected =
         SkryncDir.scan(Small.src).digest(Small.src).copyWithoutTimes()
+      dstRoot.info.copy(path =
+        dstRoot.info.path.copy(name = "small")
+      ) shouldBe expected
+    }
+
+    it("creates the file without digest information.") {
+      // Run the application and check the system streams.
+      val dstDir: Directory = Small.root.resolve("dstNoDigest").toDirectory
+      dstDir.createDirectory()
+      val (stdout, stderr) = withSkryncGo(
+        "digest",
+        "--no-digest",
+        "--srcDir",
+        Small.src.toString,
+        "--dstDigest",
+        (dstDir / File("output.gz")).toString
+      )
+      stdout shouldBe "[![!]]"
+      stderr shouldBe ""
+
+      // One file is created.
+      val dst: Seq[Path] = dstDir.list.toSeq
+      dst should have size 1
+
+      // It should have the specified name.
+      val dstDigestFile = dst.headOption.value.toFile
+      dstDigestFile.name shouldBe "output.gz"
+
+      // The contents of the file should be readable.
+      val dstRoot = Json.read(dstDigestFile)
+      val expected = SkryncDir.scan(Small.src).copyWithoutTimes()
       dstRoot.info.copy(path =
         dstRoot.info.path.copy(name = "small")
       ) shouldBe expected

@@ -21,6 +21,7 @@ object DigestTask {
       |
       |Usage:
       |  SkryncGo digest --srcDir=<SRC_DIR> [--dstDigest=<DST>] [--silent]
+      |      [--no-digest]
       |
       |Options:
       |  --srcDir SRC_DIR  The directory to analyze.
@@ -28,6 +29,7 @@ object DigestTask {
       |                    auto generate a destination.  If not present, writes to
       |                    STDOUT.
       |  --silent          Do not print any output unless writing to STDOUT.
+      |  --no-digest       Skip calculating the digest on the file contents.
       |
       |Examples:
       |
@@ -54,6 +56,7 @@ object DigestTask {
     // The destination, if present.  If this is already a directory, a default file name will be generated, including the date.  If not present, dumps to stdout
     val dstString = Option(opts.get("--dstDigest").asInstanceOf[String])
     val silent = opts.get("--silent").asInstanceOf[Boolean]
+    val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
 
     val srcDir: Directory = Directory(srcDirString).toAbsolute
     if (!srcDir.exists)
@@ -76,10 +79,14 @@ object DigestTask {
       })
 
     // Get all of the file information from the source directory, and add the SHA1 digests.
-    val progressWatcher =
+    val out =
       if (silent) IgnoreProgress else new PrintDigestProgress(Console.out)
+
+    // Get the source information, but only do the digest if requested.
+    val sourceWithoutDigest = SkryncDir.scan(srcDir, out)
     val source =
-      SkryncDir.scan(srcDir, progressWatcher).digest(srcDir, progressWatcher)
+      if (digest) sourceWithoutDigest.digest(srcDir, out)
+      else sourceWithoutDigest
 
     // And write the analysis to disk in gzipped JSON format.
     Json.write(
