@@ -6,7 +6,7 @@ import com.skraba.skrync.SkryncGo.Analysis
 
 import java.io.{BufferedOutputStream, InputStreamReader, PrintWriter}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
-import scala.reflect.io.{Directory, File, Streamable}
+import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Utilities for reading and writing the file to and from JSON */
 object Json {
@@ -121,7 +121,11 @@ object Json {
     * @param dst     The destination file to write to, or overwrite.
     * @param gzipped Whether to gzip the output.
     */
-  def write(analysis: Analysis, dst: Option[File], gzipped: Boolean): Unit = {
+  private[this] def write(
+      analysis: Analysis,
+      dst: Option[File],
+      gzipped: Boolean
+  ): Unit = {
     dst match {
       case None =>
         Streamable.closing(new JsonWriter(new PrintWriter(Console.out))) { jw =>
@@ -155,6 +159,78 @@ object Json {
       analysisFromJson(ignoreTimes)(
         new Gson().fromJson(in, classOf[JsonObject])
       )
+    }
+  }
+
+  /** Write an analysis object with all of its files and directories to a file.
+    *
+    * @param src The root of the directory that was digested/analysed.
+    * @param dst The destination file to write to, or None to go write to STDOUT.
+    * @param created The time that the the analysis was performed.
+    * @param gzipped Whether to gzip the output.
+    * @param wrapped An additional digest progress watcher to wrap.
+    */
+  def writeProgress(
+      src: Directory,
+      dst: Option[File],
+      created: Long,
+      gzipped: Boolean,
+      wrapped: DigestProgress = IgnoreProgress
+  ): DigestProgress = new DigestProgress {
+    var root: Option[Directory] = None
+
+    override def scanningDir(p: Directory): Unit = {
+      if (root.isEmpty)
+        root = Some(p)
+      wrapped.scanningDir(p)
+    }
+
+    override def scannedDir(p: Directory, dir: SkryncDir): SkryncDir = {
+      if (root.contains(p))
+        write(
+          Analysis(
+            src = src,
+            created = created,
+            info = dir
+          ),
+          dst,
+          gzipped
+        )
+      wrapped.scannedDir(p, dir)
+    }
+
+    override def scannedFile(p: Path, file: SkryncPath): SkryncPath =
+      wrapped.scannedFile(p, file)
+
+    override def digestingDir(p: Path, dir: SkryncDir): SkryncDir =
+      wrapped.digestingDir(p, dir)
+
+    override def digestedDir(p: Path, dir: SkryncDir): SkryncDir = {
+      // TODO: avoid writing twice. writes twice.
+      // Overwrite it if it was also digested.
+      if (root.contains(p))
+        write(
+          Analysis(
+            src = src,
+            created = created,
+            info = dir
+          ),
+          dst,
+          gzipped
+        )
+      val relativeDir = root.map(_.relativize(p))
+      wrapped.digestedDir(p, dir)
+    }
+
+    override def digestingFile(p: Path, file: SkryncPath): SkryncPath =
+      wrapped.digestingFile(p, file)
+
+    override def digestingFileProgress(len: Long): Long =
+      wrapped.digestingFileProgress(len)
+
+    override def digestedFile(p: Path, file: SkryncPath): SkryncPath = {
+      val relativeFile = root.map(_.relativize(p))
+      wrapped.digestedFile(p, file)
     }
   }
 }

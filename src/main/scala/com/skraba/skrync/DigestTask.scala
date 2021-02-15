@@ -78,26 +78,23 @@ object DigestTask {
         else p.toFile
       })
 
-    // Get all of the file information from the source directory, and add the SHA1 digests.
-    val out =
-      if (silent) IgnoreProgress else new PrintDigestProgress(Console.out)
+    // Whether to write the output to the console as well.
+    val consoleOut =
+      if (silent || dst.isEmpty) IgnoreProgress
+      else new PrintDigestProgress(Console.out)
+
+    // The destination for writing the actual digest.
+    val out: DigestProgress = Json.writeProgress(
+      src = srcDir,
+      dst = dst,
+      created = now.toInstant(ZoneOffset.UTC).toEpochMilli,
+      gzipped = true,
+      wrapped = consoleOut
+    )
 
     // Get the source information, but only do the digest if requested.
-    val sourceWithoutDigest = SkryncDir.scan(srcDir, out)
-    val source =
-      if (digest) sourceWithoutDigest.digest(srcDir, out)
-      else sourceWithoutDigest
-
-    // And write the analysis to disk in gzipped JSON format.
-    Json.write(
-      Analysis(
-        src = srcDir,
-        created = now.toInstant(ZoneOffset.UTC).toEpochMilli,
-        info = source
-      ),
-      dst,
-      gzipped = true
-    )
+    if (digest) SkryncDir.scan(srcDir, out).digest(srcDir, out)
+    else SkryncDir.scan(srcDir, out)
   }
 
   /** Create a default filename for a digest file.
