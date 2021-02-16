@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
-import com.google.gson.stream.JsonWriter
 import com.google.gson.{Gson, JsonArray, JsonObject}
+import com.google.gson.stream.{JsonReader, JsonToken, JsonWriter}
 import com.skraba.skrync.SkryncGo.Analysis
 
 import java.io.{BufferedOutputStream, InputStreamReader, PrintWriter}
@@ -115,50 +115,77 @@ object Json {
     )
   }
 
-  /** Write an analysis object with all of its files and directories to a file.
-    *
-    * @param analysis    The object to write.
-    * @param dst     The destination file to write to, or overwrite.
-    * @param gzipped Whether to gzip the output.
-    */
-  private[this] def write(
-      analysis: Analysis,
-      dst: Option[File],
-      gzipped: Boolean
-  ): Unit = {
-    dst match {
-      case None =>
-        Streamable.closing(new JsonWriter(new PrintWriter(Console.out))) { jw =>
-          new Gson().toJson(analysisToJson(analysis), jw)
-        }
-      case Some(file) =>
-        val out = new PrintWriter(
-          if (gzipped) new GZIPOutputStream(file.outputStream())
-          else new BufferedOutputStream(file.outputStream())
+  /** Collects "pointers" by path into the JSON object. */
+  private[this] def collectByPath(
+      current: Path,
+      json: JsonObject
+  ): Seq[(Path, JsonObject)] = {
+    import collection.JavaConverters._
+    // Remember this object at the current path
+    Seq(current -> json) ++
+      // Add all of the files to the list, inside the current path.
+      json
+        .getAsJsonArray(Files)
+        .iterator
+        .asScala
+        .map(_.getAsJsonObject)
+        .map(json => current.resolve(json.get(Name).getAsString) -> json) ++
+      // Add all of the files to the list, inside the current path.
+      json
+        .getAsJsonArray(Dirs)
+        .iterator
+        .asScala
+        .map(_.getAsJsonObject)
+        .flatMap(json =>
+          collectByPath(current.resolve(json.get(Name).getAsString), json)
         )
-
-        Streamable.closing(new JsonWriter(out)) { w =>
-          new Gson().toJson(analysisToJson(analysis), w)
-        }
-    }
   }
 
   /** @param src The source file generated from [[write()]]
     */
   def read(src: File, ignoreTimes: Boolean = true): Analysis = {
+
     // It's gzipped if the magic header matches these two bytes.
     val gzipped = Streamable.closing(src.inputStream) { in =>
       in.read == 0x1f && in.read == 0x8b
     }
 
-    Streamable.closing(
+    // There can be multiple JSON objects in the reader, which Gson requires to be lenient
+    val gson = new Gson()
+    val r = new JsonReader(
       new InputStreamReader(
         if (gzipped) new GZIPInputStream(src.inputStream) else src.inputStream
       )
-    ) { in =>
-      analysisFromJson(ignoreTimes)(
-        new Gson().fromJson(in, classOf[JsonObject])
-      )
+    )
+    r.setLenient(true)
+
+    // Read all of the json objects from the stream and me
+    Streamable.closing(r) { r =>
+      // The main tree is the first JSON object in the stream.
+      val analysisJson: JsonObject = gson.fromJson(r, classOf[JsonObject])
+
+      // Create a map from all of the paths to the internal JSON objects in the main tree.
+      val paths: Map[Path, JsonObject] =
+        collectByPath(Path(""), analysisJson).toMap
+
+      // All of the remaining JSON objects in the stream are digest info.
+      Stream
+        .continually {
+          if (r.peek() == JsonToken.END_DOCUMENT) None
+          else
+            Some(gson.fromJson(r, classOf[JsonObject]).asInstanceOf[JsonObject])
+        }
+        .takeWhile(_.nonEmpty)
+        .map(_.get)
+        .foreach { sha1Json =>
+          // Update the main analysis object by looking up the name
+          paths
+            .get(Path(sha1Json.get(Name).getAsString))
+            .map(_.addProperty(Sha1, sha1Json.get(Sha1).getAsString))
+        }
+
+      // Convert the merged json to an object
+      analysisFromJson(ignoreTimes)(analysisJson)
     }
   }
 
@@ -177,7 +204,26 @@ object Json {
       gzipped: Boolean,
       wrapped: DigestProgress = IgnoreProgress
   ): DigestProgress = new DigestProgress {
+
     var root: Option[Directory] = None
+
+    val out = new PrintWriter(dst match {
+      case None => Console.out
+      case Some(file) =>
+        if (gzipped) new GZIPOutputStream(file.outputStream())
+        else new BufferedOutputStream(file.outputStream())
+    })
+
+    val w = new JsonWriter(out)
+    val g = new Gson()
+
+    private[this] def appendJson(json: JsonObject): Unit = {
+      g.toJson(json, w)
+      if (!gzipped || dst.isEmpty) {
+        w.flush()
+        out.println()
+      }
+    }
 
     override def scanningDir(p: Directory): Unit = {
       if (root.isEmpty)
@@ -186,16 +232,18 @@ object Json {
     }
 
     override def scannedDir(p: Directory, dir: SkryncDir): SkryncDir = {
-      if (root.contains(p))
-        write(
-          Analysis(
-            src = src,
-            created = created,
-            info = dir
-          ),
-          dst,
-          gzipped
+      if (root.contains(p)) {
+        appendJson(
+          analysisToJson(
+            Analysis(
+              src = src,
+              created = created,
+              info = dir
+            )
+          )
         )
+        w.flush()
+      }
       wrapped.scannedDir(p, dir)
     }
 
@@ -206,31 +254,37 @@ object Json {
       wrapped.digestingDir(p, dir)
 
     override def digestedDir(p: Path, dir: SkryncDir): SkryncDir = {
-      // TODO: avoid writing twice. writes twice.
-      // Overwrite it if it was also digested.
-      if (root.contains(p))
-        write(
-          Analysis(
-            src = src,
-            created = created,
-            info = dir
-          ),
-          dst,
-          gzipped
-        )
-      val relativeDir = root.map(_.relativize(p))
+      appendJson {
+        val json = new JsonObject()
+        json.addProperty(Name, root.map(_.relativize(p).toString).getOrElse(""))
+        dir.path.digest.map(Digests.toHex).foreach(json.addProperty(Sha1, _))
+        json
+      }
       wrapped.digestedDir(p, dir)
     }
 
-    override def digestingFile(p: Path, file: SkryncPath): SkryncPath =
+    override def digestingFile(p: Path, file: SkryncPath): SkryncPath = {
       wrapped.digestingFile(p, file)
+    }
 
     override def digestingFileProgress(len: Long): Long =
       wrapped.digestingFileProgress(len)
 
     override def digestedFile(p: Path, file: SkryncPath): SkryncPath = {
-      val relativeFile = root.map(_.relativize(p))
+      appendJson {
+        val json = new JsonObject()
+        json.addProperty(Name, root.map(_.relativize(p).toString).getOrElse(""))
+        file.digest.map(Digests.toHex).foreach(json.addProperty(Sha1, _))
+        json
+      }
       wrapped.digestedFile(p, file)
+    }
+
+    override def done(p: Directory, dir: SkryncDir): SkryncDir = {
+      if (root.contains(p)) {
+        w.close()
+      }
+      wrapped.done(p, dir)
     }
   }
 }

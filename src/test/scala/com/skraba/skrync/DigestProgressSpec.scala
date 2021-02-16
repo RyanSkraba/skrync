@@ -113,4 +113,10 @@ class MockDigestProgress(
     )
     file
   }
+  override def done(p: Directory, dir: SkryncDir): SkryncDir = {
+    msgs.enqueue(
+      s"Done (${root.relativize(p)}) : ${Digests.toHex(dir.path.digest.value)}"
+    )
+    dir
+  }
 }

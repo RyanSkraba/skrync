@@ -93,8 +93,11 @@ object DigestTask {
     )
 
     // Get the source information, but only do the digest if requested.
-    if (digest) SkryncDir.scan(srcDir, out).digest(srcDir, out)
-    else SkryncDir.scan(srcDir, out)
+    out.done(
+      srcDir,
+      if (digest) SkryncDir.scan(srcDir, out).digest(srcDir, out)
+      else SkryncDir.scan(srcDir, out)
+    )
   }
 
   /** Create a default filename for a digest file.

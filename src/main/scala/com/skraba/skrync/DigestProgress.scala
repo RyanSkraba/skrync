@@ -5,18 +5,6 @@ import scala.reflect.io.{Directory, Path}
 
 /** A trait that is used as a callback for progress as the tool is working. */
 trait DigestProgress {
-  def scanningDir(p: Directory): Unit
-  def scannedDir(p: Directory, dir: SkryncDir): SkryncDir
-  def scannedFile(p: Path, file: SkryncPath): SkryncPath
-  def digestingDir(p: Path, dir: SkryncDir): SkryncDir
-  def digestedDir(p: Path, dir: SkryncDir): SkryncDir
-  def digestingFile(p: Path, file: SkryncPath): SkryncPath
-  def digestingFileProgress(len: Long): Long
-  def digestedFile(p: Path, file: SkryncPath): SkryncPath
-}
-
-/** An implementation that does nothing. */
-object IgnoreProgress extends DigestProgress {
   def scanningDir(p: Directory): Unit = {}
   def scannedDir(p: Directory, dir: SkryncDir): SkryncDir = dir
   def scannedFile(p: Path, file: SkryncPath): SkryncPath = file
@@ -25,7 +13,11 @@ object IgnoreProgress extends DigestProgress {
   def digestingFile(p: Path, file: SkryncPath): SkryncPath = file
   def digestingFileProgress(len: Long): Long = len
   def digestedFile(p: Path, file: SkryncPath): SkryncPath = file
+  def done(p: Directory, dir: SkryncDir): SkryncDir = dir
 }
+
+/** An implementation that does nothing. */
+object IgnoreProgress extends DigestProgress {}
 
 /** A wrapper for detecting progress that prints to a stream. */
 class PrintDigestProgress(
