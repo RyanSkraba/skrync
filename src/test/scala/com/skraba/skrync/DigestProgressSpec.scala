@@ -29,9 +29,7 @@ class DigestProgressSpec
     it("can use a short, visual form streaming a character") {
       withConsoleMatch {
         val w = new PrintDigestProgress(Console.out)
-        SkryncDir
-          .scan(Small.src, w)
-          .digest(Small.src, w)
+        SkryncDir.scan(Small.src, digest = true, w)
       } { case (_, stdout, stderr) =>
         stdout shouldBe "[![!]]{<.>{<.>}}"
         stderr shouldBe ""
@@ -40,9 +38,7 @@ class DigestProgressSpec
 
     it("performs the long form") {
       val w = new MockDigestProgress(Small.src)
-      SkryncDir
-        .scan(Small.src, w)
-        .digest(Small.src, w)
+      SkryncDir.scan(Small.src, digest = true, w)
 
       w.msgs.dequeue() shouldBe "Starting to scan... ()"
       w.msgs.dequeue() shouldBe "Scanned file (ids.txt) : 12"
@@ -62,6 +58,7 @@ class DigestProgressSpec
       w.msgs.dequeue() shouldBe "Digested dir (sub) : EA0AE70F1FBBDB58778290AFCCAE3907C2074A46"
       w.msgs
         .dequeue() shouldBe s"Digested dir () : ${Digests.toHex(Small.dirDigest)}"
+      w.msgs.dequeue() shouldBe s"Done () : ${Digests.toHex(Small.dirDigest)}"
       w.msgs should have size 0
     }
   }

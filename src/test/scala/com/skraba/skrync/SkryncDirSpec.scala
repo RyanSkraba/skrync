@@ -28,7 +28,7 @@ class SkryncDirSpec
   describe("SkryncDir") {
 
     it("can initialize itself from a path.") {
-      val withoutSha1 = SkryncDir.scan(Small.src)
+      val withoutSha1 = SkryncDir.scan(Small.src, digest = false)
       withoutSha1.path.name shouldBe "small"
       withoutSha1.path.size shouldBe 27L
       // creation uses the modification time and access is based on the current time.
@@ -94,7 +94,7 @@ class SkryncDirSpec
     }
 
     it("can flatten its path contents.") {
-      val src = SkryncDir.scan(Small.src)
+      val src = SkryncDir.scan(Small.src, digest = false)
       val paths = src.flattenPaths(Path("."))
       paths should have size 2
       paths should contain(Path("./ids.txt") -> src.files.head)

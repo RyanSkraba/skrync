@@ -98,7 +98,10 @@ object SkryncDir {
     * @param d The path to get from the filesystem.
     * @param w A class that is notified as the file system is being traversed.
     */
-  def scan(d: Directory, w: DigestProgress = IgnoreProgress): SkryncDir = {
+  private def scanInternal(
+      d: Directory,
+      w: DigestProgress = IgnoreProgress
+  ): SkryncDir = {
     val root = SkryncPath(d)
     w.scanningDir(d)
 
@@ -106,7 +109,7 @@ object SkryncDir {
     val files = (for (f <- d.list.toList if f.isFile)
       yield w.scannedFile(f, SkryncPath(f.toFile))).sortWith(_.name < _.name)
     val dirs = (for (sub <- d.list.toList if sub.isDirectory)
-      yield SkryncDir.scan(sub.toDirectory, w))
+      yield SkryncDir.scanInternal(sub.toDirectory, w))
       .sortWith(_.path.name < _.path.name)
 
     val deepSize = files.map(_.size).sum + dirs.map(_.path.size).sum
@@ -121,5 +124,22 @@ object SkryncDir {
         dirs = dirs
       )
     )
+  }
+
+  /** Create a [[SkryncDir]] of the basic path elements, including all subdirectories and files
+    * recursively.  This only calculates the digest if requested.
+    *
+    * @param d The path to get from the filesystem.
+    * @param w A class that is notified as the file system is being traversed.
+    * @param digest Get the digests after scanning the file system.
+    */
+  def scan(
+      d: Directory,
+      digest: Boolean,
+      w: DigestProgress = IgnoreProgress
+  ): SkryncDir = {
+    // Do the scan
+    val dir = scanInternal(d, w)
+    w.done(d, if (digest) dir.digest(d, w) else dir)
   }
 }

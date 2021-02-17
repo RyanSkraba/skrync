@@ -92,12 +92,8 @@ object DigestTask {
       wrapped = consoleOut
     )
 
-    // Get the source information, but only do the digest if requested.
-    out.done(
-      srcDir,
-      if (digest) SkryncDir.scan(srcDir, out).digest(srcDir, out)
-      else SkryncDir.scan(srcDir, out)
-    )
+    // Run the scan, saving the information via the progress
+    SkryncDir.scan(srcDir, digest, out)
   }
 
   /** Create a default filename for a digest file.

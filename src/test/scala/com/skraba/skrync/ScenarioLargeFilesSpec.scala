@@ -50,7 +50,7 @@ class ScenarioLargeFilesSpec
       // Fetch an undigested SkryncDir from the large scenario.
       val dirWithoutSha1: SkryncDir = withConsoleMatch {
         val w = new PrintDigestProgress(Console.out)
-        SkryncDir.scan(Large.src, w)
+        SkryncDir.scan(Large.src, digest = false, w)
       } { case (dir: SkryncDir, stdout, stderr) =>
         // Ensure that all of the directories and files have been counted.
         stdout.groupBy(c => c).mapValues(c => c.length) shouldBe Map(
@@ -150,7 +150,7 @@ class ScenarioLargeFilesSpec
         // The contents of the file should be readable.
         val dstRoot = Json.read(dstDigestFile)
         val expected =
-          SkryncDir.scan(Large.src).digest(Large.src).copyWithoutTimes()
+          SkryncDir.scan(Large.src, digest = true).copyWithoutTimes()
         dstRoot.info.copy(path =
           dstRoot.info.path.copy(name = "large")
         ) shouldBe expected
