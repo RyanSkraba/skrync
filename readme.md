@@ -1,12 +1,12 @@
 Skrync ![Java CI](https://github.com/RyanSkraba/skrync/workflows/Java%20CI/badge.svg)
-======
+==============================================================================
 
 (This is a project in progress)
 
 My file synchronization tool.
 
 Goals
------
+------------------------------------------------------------------------------
 
 1. Save the state of all files recursively from a root directory:
    size and MD5 or SHA1, date, attributes
@@ -34,7 +34,7 @@ Goals
 # Unlikely that it exists already due to the timestamp.
 skrync digest --srcDir /media/username/MYDISK/backup \
     --dstDigest /media/username/MYDISK/.skrync/
-skrync hash --srcDir /media/username/MYDISK2/backup \
+skrync digest --srcDir /media/username/MYDISK2/backup \
     --dstDigest /media/username/MYDISK2/.skrync/
 
 # Dry run it (produces a plan)
@@ -53,7 +53,7 @@ skrync execute --plan /tmp/todo/plan.json --backup /tmp/changed/
 ```
 
 Running the launcher
---------------------
+------------------------------------------------------------------------------
 
 ```bash
 mvn package
