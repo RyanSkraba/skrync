@@ -38,8 +38,8 @@ object CompareTask {
   )
 
   def compare(src: SkryncDir, dst: SkryncDir): Comparison = {
-    val srcMap = src.flattenPaths(Path(src.path.name)).toMap
-    val dstMap = dst.flattenPaths(Path(dst.path.name)).toMap
+    val srcMap = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
+    val dstMap = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
 
     val srcKeys = srcMap.keySet
     val dstKeys = dstMap.keySet
@@ -48,7 +48,7 @@ object CompareTask {
       srcKeys.diff(dstKeys),
       dstKeys.diff(srcKeys),
       srcKeys.union(dstKeys).filter { p =>
-        srcMap(p) != dstMap(p)
+        srcMap.contains(p) && dstMap.contains(p) && srcMap(p) != dstMap(p)
       }
     )
   }

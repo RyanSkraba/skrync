@@ -5,7 +5,21 @@ import com.skraba.skrync.Digests.Digest
 import scala.reflect.io._
 import scala.util.Random
 
-/** Create a small directory with two files inside for simple unit tests.
+/** Create a small directory with two files inside for simple unit tests, and some variations.
+  *
+  * Given `root` as the base directory:
+  *
+  *  1. An original scenario with two CSV files.
+  *    - `root/small/ids.txt`
+  *    - `root/small/sub/ids2.txt`
+  *  1. A variation where one of the files is deleted.
+  *    - `root/scenario1/ids.txt`
+  *  1. A variation where one of the files is modified.
+  *    - `root/scenario2/ids.txt`
+  *    - `root/scenario2/sub/ids2.txt`
+  *  1. A variation where one of the files is unmodified but renamed.
+  *    - `root/scenario3/ids.txt`
+  *    - `root/scenario3/sub/ids3.txt`
   *
   * @param root An existing directory.  The small and scenario directories will be created inside
   *              and deleted on [[cleanup]].
@@ -34,13 +48,14 @@ class ScenarioSmallFiles(
   val src: Directory = root / Directory("small")
 
   /** Identical to src without ids2.txt. */
-  val srcDeletedFile: Directory = root / Directory("scenario1")
+  val srcDeletedFile: Directory =
+    root / Directory("scenario1") / Directory("small")
 
   /** Identical to src with ids2.txt modified. */
-  val srcModifiedFile: Directory = root / Directory("scenario2")
+  val srcModifiedFile: Directory = root / Directory("scenario2")/ Directory("small")
 
   /** Identical to src with ids2.txt renamed to ids3.txt. */
-  val srcRenamedFile: Directory = root / Directory("scenario3")
+  val srcRenamedFile: Directory = root / Directory("scenario3")/ Directory("small")
 
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =
@@ -55,7 +70,7 @@ class ScenarioSmallFiles(
     val rnd = new Random()
     for (d <- Seq(src, srcDeletedFile, srcModifiedFile, srcRenamedFile)) {
       // This file is in all of the scenarios.
-      d.createDirectory(force = false, failIfExists = true)
+      d.createDirectory(force = true, failIfExists = true)
       RandomFiles.setTimeAttributes(d, 0L)
       RandomFiles.createTxtFileWithContents(
         rnd,

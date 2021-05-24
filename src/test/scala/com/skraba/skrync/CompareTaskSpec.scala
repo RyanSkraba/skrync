@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.reflect.io.{Directory, File, Streamable}
+import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[CompareTask]]
   */
@@ -131,7 +131,42 @@ class CompareTaskSpec
       (dstDir / File("compare2.gz")).toString
     )
 
-    it("Compares two identical analysis files") {
+    it("on the filesystem including digests") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.src, digest = true)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.modified shouldBe Set()
+    }
+
+    it("on the filesystem without digests") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = false),
+        SkryncDir.scan(Small.src, digest = false)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.modified shouldBe Set()
+    }
+
+    it("on the filesystem with digest mismatches") {
+      // This is actually an error condition, when one directory instance contains a digest
+      // and another doesn't, they're considered mismatches.
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.src, digest = false)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.modified shouldBe Set(
+        Path("small/ids.txt"),
+        Path("small/sub/ids2.txt")
+      )
+    }
+
+    it("via the CLI") {
       // No exception should occur, and output is dumped to the console.
       val (stdout, stderr) = withSkryncGo(
         "compare",
@@ -144,6 +179,50 @@ class CompareTaskSpec
       stdout should not have size(0)
       stdout should include("Compares:true")
       stderr shouldBe ""
+    }
+  }
+
+  describe("SkryncGo compare different folders") {
+
+    it("when a file is deleted") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.srcDeletedFile, digest = true)
+      )
+      cmp.srcOnly shouldBe Set(Path("small/sub/ids2.txt"))
+      cmp.dstOnly shouldBe Set()
+      cmp.modified shouldBe Set()
+    }
+
+    it("when a file is added") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.srcDeletedFile, digest = true),
+        SkryncDir.scan(Small.src, digest = true)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set(Path("small/sub/ids2.txt"))
+      cmp.modified shouldBe Set()
+    }
+
+    it("when a file is modified") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.srcModifiedFile, digest = true)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.modified shouldBe Set(Path("small/sub/ids2.txt"))
+    }
+
+    it("when a file is renamed") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.srcRenamedFile, digest = true)
+      )
+      // TODO: This is currently treated as an addition and deletion
+      cmp.srcOnly shouldBe Set(Path("small/sub/ids2.txt"))
+      cmp.dstOnly shouldBe Set(Path("small/sub/ids3.txt"))
+      cmp.modified shouldBe Set()
     }
   }
 }
