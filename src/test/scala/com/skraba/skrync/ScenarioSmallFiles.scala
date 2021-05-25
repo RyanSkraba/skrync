@@ -52,10 +52,12 @@ class ScenarioSmallFiles(
     root / Directory("scenario1") / Directory("small")
 
   /** Identical to src with ids2.txt modified. */
-  val srcModifiedFile: Directory = root / Directory("scenario2")/ Directory("small")
+  val srcModifiedFile: Directory =
+    root / Directory("scenario2") / Directory("small")
 
   /** Identical to src with ids2.txt renamed to ids3.txt. */
-  val srcRenamedFile: Directory = root / Directory("scenario3")/ Directory("small")
+  val srcRenamedFile: Directory =
+    root / Directory("scenario3") / Directory("small")
 
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =

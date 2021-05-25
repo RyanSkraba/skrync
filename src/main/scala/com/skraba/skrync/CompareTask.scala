@@ -41,14 +41,14 @@ object CompareTask {
     val srcMap = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
     val dstMap = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
 
-    val srcKeys = srcMap.keySet
-    val dstKeys = dstMap.keySet
+    val srcKeys: Set[Path] = srcMap.keySet
+    val dstKeys: Set[Path] = dstMap.keySet
 
     Comparison(
       srcKeys.diff(dstKeys),
       dstKeys.diff(srcKeys),
-      srcKeys.union(dstKeys).filter { p =>
-        srcMap.contains(p) && dstMap.contains(p) && srcMap(p) != dstMap(p)
+      srcKeys.intersect(dstKeys).filter { p =>
+        srcMap(p) != dstMap(p)
       }
     )
   }
