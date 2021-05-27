@@ -42,7 +42,7 @@ object SkryncGo {
   ) extends RuntimeException(msg, ex)
 
   val Tasks: Seq[Task] =
-    Seq(DigestTask.Task, CompareTask.Task, ExecuteTask.Task)
+    Seq(DigestTask.Task, ReportTask.Task, CompareTask.Task, ExecuteTask.Task)
 
   val Doc: String =
     """My file synchronization and backup tool.

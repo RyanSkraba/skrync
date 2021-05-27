@@ -14,15 +14,18 @@ Goals
    - Automatically generating a descriptive, dated filename :heavy_check_mark:
    - Showing progress :heavy_check_mark:
    - Interruptable and resumable. 
-2. Compare two states to find the differences.
+2. Print some statistics on the files that were discovered.
+   - Number of files.
+   - Largest files that have duplicates.
+   - Largest directories that have duplicates.
+3. Compare two states to find the differences.
    - Equals only. :heavy_check_mark:
    - Info.
-   - Progress
-   - New files.
-   - Deleted files.
+   - New files. :heavy_check_mark:
+   - Deleted files. :heavy_check_mark:
    - Moved and/or renamed.
    - Copied...?
-3. Rectify the differences. :x: _(not started)_
+4. Rectify the differences. :x: _(not started)_
    - Progress
    - Copy new files from source to destination.
    - Move files in the destination.
