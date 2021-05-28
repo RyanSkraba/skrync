@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.CompareTask.Comparison
+import com.skraba.skrync.Digests.Digest
 
 import scala.reflect.io._
 
@@ -31,10 +31,21 @@ object ReportTask {
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
-  case class Report(duplicateFiles: Seq[SkryncPath])
+  case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
 
-  def report(src: SkryncDir): Report = {
-    Report(Seq())
+  def report(src: SkryncGo.Analysis): Report = {
+    val digests: Map[Digest, Seq[(Path, SkryncPath)]] =
+      src.info
+        .flattenPaths(src.src)
+        .filter(_._2.digest.nonEmpty)
+        .groupBy(_._2.digest.get)
+
+    val duplicates = digests.toSeq
+      .filter(_._2.size > 1)
+      .sortBy(_._2.head._2.size)
+      .map(_._2.map(_.swap))
+
+    Report(duplicates)
   }
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
@@ -54,12 +65,22 @@ object ReportTask {
     val src: SkryncGo.Analysis = Json.read(srcDigest)
 
     // Check the two digests for differences.
-    val r = report(src.info)
+    val r = report(src)
 
     // TODO: implement
     println("REPORT")
     println("===========")
-    println("srcDigest:" + srcDigestString)
-    println("Report:" + r)
+    println("from: " + srcDigestString)
+    println(s"total files: ${src.info.deepFileCount}")
+    println()
+    println("Duplicates")
+    println("----------")
+    for (fs <- r.duplicateFiles.takeRight(10)) {
+      println(s"${fs.head._1.size} (${fs.size}) -->")
+      for (fs2 <- fs) {
+        println(s"   ${fs2._2}")
+      }
+    }
+
   }
 }

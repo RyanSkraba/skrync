@@ -91,7 +91,11 @@ class ReportTaskSpec
 
     it("on the filesystem") {
       val cmp = ReportTask.report(
-        SkryncDir.scan(Small.src, digest = true)
+        SkryncGo.Analysis(
+          Small.src,
+          0,
+          SkryncDir.scan(Small.src, digest = true)
+        )
       )
       cmp.duplicateFiles shouldBe List()
     }
@@ -105,7 +109,7 @@ class ReportTaskSpec
       )
 
       stdout should not have size(0)
-      stdout should include("Report:Report")
+      stdout should include("\ntotal files: 2\n")
       stderr shouldBe ""
     }
   }
