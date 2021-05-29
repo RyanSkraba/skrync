@@ -29,7 +29,6 @@
     <scala.minor.version>2.12</scala.minor.version>
     <scala.version>2.12.13</scala.version>
     <scalafmt.version>2.7.5</scalafmt.version>
-    <spotless.version>1.25.1</spotless.version>
     <scalatest.version>3.2.2</scalatest.version>
 
     <!-- Plugins -->
