@@ -20,6 +20,10 @@ import scala.util.Random
   *  1. A variation where one of the files is unmodified but renamed.
   *    - `root/scenario3/ids.txt`
   *    - `root/scenario3/sub/ids3.txt`
+  *  1. A variation where one of the files was copied
+  *    - `root/scenario4/ids.txt`
+  *    - `root/scenario4/sub/ids.txt`
+  *    - `root/scenario4/sub/ids2.txt`
   *
   * @param root An existing directory.  The small and scenario directories will be created inside
   *              and deleted on [[cleanup]].
@@ -59,6 +63,10 @@ class ScenarioSmallFiles(
   val srcRenamedFile: Directory =
     root / Directory("scenario3") / Directory("small")
 
+  /** Identical to src with a duplicate ids.txt file. */
+  val srcWithDuplicateFile: Directory =
+    root / Directory("scenario4") / Directory("small")
+
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =
     Digests.fromHex("D732CFE0C7E77139A6A479A4C385A31AA2907CD2")
@@ -70,7 +78,15 @@ class ScenarioSmallFiles(
   {
     // Create the ids.txt file in all of the scenario directories.
     val rnd = new Random()
-    for (d <- Seq(src, srcDeletedFile, srcModifiedFile, srcRenamedFile)) {
+    for (
+      d <- Seq(
+        src,
+        srcDeletedFile,
+        srcModifiedFile,
+        srcRenamedFile,
+        srcWithDuplicateFile
+      )
+    ) {
       // This file is in all of the scenarios.
       d.createDirectory(force = true, failIfExists = true)
       RandomFiles.setTimeAttributes(d, 0L)
@@ -106,6 +122,20 @@ class ScenarioSmallFiles(
     RandomFiles.createTxtFileWithContents(
       rnd,
       srcModifiedFile.resolve("sub"),
+      "4;four\n3;three\n",
+      Some("ids2.txt")
+    )
+
+    // Create it with different contents in the modified scenario.
+    RandomFiles.createTxtFileWithContents(
+      rnd,
+      srcWithDuplicateFile.resolve("sub"),
+      "1;one\n2;two\n",
+      Some("ids.txt")
+    )
+    RandomFiles.createTxtFileWithContents(
+      rnd,
+      srcWithDuplicateFile.resolve("sub"),
       "4;four\n3;three\n",
       Some("ids2.txt")
     )
