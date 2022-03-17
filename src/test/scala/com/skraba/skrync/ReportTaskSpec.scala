@@ -76,7 +76,7 @@ class ReportTaskSpec
     }
   }
 
-  describe("SkryncGo report on the small scenario4") {
+  describe("SkryncGo report on the small scenario") {
 
     // Create a analysis file from the same scenario.
     val dstDir: Directory = Small.root.resolve("dst").toDirectory
@@ -89,7 +89,7 @@ class ReportTaskSpec
       (dstDir / File("compare.gz")).toString
     )
 
-    it("on the filesystem") {
+    it(s"doesn't have any duplicates in ${Small.src}") {
       val cmp = ReportTask.report(
         SkryncGo.Analysis(
           Small.src,
@@ -100,7 +100,7 @@ class ReportTaskSpec
       cmp.duplicateFiles shouldBe List()
     }
 
-    it("via the CLI") {
+    it(s"via the CLI in ${Small.srcWithDuplicateFile}") {
       // No exception should occur, and output is dumped to the console.
       val (stdout, stderr) = withSkryncGo(
         "report",
@@ -116,7 +116,7 @@ class ReportTaskSpec
       stderr shouldBe ""
     }
 
-    it("should have 3 files") {
+    it("scenario4 has one duplicate file") {
       val analysis: SkryncGo.Analysis = Json.read(dstDir / File("compare.gz"))
       val report: ReportTask.Report = ReportTask.report(analysis);
 
