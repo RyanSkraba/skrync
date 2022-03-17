@@ -76,7 +76,7 @@ class ReportTaskSpec
     }
   }
 
-  describe("SkryncGo report on the small scenario") {
+  describe("SkryncGo report on the small scenario4") {
 
     // Create a analysis file from the same scenario.
     val dstDir: Directory = Small.root.resolve("dst").toDirectory
@@ -84,7 +84,7 @@ class ReportTaskSpec
     withSkryncGo(
       "digest",
       "--srcDir",
-      Small.src.toString,
+      Small.srcWithDuplicateFile.toString,
       "--dstDigest",
       (dstDir / File("compare.gz")).toString
     )
@@ -109,8 +109,19 @@ class ReportTaskSpec
       )
 
       stdout should not have size(0)
-      stdout should include("\ntotal files: 2\n")
+      stdout should include(s"\nfrom: $dstDir/compare.gz\n")
+      stdout should include("\ntotal files: 3\n")
+      stdout should include(s"\n   ${Small.srcWithDuplicateFile}/ids.txt\n")
+      stdout should include(s"\n   ${Small.srcWithDuplicateFile}/sub/ids.txt\n")
       stderr shouldBe ""
+    }
+
+    it("should have 3 files") {
+      val analysis: SkryncGo.Analysis = Json.read(dstDir / File("compare.gz"))
+      val report: ReportTask.Report = ReportTask.report(analysis);
+
+      report.duplicateFiles should have size 1
+      report.duplicateFiles.head should have size 2
     }
   }
 }
