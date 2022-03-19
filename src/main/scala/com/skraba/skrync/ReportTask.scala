@@ -33,6 +33,36 @@ object ReportTask {
 
   case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
 
+  /** Ensure that all the files in the given path are duplicated someplace else in the analysis.
+    * @return All of the files from the given path that are not duplicated elsewhere.
+    */
+  def verifyPathContainsOnlyDuplicates(
+      dedupPath: Path,
+      src: SkryncGo.Analysis
+  ): Seq[(Path, SkryncPath)] = {
+
+    // All of the files in the analysis
+    val contents: Seq[(Path, SkryncPath)] =
+      src.info
+        .flattenPaths(src.src)
+        .filter(_._2.digest.nonEmpty)
+
+    // And all of the files sorted by digest
+    val digests: Map[Digest, Seq[(Path, SkryncPath)]] =
+      contents.groupBy(_._2.digest.get)
+
+    val dedupPathStr = dedupPath.toString()
+
+    contents
+      .filter(_._1.toString.startsWith(dedupPathStr))
+      .partition {
+        case (p, SkryncPath(_, _, _, _, _, Some(dig))) =>
+          digests.getOrElse(dig, Nil).size < 2
+        case _ => false
+      }
+      ._1
+  }
+
   def report(src: SkryncGo.Analysis): Report = {
     val digests: Map[Digest, Seq[(Path, SkryncPath)]] =
       src.info
