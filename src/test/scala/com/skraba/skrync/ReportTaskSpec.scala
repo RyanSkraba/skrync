@@ -88,10 +88,10 @@ class ReportTaskSpec
       "--dstDigest",
       (dstDir / File("compare.gz")).toString
     )
+
     val analysis: SkryncGo.Analysis = Json.read(dstDir / File("compare.gz"))
 
     describe("in the original") {
-
       it(s"it doesn't have any duplicates") {
         val cmp = ReportTask.report(
           SkryncGo.Analysis(
@@ -102,12 +102,10 @@ class ReportTaskSpec
         )
         cmp.duplicateFiles shouldBe List()
       }
-
     }
 
     describe("in scenario4") {
-
-      it(s"via the CLI") {
+      it("via the CLI") {
         // No exception should occur, and output is dumped to the console.
         val (stdout, stderr) = withSkryncGo(
           "report",
@@ -125,19 +123,22 @@ class ReportTaskSpec
         stderr shouldBe ""
       }
 
-      it("has one duplicate file") {
-        val report: ReportTask.Report = ReportTask.report(analysis);
+      it("via the Report has one duplicate file") {
+        val report: ReportTask.Report = ReportTask.report(analysis)
         report.duplicateFiles should have size 1
         report.duplicateFiles.head should have size 2
       }
 
-      it(s"checking one deduplicating directory") {
-        val cmp = ReportTask.verifyPathContainsOnlyDuplicates(
-          Small.srcWithDuplicateFile / "sub",
-          analysis
+      it("via the DuplicateReport has one duplicate file and one unique file") {
+        val dupReport = ReportTask.DuplicateReport(
+          analysis,
+          Small.srcWithDuplicateFile / Directory("sub")
         )
-        cmp should have size 1
-        cmp.head._1.name shouldBe "ids2.txt"
+
+        dupReport.uniques should have size 1
+        dupReport.uniques.head._1.name shouldBe "ids2.txt"
+        dupReport.duplicates should have size 1
+        dupReport.duplicates.head._1.name shouldBe "ids.txt"
       }
     }
   }
