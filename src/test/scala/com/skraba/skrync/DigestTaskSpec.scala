@@ -28,8 +28,7 @@ class DigestTaskSpec
   val ExistingFile: File = Small.root / File("exists")
   Streamable.closing(ExistingFile.outputStream())(_.write(1))
 
-  override protected def afterAll(): Unit =
-    Small.cleanup()
+  override protected def afterAll(): Unit = Small.cleanup()
 
   describe("SkryncGo digest command line") {
 

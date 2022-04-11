@@ -21,8 +21,7 @@ class ReportTaskSpec
     deleteRootOnCleanup = true
   )
 
-  override protected def afterAll(): Unit =
-    Small.cleanup()
+  override protected def afterAll(): Unit = Small.cleanup()
 
   describe("SkryncGo report command line") {
     it("throws an exception with --help") {
@@ -89,7 +88,9 @@ class ReportTaskSpec
       (dstDir / File("compare.gz")).toString
     )
 
-    val analysis: SkryncGo.Analysis = Json.read(dstDir / File("compare.gz"))
+    // Always use the most recently modified analysis file
+    val analysis: SkryncGo.Analysis =
+      Json.read(dstDir.list.maxBy(_.lastModified).toFile)
 
     describe("in the original") {
       it(s"it doesn't have any duplicates") {

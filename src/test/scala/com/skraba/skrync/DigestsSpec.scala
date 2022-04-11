@@ -17,8 +17,7 @@ class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
     deleteRootOnCleanup = true
   )
 
-  override protected def afterAll(): Unit =
-    Small.cleanup()
+  override protected def afterAll(): Unit = Small.cleanup()
 
   describe("Hex conversion") {
     it("should convert to and from strings") {
