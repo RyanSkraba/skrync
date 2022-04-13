@@ -83,14 +83,16 @@ class SkryncDirSpec
       val t = intercept[FileNotFoundException] {
         Example.digest(Small.src)
       }
-      t.getMessage should include("tmp/small/file (No such file or directory)")
+      t.getMessage should include(
+        "tmp/original/small/file (No such file or directory)"
+      )
     }
 
     it("fails when creating from a path that doesn't exist.") {
       val t = intercept[NoSuchFileException] {
         SkryncPath(Small.src / Directory("dir-does-not-exist"))
       }
-      t.getMessage should include("tmp/small/dir-does-not-exist")
+      t.getMessage should include("tmp/original/small/dir-does-not-exist")
     }
 
     it("can flatten its path contents.") {

@@ -10,20 +10,20 @@ import scala.util.Random
   * Given `root` as the base directory:
   *
   *  1. An original scenario with two CSV files.
-  *    - `root/small/ids.txt`
-  *    - `root/small/sub/ids2.txt`
+  *    - `root/original/small/ids.txt`
+  *    - `root/original/small/sub/ids2.txt`
   *  1. A variation where one of the files is deleted.
-  *    - `root/scenario1/ids.txt`
+  *    - `root/scenario1/small/ids.txt`
   *  1. A variation where one of the files is modified.
-  *    - `root/scenario2/ids.txt`
-  *    - `root/scenario2/sub/ids2.txt`
+  *    - `root/scenario2/small/ids.txt`
+  *    - `root/scenario2/small/sub/ids2.txt`
   *  1. A variation where one of the files is unmodified but renamed.
-  *    - `root/scenario3/ids.txt`
-  *    - `root/scenario3/sub/ids3.txt`
+  *    - `root/scenario3/small/ids.txt`
+  *    - `root/scenario3/small/sub/ids3.txt`
   *  1. A variation where one of the files was copied
-  *    - `root/scenario4/ids.txt`
-  *    - `root/scenario4/sub/ids.txt`
-  *    - `root/scenario4/sub/ids2.txt`
+  *    - `root/scenario4/small/ids.txt`
+  *    - `root/scenario4/small/sub/ids.txt`
+  *    - `root/scenario4/small/sub/ids2.txt`
   *
   * @param root An existing directory.  The small and scenario directories will be created inside
   *              and deleted on [[cleanup]].
@@ -49,23 +49,19 @@ class ScenarioSmallFiles(
     * - small/ids.txt
     * - small/sub/ids2.txt
     */
-  val src: Directory = root / Directory("small")
+  val src: Directory = root / "original" / Directory("small")
 
   /** Identical to src without ids2.txt. */
-  val srcDeletedFile: Directory =
-    root / Directory("scenario1") / Directory("small")
+  val srcDeletedFile: Directory = root / "scenario1" / Directory("small")
 
   /** Identical to src with ids2.txt modified. */
-  val srcModifiedFile: Directory =
-    root / Directory("scenario2") / Directory("small")
+  val srcModifiedFile: Directory = root / "scenario2" / Directory("small")
 
   /** Identical to src with ids2.txt renamed to ids3.txt. */
-  val srcRenamedFile: Directory =
-    root / Directory("scenario3") / Directory("small")
+  val srcRenamedFile: Directory = root / "scenario3" / Directory("small")
 
   /** Identical to src with a duplicate ids.txt file. */
-  val srcWithDuplicateFile: Directory =
-    root / Directory("scenario4") / Directory("small")
+  val srcWithDuplicateFile: Directory = root / "scenario4" / Directory("small")
 
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =
