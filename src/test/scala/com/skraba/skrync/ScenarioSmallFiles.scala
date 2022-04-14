@@ -101,7 +101,7 @@ class ScenarioSmallFiles(
     // Create the second ids2.txt file in the src scenario.
     RandomFiles.createTxtFileWithContents(
       rnd,
-      src.resolve("sub"),
+      src / Directory("sub"),
       "3;three\n4;four\n",
       Some("ids2.txt")
     )
@@ -109,7 +109,7 @@ class ScenarioSmallFiles(
     // Create it with the same contents but different name in the renamed scenario.
     RandomFiles.createTxtFileWithContents(
       rnd,
-      srcRenamedFile.resolve("sub"),
+      srcRenamedFile / Directory("sub"),
       "3;three\n4;four\n",
       Some("ids3.txt")
     )
@@ -117,7 +117,7 @@ class ScenarioSmallFiles(
     // Create it with different contents in the modified scenario.
     RandomFiles.createTxtFileWithContents(
       rnd,
-      srcModifiedFile.resolve("sub"),
+      srcModifiedFile / Directory("sub"),
       "4;four\n3;three\n",
       Some("ids2.txt")
     )
@@ -125,13 +125,13 @@ class ScenarioSmallFiles(
     // Create it with different contents in the modified scenario.
     RandomFiles.createTxtFileWithContents(
       rnd,
-      srcWithDuplicateFile.resolve("sub"),
+      srcWithDuplicateFile / Directory("sub"),
       "1;one\n2;two\n",
       Some("ids.txt")
     )
     RandomFiles.createTxtFileWithContents(
       rnd,
-      srcWithDuplicateFile.resolve("sub"),
+      srcWithDuplicateFile / Directory("sub"),
       "4;four\n3;three\n",
       Some("ids2.txt")
     )

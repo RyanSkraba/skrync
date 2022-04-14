@@ -2,7 +2,7 @@ package com.skraba.skrync
 
 import java.nio.file.Files
 import java.nio.file.attribute.{BasicFileAttributeView, FileTime}
-import scala.reflect.io.{Path, Streamable}
+import scala.reflect.io.{Directory, File, Path, Streamable}
 import scala.util.Random
 
 /** Utilities for generating random files in a directory for testing.
@@ -61,31 +61,31 @@ object RandomFiles {
     * @param dir       The directory to generate the file.
     * @param extension Optional extension for the file
     */
-  def getNewFile(rnd: Random, dir: Path, extension: Option[String]): Path =
+  def getNewFile(rnd: Random, dir: Directory, extension: Option[String]): File =
     Stream
       .continually(nextString(rnd, 5, 10))
       .map(_ + extension.map("." + _).getOrElse(""))
-      .map(dir.resolve(_))
+      .map(dir / File(_))
       .filter(!_.exists)
       .head
 
   /** Create a randomly named text file in the specified directory with the specified contents.
     *
-    * @param rnd       PRNG for repeatability.
-    * @param dir       The directory to generate the file.
-    * @param contents  The string contents of the file.
-    * @param name      The name of the file, or None if generated outside this method.
+    * @param rnd     PRNG for repeatability.
+    * @param dir      The directory to generate the file.
+    * @param contents The string contents of the file.
+    * @param name     The name of the file, or None if generated outside this method.
     * @return the path to the created file.
     */
   def createTxtFileWithContents(
       rnd: Random,
-      dir: Path,
+      dir: Directory,
       contents: String,
       name: Option[String] = None
-  ): Path = {
+  ): File = {
     val file =
-      name.map(dir.resolve(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
-    Streamable.closing(file.toFile.outputStream()) { fos =>
+      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
+    Streamable.closing(file.outputStream()) { fos =>
       fos.write(contents.getBytes)
     }
     setTimeAttributes(file, 0)
@@ -99,23 +99,44 @@ object RandomFiles {
     * @param numLines      The exact number of lines to generate in the file.
     * @param minLineLength The minimum line length.
     * @param maxLineLength The maximum line length.
+    * @param name          The name of the file, or None if generated outside this method.
     * @return the path to the created file.
     */
   def createTxtFile(
       rnd: Random,
-      dir: Path,
+      dir: Directory,
       numLines: Int,
       minLineLength: Int,
       maxLineLength: Int,
       name: Option[String] = None
-  ): Path = {
+  ): File = {
     val file =
-      name.map(dir.resolve(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
-    Streamable.closing(file.toFile.outputStream()) { fos =>
+      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
+    Streamable.closing(file.outputStream()) { fos =>
       (0 until numLines).foreach { _ =>
         fos.write(nextString(rnd, minLineLength, maxLineLength).getBytes)
         fos.write("\n".getBytes)
       }
+    }
+    setTimeAttributes(file, 0)
+    file
+  }
+
+  /** Create a named text file in the specified directory with the specified contents.
+    *
+    * @param dir      The directory to generate the file.
+    * @param name     The name of the file.
+    * @param contents The string contents of the file.
+    * @return the created file.
+    */
+  def createTxtFileWithContents(
+      dir: Directory,
+      name: String,
+      contents: String
+  ): File = {
+    val file = dir / File(name)
+    Streamable.closing(file.outputStream()) {
+      _.write(contents.getBytes)
     }
     setTimeAttributes(file, 0)
     file
@@ -131,13 +152,13 @@ object RandomFiles {
     */
   def createBinaryFile(
       rnd: Random,
-      dir: Path,
+      dir: Directory,
       minSize: Int,
       maxSize: Int,
       name: Option[String] = None
-  ): Path = {
+  ): File = {
     val file =
-      name.map(dir.resolve(_)).getOrElse(getNewFile(rnd, dir, Option("bin")))
+      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("bin")))
     val size = nextInt(rnd, minSize, maxSize)
     Streamable.closing(file.toFile.outputStream()) { fos =>
       val buffer = new Array[Byte](1024)
@@ -172,7 +193,7 @@ object RandomFiles {
     */
   def fillDirectory(
       rnd: Random,
-      dir: Path,
+      dir: Directory,
       numFiles: Int,
       minFiles: Int,
       maxFiles: Int,
@@ -208,7 +229,7 @@ object RandomFiles {
         val files =
           if (i == createDirs - 1) remainingFiles
           else (filesPer * (i + 1) + 0.5).toInt - (filesPer * i + 0.5).toInt
-        val newDir = getNewFile(rnd, dir, None)
+        val newDir = getNewFile(rnd, dir, None).toDirectory
         newDir.createDirectory(force = false, failIfExists = true)
         fillDirectory(
           rnd,
