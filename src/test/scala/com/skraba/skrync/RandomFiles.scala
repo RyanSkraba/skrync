@@ -82,12 +82,19 @@ object RandomFiles {
       dir: Directory,
       contents: String,
       name: Option[String] = None
-  ): File = {
-    val file =
-      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
-    Streamable.closing(file.outputStream()) { fos =>
-      fos.write(contents.getBytes)
-    }
+  ): File = createTxtFileWithContents(
+    name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt"))),
+    contents
+  )
+
+  /** Create a named text file in the specified directory with the specified contents.
+    *
+    * @param file      The directory to create.
+    * @param contents The string contents of the file.
+    * @return the file passed in.
+    */
+  def createTxtFileWithContents(file: File, contents: String): File = {
+    Streamable.closing(file.outputStream()) { _.write(contents.getBytes) }
     setTimeAttributes(file, 0)
     file
   }
@@ -117,26 +124,6 @@ object RandomFiles {
         fos.write(nextString(rnd, minLineLength, maxLineLength).getBytes)
         fos.write("\n".getBytes)
       }
-    }
-    setTimeAttributes(file, 0)
-    file
-  }
-
-  /** Create a named text file in the specified directory with the specified contents.
-    *
-    * @param dir      The directory to generate the file.
-    * @param name     The name of the file.
-    * @param contents The string contents of the file.
-    * @return the created file.
-    */
-  def createTxtFileWithContents(
-      dir: Directory,
-      name: String,
-      contents: String
-  ): File = {
-    val file = dir / File(name)
-    Streamable.closing(file.outputStream()) {
-      _.write(contents.getBytes)
     }
     setTimeAttributes(file, 0)
     file

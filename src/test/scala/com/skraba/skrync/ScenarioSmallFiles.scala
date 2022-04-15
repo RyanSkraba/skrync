@@ -3,7 +3,6 @@ package com.skraba.skrync
 import com.skraba.skrync.Digests.Digest
 
 import scala.reflect.io._
-import scala.util.Random
 
 /** Create a small directory with two files inside for simple unit tests, and some variations.
   *
@@ -73,7 +72,6 @@ class ScenarioSmallFiles(
 
   {
     // Create the ids.txt file in all of the scenario directories.
-    val rnd = new Random()
     for (
       d <- Seq(
         src,
@@ -87,10 +85,8 @@ class ScenarioSmallFiles(
       d.createDirectory(force = true, failIfExists = true)
       RandomFiles.setTimeAttributes(d, 0L)
       RandomFiles.createTxtFileWithContents(
-        rnd,
-        d,
-        "1;one\n2;two\n",
-        Some("ids.txt")
+        d / File("ids.txt"),
+        "1;one\n2;two\n"
       )
 
       d.resolve("sub").createDirectory(force = false, failIfExists = true)
@@ -100,40 +96,30 @@ class ScenarioSmallFiles(
 
     // Create the second ids2.txt file in the src scenario.
     RandomFiles.createTxtFileWithContents(
-      rnd,
-      src / Directory("sub"),
-      "3;three\n4;four\n",
-      Some("ids2.txt")
+      src / "sub" / File("ids2.txt"),
+      "3;three\n4;four\n"
     )
 
     // Create it with the same contents but different name in the renamed scenario.
     RandomFiles.createTxtFileWithContents(
-      rnd,
-      srcRenamedFile / Directory("sub"),
-      "3;three\n4;four\n",
-      Some("ids3.txt")
+      srcRenamedFile / "sub" / File("ids3.txt"),
+      "3;three\n4;four\n"
     )
 
     // Create it with different contents in the modified scenario.
     RandomFiles.createTxtFileWithContents(
-      rnd,
-      srcModifiedFile / Directory("sub"),
-      "4;four\n3;three\n",
-      Some("ids2.txt")
+      srcModifiedFile / "sub" / File("ids2.txt"),
+      "4;four\n3;three\n"
     )
 
     // Create it with different contents in the modified scenario.
     RandomFiles.createTxtFileWithContents(
-      rnd,
-      srcWithDuplicateFile / Directory("sub"),
-      "1;one\n2;two\n",
-      Some("ids.txt")
+      srcWithDuplicateFile / "sub" / File("ids.txt"),
+      "1;one\n2;two\n"
     )
     RandomFiles.createTxtFileWithContents(
-      rnd,
-      srcWithDuplicateFile / Directory("sub"),
-      "4;four\n3;three\n",
-      Some("ids2.txt")
+      srcWithDuplicateFile / "sub" / File("ids2.txt"),
+      "4;four\n3;three\n"
     )
   }
 }
