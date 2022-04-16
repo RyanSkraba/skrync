@@ -1,6 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
+import com.skraba.skrync.RandomFiles.createTxtContents
 
 import scala.reflect.io._
 
@@ -71,55 +72,38 @@ class ScenarioSmallFiles(
     Digests.fromHex("439FBA72B89A7D7E34BC58B6DA525DDAB7F77089")
 
   {
-    // Create the ids.txt file in all of the scenario directories.
-    for (
-      d <- Seq(
-        src,
-        srcDeletedFile,
-        srcModifiedFile,
-        srcRenamedFile,
-        srcWithDuplicateFile
-      )
-    ) {
-      // This file is in all of the scenarios.
-      d.createDirectory(force = true, failIfExists = true)
-      RandomFiles.setTimeAttributes(d, 0L)
-      RandomFiles.createTxtFileWithContents(
-        d / File("ids.txt"),
-        "1;one\n2;two\n"
-      )
+    createTxtContents(src / File("ids.txt"), "1;one\n2;two\n")
+    createTxtContents(src / "sub" / File("ids2.txt"), "3;three\n4;four\n")
 
-      d.resolve("sub").createDirectory(force = false, failIfExists = true)
-      RandomFiles.setTimeAttributes(d.resolve("sub"), 0L)
-      RandomFiles.setTimeAttributes(d, 0L)
-    }
+    // scenario1 has a deleted file
+    createTxtContents(srcDeletedFile / File("ids.txt"), "1;one\n2;two\n")
+    srcDeletedFile / Directory("sub") createDirectory ()
 
-    // Create the second ids2.txt file in the src scenario.
-    RandomFiles.createTxtFileWithContents(
-      src / "sub" / File("ids2.txt"),
-      "3;three\n4;four\n"
-    )
-
-    // Create it with the same contents but different name in the renamed scenario.
-    RandomFiles.createTxtFileWithContents(
-      srcRenamedFile / "sub" / File("ids3.txt"),
-      "3;three\n4;four\n"
-    )
-
-    // Create it with different contents in the modified scenario.
-    RandomFiles.createTxtFileWithContents(
+    // scenario2 has a modified file
+    createTxtContents(srcModifiedFile / File("ids.txt"), "1;one\n2;two\n")
+    createTxtContents(
       srcModifiedFile / "sub" / File("ids2.txt"),
       "4;four\n3;three\n"
     )
 
-    // Create it with different contents in the modified scenario.
-    RandomFiles.createTxtFileWithContents(
+    // scenario3
+    createTxtContents(srcRenamedFile / File("ids.txt"), "1;one\n2;two\n")
+    createTxtContents(
+      srcRenamedFile / "sub" / File("ids3.txt"),
+      "3;three\n4;four\n"
+    )
+
+    // scenario4
+    createTxtContents(srcWithDuplicateFile / File("ids.txt"), "1;one\n2;two\n")
+    createTxtContents(
       srcWithDuplicateFile / "sub" / File("ids.txt"),
       "1;one\n2;two\n"
     )
-    RandomFiles.createTxtFileWithContents(
+    createTxtContents(
       srcWithDuplicateFile / "sub" / File("ids2.txt"),
-      "4;four\n3;three\n"
+      "3;three\n4;four\n"
     )
+
+    RandomFiles.setTimeAttributes(root, 0L, recursive = true)
   }
 }

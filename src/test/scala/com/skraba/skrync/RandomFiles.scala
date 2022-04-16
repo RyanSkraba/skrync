@@ -77,23 +77,25 @@ object RandomFiles {
     * @param name     The name of the file, or None if generated outside this method.
     * @return the path to the created file.
     */
-  def createTxtFileWithContents(
+  def createTxtContents(
       rnd: Random,
       dir: Directory,
       contents: String,
       name: Option[String] = None
-  ): File = createTxtFileWithContents(
+  ): File = createTxtContents(
     name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt"))),
     contents
   )
 
   /** Create a named text file in the specified directory with the specified contents.
     *
-    * @param file      The directory to create.
+    * @param file     The file to create, creating any necessary parent directories.
     * @param contents The string contents of the file.
     * @return the file passed in.
     */
-  def createTxtFileWithContents(file: File, contents: String): File = {
+  def createTxtContents(file: File, contents: String): File = {
+    if (!file.parent.exists)
+      file.parent.createDirectory(force = true)
     Streamable.closing(file.outputStream()) { _.write(contents.getBytes) }
     setTimeAttributes(file, 0)
     file
@@ -259,8 +261,18 @@ object RandomFiles {
     * @param path The file or directory to modify.
     * @param time The creation time to set on the path.  Access time will be one second more, and
     *             modification time will be two seconds more.
+    * @param recursive Whether to apply attributes recursively on the contents as well.
     */
-  def setTimeAttributes(path: Path, time: Long): Unit = {
+  def setTimeAttributes(
+      path: Path,
+      time: Long,
+      recursive: Boolean = false
+  ): Unit = {
+    // This has to be done as a depth-first search, since the
+    if (recursive && path.isDirectory)
+      for (p <- path.toDirectory.list)
+        setTimeAttributes(p, time, recursive = true)
+
     val attributes =
       Files.getFileAttributeView(
         path.jfile.toPath,
