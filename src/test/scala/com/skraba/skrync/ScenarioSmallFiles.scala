@@ -16,14 +16,27 @@ import scala.reflect.io._
   *    - `root/scenario1/small/ids.txt`
   *  1. A variation where one of the files is modified.
   *    - `root/scenario2/small/ids.txt`
-  *    - `root/scenario2/small/sub/ids2.txt`
+  *    - `root/scenario2/small/sub/ids2.txt` ```same name but changed```
   *  1. A variation where one of the files is unmodified but renamed.
   *    - `root/scenario3/small/ids.txt`
-  *    - `root/scenario3/small/sub/ids3.txt`
+  *    - `root/scenario3/small/sub/ids2a.txt` ```different name but unchanged```
   *  1. A variation where one of the files was copied
   *    - `root/scenario4/small/ids.txt`
   *    - `root/scenario4/small/sub/ids.txt`
   *    - `root/scenario4/small/sub/ids2.txt`
+  *  1. A variation where both files have switched places
+  *    - `root/scenario5/small/ids2.txt`
+  *    - `root/scenario5/small/sub/ids.txt`
+  *  1. A variation to explore duplicates
+  *    - `root/scenario6/small/ids.txt`
+  *    - `root/scenario6/small/sub/ids2.txt`
+  *    - `root/scenario6/small/dup1/ids.txt`
+  *    - `root/scenario6/small/dup1/ids3.txt`
+  *    - `root/scenario6/small/dup2/ids3.txt`
+  *    - `root/scenario6/small/dup2/ids3b.txt`
+  *    - `root/scenario6/small/dup3/ids2a.txt`
+  *    - `root/scenario6/small/dup3/ids3.txt`
+  *    - `root/scenario6/small/dup3/sub/ids3.txt`
   *
   * @param root An existing directory.  The small and scenario directories will be created inside
   *              and deleted on [[cleanup]].
@@ -57,11 +70,17 @@ class ScenarioSmallFiles(
   /** Identical to src with ids2.txt modified. */
   val srcModifiedFile: Directory = root / "scenario2" / Directory("small")
 
-  /** Identical to src with ids2.txt renamed to ids3.txt. */
+  /** Identical to src with ids2.txt renamed to ids2a.txt. */
   val srcRenamedFile: Directory = root / "scenario3" / Directory("small")
 
   /** Identical to src with a duplicate ids.txt file. */
   val srcWithDuplicateFile: Directory = root / "scenario4" / Directory("small")
+
+  /** Identical to src, swapping the directories the two files are in. */
+  val srcSwappedFiles: Directory = root / "scenario5" / Directory("small")
+
+  /** Identical to src, with additional directories containing duplicate and unique files. */
+  val srcWithDuplicates: Directory = root / "scenario6" / Directory("small")
 
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =
@@ -89,7 +108,7 @@ class ScenarioSmallFiles(
     // scenario3
     createTxtContents(srcRenamedFile / File("ids.txt"), "1;one\n2;two\n")
     createTxtContents(
-      srcRenamedFile / "sub" / File("ids3.txt"),
+      srcRenamedFile / "sub" / File("ids2a.txt"),
       "3;three\n4;four\n"
     )
 
@@ -104,6 +123,49 @@ class ScenarioSmallFiles(
       "3;three\n4;four\n"
     )
 
+    // scenario5
+    createTxtContents(
+      srcSwappedFiles / "sub" / File("ids.txt"),
+      "1;one\n2;two\n"
+    )
+    createTxtContents(srcSwappedFiles / File("ids2.txt"), "3;three\n4;four\n")
+
+    // scenario6
+    createTxtContents(srcWithDuplicates / File("ids.txt"), "1;one\n2;two\n")
+    createTxtContents(
+      srcWithDuplicates / "sub" / File("ids2.txt"),
+      "3;three\n4;four\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup1" / File("ids.txt"),
+      "1;one\n2;two\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup1" / File("ids3.txt"),
+      "5;five\n6;six\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup2" / File("ids3.txt"),
+      "5;five\n6;six\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup2" / File("ids3a.txt"),
+      "5;five\n6;six\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup3" / File("ids2a.txt"),
+      "3;three\n4;four\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup3" / File("ids3.txt"),
+      "5;five\n6;six\n"
+    )
+    createTxtContents(
+      srcWithDuplicates / "dup3" / "sub" / File("ids3.txt"),
+      "5;five\n6;six\n"
+    )
+
+    // Set all of the time attributes on the scenario.
     RandomFiles.setTimeAttributes(root, 0L, recursive = true)
   }
 }
