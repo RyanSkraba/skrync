@@ -220,7 +220,7 @@ class CompareTaskSpec
       )
       // TODO: This is currently treated as an addition and deletion
       cmp.srcOnly shouldBe Set(Path("small/sub/ids2.txt"))
-      cmp.dstOnly shouldBe Set(Path("small/sub/ids3.txt"))
+      cmp.dstOnly shouldBe Set(Path("small/sub/ids2a.txt"))
       cmp.modified shouldBe Set()
     }
   }
