@@ -33,15 +33,27 @@ object ReportTask {
 
   case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
 
-  case class DuplicateReport(
+  /** Analysis of the contents of one specific directory to find duplicate and
+    *  unique files.
+    *
+    * Note that if there is a file that exists twice but only inside the
+    * dedupPath, one will appear in the uniques and one will appear in the
+    * duplicates.
+    *
+    * @param src        The prepared files analysis
+    * @param dedupPath  The path to deduplicate, relative to the root of the analysis.
+    * @param uniques    Files in the dedupPath that do not exist outside the dedupPath.
+    * @param duplicates Files in the dedupPath that exist more than once.
+    */
+  case class DedupPathReport(
       src: SkryncGo.Analysis,
       dedupPath: Directory,
       uniques: Seq[(Path, SkryncPath)],
       duplicates: Seq[(Path, SkryncPath)]
   )
 
-  object DuplicateReport {
-    def apply(src: SkryncGo.Analysis, dedupPath: Directory): DuplicateReport = {
+  object DedupPathReport {
+    def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
 
       // All of the files in the analysis
       val contents: Seq[(Path, SkryncPath)] =
@@ -63,7 +75,7 @@ object ReportTask {
           case _ => false
         }
 
-      DuplicateReport(
+      DedupPathReport(
         src,
         dedupPath,
         uniques = uniques,

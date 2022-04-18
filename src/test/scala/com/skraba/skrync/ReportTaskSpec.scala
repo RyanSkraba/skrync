@@ -1,5 +1,6 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.ReportTask.DedupPathReport
 import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec.withSkryncGo
 import org.scalatest.BeforeAndAfterAll
@@ -8,8 +9,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
-/** Unit tests for [[ReportTask]]
-  */
+/** Unit tests for [[ReportTask]] */
 class ReportTaskSpec
     extends AnyFunSpecLike
     with Matchers
@@ -131,7 +131,7 @@ class ReportTaskSpec
       }
 
       it("via the DuplicateReport has one duplicate file and one unique file") {
-        val dupReport = ReportTask.DuplicateReport(
+        val dupReport = ReportTask.DedupPathReport(
           analysis,
           Small.srcWithDuplicateFile / Directory("sub")
         )
