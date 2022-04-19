@@ -9,7 +9,7 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import scala.reflect.io.Streamable
+import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[SkryncGo]]
   */
@@ -149,10 +149,51 @@ object SkryncGoSpec {
   }
 
   /** A helper method used to capture the console of a SkryncGo execution and return the output.
+    *
     * @param args String arguments to pass to the SkryncGo.go method
     * @return A tuple of the stdout and stderr
     */
   def withSkryncGo(args: String*): (String, String) = {
     withSkryncGoMatch(args: _*) { case any => any }
+  }
+
+  /** A helper method used to create an analysis file and read it into memory.
+    *
+    * @param srcDir    The source directory to read files from.
+    * @param dstDigest Either the exact file to write the analysis to, or a directory to create with a default filename.  If the file exists, it is read without re-scanning.
+    * @param mustExist If true, scanning is never performed and the file is read as it is.
+    * @return The destination digest and the analysis in memory.
+    */
+  def withSkryncGoAnalysis(
+      srcDir: Directory,
+      dstDigest: Path,
+      mustExist: Boolean = false
+  ): (File, SkryncGo.Analysis) = {
+    dstDigest match {
+      case f: File if f.exists || mustExist => (f, Json.read(f))
+      case f: File =>
+        f.parent.createDirectory(force = true, failIfExists = false);
+        withSkryncGo(
+          "digest",
+          "--srcDir",
+          srcDir.toString,
+          "--dstDigest",
+          dstDigest.toString
+        )
+        (f, Json.read(f))
+      case d: Directory =>
+        if (!d.exists)
+          d.createDirectory(force = true, failIfExists = false)
+        if (!mustExist)
+          withSkryncGo(
+            "digest",
+            "--srcDir",
+            srcDir.toString,
+            "--dstDigest",
+            dstDigest.toString
+          )
+        val dstDigestDefault: File = d.list.maxBy(_.lastModified).toFile
+        (dstDigestDefault, Json.read(dstDigestDefault))
+    }
   }
 }

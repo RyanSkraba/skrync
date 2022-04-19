@@ -2,7 +2,7 @@ package com.skraba.skrync
 
 import com.skraba.skrync.ReportTask.DedupPathReport
 import com.skraba.skrync.SkryncGo.InternalDocoptException
-import com.skraba.skrync.SkryncGoSpec.withSkryncGo
+import com.skraba.skrync.SkryncGoSpec.{withSkryncGo, withSkryncGoAnalysis}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -77,21 +77,6 @@ class ReportTaskSpec
 
   describe("SkryncGo report on small scenario") {
 
-    // Create a analysis file from the same scenario.
-    val dstDir: Directory = Small.root.resolve("dst").toDirectory
-    dstDir.createDirectory()
-    withSkryncGo(
-      "digest",
-      "--srcDir",
-      Small.srcWithDuplicateFile.toString,
-      "--dstDigest",
-      (dstDir / File("compare.gz")).toString
-    )
-
-    // Always use the most recently modified analysis file
-    val analysis: SkryncGo.Analysis =
-      Json.read(dstDir.list.maxBy(_.lastModified).toFile)
-
     describe("in the original") {
       it(s"it doesn't have any duplicates") {
         val cmp = ReportTask.report(
@@ -106,16 +91,23 @@ class ReportTaskSpec
     }
 
     describe("in scenario4") {
+
+      val (dstFile, analysis) = withSkryncGoAnalysis(
+        Small.srcWithDuplicateFile,
+        Small.root / Directory("dst")
+      )
+
       it("via the CLI") {
+
         // No exception should occur, and output is dumped to the console.
         val (stdout, stderr) = withSkryncGo(
           "report",
           "--srcDigest",
-          (dstDir / File("compare.gz")).toString()
+          dstFile.toString()
         )
 
         stdout should not have size(0)
-        stdout should include(s"\nfrom: $dstDir/compare.gz\n")
+        stdout should include(s"\nfrom: $dstFile\n")
         stdout should include("\ntotal files: 3\n")
         stdout should include(s"\n   ${Small.srcWithDuplicateFile}/ids.txt\n")
         stdout should include(
