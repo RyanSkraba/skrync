@@ -1,13 +1,12 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.ReportTask.DedupPathReport
 import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec.{withSkryncGo, withSkryncGoAnalysis}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.reflect.io.{Directory, File, Path, Streamable}
+import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[ReportTask]] */
 class ReportTaskSpec
@@ -92,9 +91,10 @@ class ReportTaskSpec
 
     describe("in scenario4") {
 
+      // Generate an analysis of the scenario4 directory
       val (dstFile, analysis) = withSkryncGoAnalysis(
         Small.srcWithDuplicateFile,
-        Small.root / Directory("dst")
+        Small.root / "dst" / File("scenario4.gz")
       )
 
       it("via the CLI") {
@@ -121,18 +121,62 @@ class ReportTaskSpec
         report.duplicateFiles should have size 1
         report.duplicateFiles.head should have size 2
       }
+    }
+  }
 
-      it("via the DuplicateReport has one duplicate file and one unique file") {
-        val dupReport = ReportTask.DedupPathReport(
-          analysis,
-          Small.srcWithDuplicateFile / Directory("sub")
-        )
+  /** Extracts paths relative to src/ for testing as strings. */
+  def extractNameForTests(src: Path)(f: (Path, SkryncPath)): String =
+    src.relativize(f._1).toString()
 
-        dupReport.uniques should have size 1
-        dupReport.uniques.head._1.name shouldBe "ids2.txt"
-        dupReport.duplicates should have size 1
-        dupReport.duplicates.head._1.name shouldBe "ids.txt"
-      }
+  describe(s" Using ${ReportTask.DedupPathReport.getClass.getSimpleName}") {
+
+    // Generate an analysis of the scenario6 directory
+    val (_, analysis) = withSkryncGoAnalysis(
+      Small.srcWithDuplicates,
+      Small.root / Directory("dst")
+    )
+
+    val extract = extractNameForTests(Small.srcWithDuplicates) _
+
+    it("has one duplicate in dup1/") {
+      val dupReport = ReportTask.DedupPathReport(
+        analysis,
+        Small.srcWithDuplicates / Directory("dup1")
+      )
+
+      dupReport.uniques should have size 1
+      dupReport.uniques.map(extract) shouldBe List("dup1/ids3.txt")
+      dupReport.duplicates should have size 1
+      dupReport.duplicates.map(extract) shouldBe List("dup1/ids.txt")
+    }
+
+    it("has one duplicate in dup2/") {
+      val dupReport = ReportTask.DedupPathReport(
+        analysis,
+        Small.srcWithDuplicates / Directory("dup2")
+      )
+
+      // TODO: This is the expected behaviour
+      //      dupReport.uniques should have size 1
+      //      dupReport.uniques.map(named) shouldBe List(
+      //        "dup2/ids4.txt"
+      //      )
+      //      dupReport.duplicates should have size 1
+      //      dupReport.duplicates.map(named) shouldBe List("dup2/ids4a.txt")
+    }
+
+    it("has two duplicates in dup3/") {
+      val dupReport = ReportTask.DedupPathReport(
+        analysis,
+        Small.srcWithDuplicates / Directory("dup3")
+      )
+
+      analysis.src
+      // TODO: This is the expected behaviour
+      //      dupReport.uniques should have size 1
+      //      dupReport.uniques.map(named) shouldBe List("dup3/ids5.txt")
+      //      dupReport.duplicates should have size 2
+      //      dupReport.duplicates.map(named) shouldBe List("dup3/ids2a.txt", "dup3/sub/ids5a.txt")
     }
   }
 }

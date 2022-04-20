@@ -93,12 +93,14 @@ object RandomFiles {
     * @param contents The string contents of the file.
     * @return the file passed in.
     */
-  def createTxtContents(file: File, contents: String): File = {
+  def createTxtContents(file: Path, contents: String): File = {
     if (!file.parent.exists)
       file.parent.createDirectory(force = true)
-    Streamable.closing(file.outputStream()) { _.write(contents.getBytes) }
+    Streamable.closing(file.toFile.outputStream()) {
+      _.write(contents.getBytes)
+    }
     setTimeAttributes(file, 0)
-    file
+    file.toFile
   }
 
   /** Create a random text file in the specified directory.

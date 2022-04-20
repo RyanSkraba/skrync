@@ -90,80 +90,53 @@ class ScenarioSmallFiles(
   val dirDigest: Digest =
     Digests.fromHex("439FBA72B89A7D7E34BC58B6DA525DDAB7F77089")
 
+  val File1Contents = "1;one\n2;two\n"
+  val File2Contents = "3;three\n4;four\n"
+  val File3Contents = "5;five\n6;six\n"
+  val File4Contents = "7;seven\n8;eight\n"
+  val File5Contents = "9;nine\n10;ten\n"
+
   {
-    createTxtContents(src / File("ids.txt"), "1;one\n2;two\n")
-    createTxtContents(src / "sub" / File("ids2.txt"), "3;three\n4;four\n")
+    createTxtContents(src / "ids.txt", File1Contents)
+    createTxtContents(src / "sub" / "ids2.txt", File2Contents)
 
     // scenario1 has a deleted file
-    createTxtContents(srcDeletedFile / File("ids.txt"), "1;one\n2;two\n")
-    srcDeletedFile / Directory("sub") createDirectory ()
+    val s1: Directory = srcDeletedFile
+    createTxtContents(s1 / "ids.txt", File1Contents)
+    s1 / Directory("sub") createDirectory ()
 
     // scenario2 has a modified file
-    createTxtContents(srcModifiedFile / File("ids.txt"), "1;one\n2;two\n")
-    createTxtContents(
-      srcModifiedFile / "sub" / File("ids2.txt"),
-      "4;four\n3;three\n"
-    )
+    val s2: Directory = srcModifiedFile
+    createTxtContents(s2 / "ids.txt", File1Contents)
+    createTxtContents(s2 / "sub" / "ids2.txt", "4;four\n3;three\n")
 
     // scenario3
-    createTxtContents(srcRenamedFile / File("ids.txt"), "1;one\n2;two\n")
-    createTxtContents(
-      srcRenamedFile / "sub" / File("ids2a.txt"),
-      "3;three\n4;four\n"
-    )
+    val s3: Directory = srcRenamedFile
+    createTxtContents(s3 / "ids.txt", File1Contents)
+    createTxtContents(s3 / "sub" / "ids2a.txt", File2Contents)
 
     // scenario4
-    createTxtContents(srcWithDuplicateFile / File("ids.txt"), "1;one\n2;two\n")
-    createTxtContents(
-      srcWithDuplicateFile / "sub" / File("ids.txt"),
-      "1;one\n2;two\n"
-    )
-    createTxtContents(
-      srcWithDuplicateFile / "sub" / File("ids2.txt"),
-      "3;three\n4;four\n"
-    )
+    val s4: Directory = srcWithDuplicateFile
+    createTxtContents(s4 / "ids.txt", File1Contents)
+    createTxtContents(s4 / "sub" / "ids.txt", File1Contents)
+    createTxtContents(s4 / "sub" / "ids2.txt", File2Contents)
 
     // scenario5
-    createTxtContents(
-      srcSwappedFiles / "sub" / File("ids.txt"),
-      "1;one\n2;two\n"
-    )
-    createTxtContents(srcSwappedFiles / File("ids2.txt"), "3;three\n4;four\n")
+    val s5: Directory = srcSwappedFiles
+    createTxtContents(s5 / "sub" / "ids.txt", File1Contents)
+    createTxtContents(s5 / File("ids2.txt"), File2Contents)
 
     // scenario6
-    createTxtContents(srcWithDuplicates / File("ids.txt"), "1;one\n2;two\n")
-    createTxtContents(
-      srcWithDuplicates / "sub" / File("ids2.txt"),
-      "3;three\n4;four\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup1" / File("ids.txt"),
-      "1;one\n2;two\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup1" / File("ids3.txt"),
-      "5;five\n6;six\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup2" / File("ids3.txt"),
-      "5;five\n6;six\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup2" / File("ids3a.txt"),
-      "5;five\n6;six\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup3" / File("ids2a.txt"),
-      "3;three\n4;four\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup3" / File("ids3.txt"),
-      "5;five\n6;six\n"
-    )
-    createTxtContents(
-      srcWithDuplicates / "dup3" / "sub" / File("ids3.txt"),
-      "5;five\n6;six\n"
-    )
+    val s6: Directory = srcWithDuplicates
+    createTxtContents(s6 / "ids.txt", File1Contents)
+    createTxtContents(s6 / "sub" / "ids2.txt", File2Contents)
+    createTxtContents(s6 / "dup1" / "ids.txt", File1Contents)
+    createTxtContents(s6 / "dup1" / "ids3.txt", File3Contents)
+    createTxtContents(s6 / "dup2" / "ids4.txt", File4Contents)
+    createTxtContents(s6 / "dup2" / "ids4a.txt", File4Contents)
+    createTxtContents(s6 / "dup3" / "ids2a.txt", File2Contents)
+    createTxtContents(s6 / "dup3" / "ids5.txt", File5Contents)
+    createTxtContents(s6 / "dup3" / "sub" / "ids5.txt", File5Contents)
 
     // Set all of the time attributes on the scenario.
     RandomFiles.setTimeAttributes(root, 0L, recursive = true)
