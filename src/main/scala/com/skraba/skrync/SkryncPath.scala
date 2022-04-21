@@ -63,4 +63,17 @@ object SkryncPath {
       digest = None
     )
   }
+
+  /** A helper method to determine whether the child is inside the parent, including resolving .. paths
+    *
+    * @param parent An directory, either absolute or relative to the current directory
+    * @param child Any path, to check whether it is inside the parent directory.
+    * @return True if the child refers to anything inside (or including) the parent directory.
+    */
+  def isIn(parent: Directory, child: Path): Boolean = {
+    val canonicalParent = parent.toCanonical
+    val canonicalChild = (if (child.isAbsolute) child
+                          else canonicalParent.resolve(child)).toCanonical
+    canonicalChild.jfile.toPath.startsWith(canonicalParent.jfile.toPath)
+  }
 }

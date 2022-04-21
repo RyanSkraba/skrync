@@ -1,5 +1,6 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.SkryncPath.isIn
 import com.skraba.skrync.SkryncPathSpec.Example
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -24,6 +25,58 @@ class SkryncPathSpec
   )
 
   override protected def afterAll(): Unit = Small.cleanup()
+
+  describe("SkryncPath.isIn") {
+
+    for (
+      child <- Seq(
+        "/a/b/c",
+        "/a/b/c/d",
+        "/a/b/c/d/",
+        "d",
+        "../c",
+        "../c/d",
+        "../../b/c/d",
+        "a/b/c/../c/d",
+        "a/b/x/../c/d",
+        "/x/y/z/../../../a/b/c/d",
+        "../../../a/b/c/d",
+        "../../../a/b/c/d/e/.."
+      )
+    ) {
+      it(s"checks that /a/b/c/ contains $child") {
+        isIn(Directory("/a/b/c"), Directory(child)) shouldBe true
+      }
+    }
+
+    for (
+      notChild <- Seq(
+        "/",
+        "/a/b",
+        "/x/y/z",
+        "/a/b/c/..",
+        "..",
+        "/x/y/z/../../../../a/b/c/d"
+      )
+    ) {
+      it(s"checks that /a/b/c/ does not contain $notChild") {
+        isIn(Directory("/a/b/c"), Directory(notChild)) shouldBe false
+      }
+    }
+
+    for (parent <- Seq("/a/b/c", "/a/x/../b/c", "/../a/b/c")) {
+      it(s"checks that /a/b/c/d is inside $parent") {
+        isIn(Directory(parent), Directory("/a/b/c/d")) shouldBe true
+      }
+    }
+
+    for (notParent <- Seq("/x/y/z", "/a/b/c/../x")) {
+      it(s"checks that /a/b/c/d is not inside $notParent") {
+        isIn(Directory(notParent), Directory("/a/b/c/d")) shouldBe false
+      }
+    }
+
+  }
 
   describe("SkryncPath") {
 
