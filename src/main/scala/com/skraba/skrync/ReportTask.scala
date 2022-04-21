@@ -1,6 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
+import com.skraba.skrync.SkryncPath.isIn
 
 import scala.reflect.io._
 
@@ -68,7 +69,7 @@ object ReportTask {
       val dedupPathStr = dedupPath.toString()
 
       val (uniques, duplicates) = contents
-        .filter(_._1.toString.startsWith(dedupPathStr))
+        .filter(p => isIn(dedupPath, p._1))
         .partition {
           case (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
             digests.getOrElse(dig, Nil).size < 2
