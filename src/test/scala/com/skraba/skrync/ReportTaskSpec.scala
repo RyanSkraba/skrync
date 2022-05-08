@@ -178,5 +178,35 @@ class ReportTaskSpec
       //      dupReport.duplicates should have size 2
       //      dupReport.duplicates.map(named) shouldBe List("dup3/ids2a.txt", "dup3/sub/ids5a.txt")
     }
+
+    it("outside original scenario is entirely duplicated in this scenario") {
+      val dupReport = ReportTask.DedupPathReport(
+        analysis,
+        Small.src
+      )
+
+      dupReport.uniques shouldBe empty
+      dupReport.duplicates should have size 2
+      dupReport.duplicates.map(extract) shouldBe List(
+        "../../original/small/ids.txt",
+        "../../original/small/sub/ids2.txt"
+      )
+    }
+
+    it("outside scenario2/ has some duplicated files in this scenario") {
+      val dupReport = ReportTask.DedupPathReport(
+        analysis,
+        Small.srcModifiedFile
+      )
+
+      dupReport.uniques should have size 1
+      dupReport.uniques.map(extract) shouldBe List(
+        "../../scenario2/small/sub/ids2.txt"
+      )
+      dupReport.duplicates should have size 1
+      dupReport.duplicates.map(extract) shouldBe List(
+        "../../scenario2/small/ids.txt"
+      )
+    }
   }
 }

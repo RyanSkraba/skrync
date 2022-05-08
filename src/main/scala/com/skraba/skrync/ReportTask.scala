@@ -54,19 +54,35 @@ object ReportTask {
   )
 
   object DedupPathReport {
+
+    /** Given the analysis file and the dedup directory, determines which of the files in the directory already
+      * exist.
+      *
+      * @param src The source analysis of an existing directory.
+      * @param dedupPath  A new directory.  If this is inside the src directory, then the information is directly used
+      *                   from there.
+      * @return  A deduplication report of different and unique files in the dedupPath.
+      */
     def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
 
       // All of the files in the analysis
-      val contents: Seq[(Path, SkryncPath)] =
+      val srcContents: Seq[(Path, SkryncPath)] =
         src.info
           .flattenPaths(src.src)
           .filter(_._2.digest.nonEmpty)
 
+      val dedupContents =
+        if (isIn(src.src, dedupPath)) Seq.empty
+        else
+          SkryncDir
+            .scan(dedupPath, digest = true)
+            .flattenPaths(dedupPath)
+
+      val contents = srcContents ++ dedupContents
+
       // And all of the files sorted by digest
       val digests: Map[Digest, Seq[(Path, SkryncPath)]] =
         contents.groupBy(_._2.digest.get)
-
-      val dedupPathStr = dedupPath.toString()
 
       val (uniques, duplicates) = contents
         .filter(p => isIn(dedupPath, p._1))
