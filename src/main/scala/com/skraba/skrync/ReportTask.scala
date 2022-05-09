@@ -65,30 +65,42 @@ object ReportTask {
       */
     def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
 
-      // All of the files in the analysis
-      val srcContents: Seq[(Path, SkryncPath)] =
+      // All of the files in the analysis, sorted into whether they are in the dedupPath
+      val (
+        srcInDedup: Seq[(Path, SkryncPath)],
+        srcOutDedup: Seq[(Path, SkryncPath)]
+      ) =
         src.info
           .flattenPaths(src.src)
           .filter(_._2.digest.nonEmpty)
+          .partition(p => isIn(dedupPath, p._1))
 
+      // All of the files in the dedupPath
       val dedupContents =
-        if (isIn(src.src, dedupPath)) Seq.empty
+        if (isIn(src.src, dedupPath)) srcInDedup
         else
           SkryncDir
             .scan(dedupPath, digest = true)
             .flattenPaths(dedupPath)
 
-      val contents = srcContents ++ dedupContents
-
       // And all of the files sorted by digest
-      val digests: Map[Digest, Seq[(Path, SkryncPath)]] =
-        contents.groupBy(_._2.digest.get)
+      val srcOutDedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
+        srcOutDedup.groupBy(_._2.digest.get)
 
-      val (uniques, duplicates) = contents
-        .filter(p => isIn(dedupPath, p._1))
+      // All of the
+      val dedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
+        dedupContents.groupBy(_._2.digest.get)
+
+      val (uniques, duplicates) = dedupContents
         .partition {
-          case (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
-            digests.getOrElse(dig, Nil).size < 2
+          case (_, SkryncPath(_, _, _, _, _, Some(dig)))
+              if srcOutDedupDigests.contains(dig) =>
+            false
+          case (_, SkryncPath(_, _, _, _, _, Some(dig)))
+              if srcOutDedupDigests.getOrElse(dig, Nil).size == 1 =>
+            true
+          case path @ (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
+            dedupDigests.getOrElse(dig, Nil).headOption.contains(path)
           case _ => false
         }
 

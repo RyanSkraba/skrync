@@ -2,6 +2,7 @@ package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec.{withSkryncGo, withSkryncGoAnalysis}
+import com.skraba.skrync.SkryncPath.isIn
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -156,13 +157,12 @@ class ReportTaskSpec
         Small.srcWithDuplicates / Directory("dup2")
       )
 
-      // TODO: This is the expected behaviour
-      //      dupReport.uniques should have size 1
-      //      dupReport.uniques.map(named) shouldBe List(
-      //        "dup2/ids4.txt"
-      //      )
-      //      dupReport.duplicates should have size 1
-      //      dupReport.duplicates.map(named) shouldBe List("dup2/ids4a.txt")
+      dupReport.uniques should have size 1
+      dupReport.uniques.map(extract) shouldBe List(
+        "dup2/ids4.txt"
+      )
+      dupReport.duplicates should have size 1
+      dupReport.duplicates.map(extract) shouldBe List("dup2/ids4a.txt")
     }
 
     it("has two duplicates in dup3/") {
