@@ -171,12 +171,13 @@ class ReportTaskSpec
         Small.srcWithDuplicates / Directory("dup3")
       )
 
-      analysis.src
-      // TODO: This is the expected behaviour
-      //      dupReport.uniques should have size 1
-      //      dupReport.uniques.map(named) shouldBe List("dup3/ids5.txt")
-      //      dupReport.duplicates should have size 2
-      //      dupReport.duplicates.map(named) shouldBe List("dup3/ids2a.txt", "dup3/sub/ids5a.txt")
+      dupReport.uniques should have size 1
+      dupReport.uniques.map(extract) shouldBe List("dup3/ids5.txt")
+      dupReport.duplicates should have size 2
+      dupReport.duplicates.map(extract) shouldBe List(
+        "dup3/ids2a.txt",
+        "dup3/sub/ids5.txt"
+      )
     }
 
     it("outside original scenario is entirely duplicated in this scenario") {
