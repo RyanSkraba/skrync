@@ -33,14 +33,9 @@ object DigestTask {
       |
       |Examples:
       |
-      | SkryncGo digest --srcDir %s --dstDigest $$HOME/skrync/
+      | SkryncGo digest --srcDir /run/media/BACKUP/backup --dstDigest $$HOME/skrync/
       |
-      |""".stripMargin
-      .format(
-        Description,
-        sys.env.getOrElse("BACKUP_DISK_MAIN", "/run/media/BACKUP/backup")
-      )
-      .trim
+      |""".stripMargin.trim
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
