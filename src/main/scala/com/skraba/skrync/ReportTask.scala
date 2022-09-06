@@ -151,6 +151,7 @@ object ReportTask {
     println("REPORT")
     println("===========")
     println("from: " + srcDigestString)
+    println("src: " + src.src)
     println(s"total files: ${src.info.deepFileCount}")
     println()
     println("Duplicates")
