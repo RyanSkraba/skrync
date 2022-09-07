@@ -83,23 +83,23 @@ object ReportTask {
             .scan(dedupPath, digest = true)
             .flattenPaths(dedupPath)
 
-      // And all of the files sorted by digest
+      // And all of the candidate files sorted by digest
       val srcOutDedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
         srcOutDedup.groupBy(_._2.digest.get)
 
-      // All of the
+      // All of the files that we're testing for duplication
       val dedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
         dedupContents.groupBy(_._2.digest.get)
 
+      // Partition by whether the file is unique or not
       val (uniques, duplicates) = dedupContents
         .partition {
           case (_, SkryncPath(_, _, _, _, _, Some(dig)))
               if srcOutDedupDigests.contains(dig) =>
             false
-          case (_, SkryncPath(_, _, _, _, _, Some(dig)))
-              if srcOutDedupDigests.getOrElse(dig, Nil).size == 1 =>
-            true
           case path @ (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
+            // The file doesn't exist in the source, but it might be duplicated inside the dedup path.
+            // One should be considered a duplicate, and the other a unique file.
             dedupDigests.getOrElse(dig, Nil).headOption.contains(path)
           case _ => false
         }
