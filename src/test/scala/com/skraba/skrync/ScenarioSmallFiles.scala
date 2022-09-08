@@ -16,10 +16,10 @@ import scala.reflect.io._
   *    - `root/scenario1/small/ids.txt`
   *  1. A variation where one of the files is modified.
   *    - `root/scenario2/small/ids.txt`
-  *    - `root/scenario2/small/sub/ids2.txt` ```same name but changed```
+  *    - `root/scenario2/small/sub/ids2.txt` __same name but changed__
   *  1. A variation where one of the files is unmodified but renamed.
   *    - `root/scenario3/small/ids.txt`
-  *    - `root/scenario3/small/sub/ids2a.txt` ```different name but unchanged```
+  *    - `root/scenario3/small/sub/ids2a.txt` __different name but unchanged__
   *  1. A variation where one of the files was copied
   *    - `root/scenario4/small/ids.txt`
   *    - `root/scenario4/small/sub/ids.txt`
@@ -32,11 +32,11 @@ import scala.reflect.io._
   *    - `root/scenario6/small/sub/ids2.txt`
   *    - `root/scenario6/small/dup1/ids.txt`
   *    - `root/scenario6/small/dup1/ids3.txt`
-  *    - `root/scenario6/small/dup2/ids3.txt`
-  *    - `root/scenario6/small/dup2/ids3b.txt`
+  *    - `root/scenario6/small/dup2/ids4a.txt`
+  *    - `root/scenario6/small/dup2/ids4b.txt`
   *    - `root/scenario6/small/dup3/ids2a.txt`
-  *    - `root/scenario6/small/dup3/ids3.txt`
-  *    - `root/scenario6/small/dup3/sub/ids3.txt`
+  *    - `root/scenario6/small/dup3/ids5.txt`
+  *    - `root/scenario6/small/dup3/sub/ids5.txt`
   *
   * @param root An existing directory.  The small and scenario directories will be created inside
   *              and deleted on [[cleanup]].
@@ -59,8 +59,9 @@ class ScenarioSmallFiles(
     }
 
   /** A directory with the initial scenario:
-    * - small/ids.txt
-    * - small/sub/ids2.txt
+    *
+    *  - small/ids.txt
+    *  - small/sub/ids2.txt
     */
   val src: Directory = root / "original" / Directory("small")
 
