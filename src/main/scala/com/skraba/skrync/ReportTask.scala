@@ -18,13 +18,20 @@ object ReportTask {
       |
       |Usage:
       |  SkryncGo report --srcDigest SRC
-      |
+      |  SkryncGo report --srcDigest SRC --dedupDir DEDUP_DIR
+      |      |
       |Options:
-      |  --srcDigest SRC  The file generated from the source directory.
+      |  --srcDigest SRC        The file generated from the source directory.
+      |  --dedupDir  DEDUP_DIR  Provide a deduplication report on all the files
+      |                         in DEDUP_DIR
       |
       |Examples:
       |
-      | SkryncGo report --srcDigest $$HOME/skrync/backup1
+      | # Provide a basic report on the files in the digest
+      | SkryncGo report --srcDigest $HOME/skrync/backup1
+      |
+      | # Provide a deduplication report on the files in the given directory
+      | SkryncGo report --srcDigest $HOME/skrync/backup1 --dedupDir $HOME/dedup/
       |
       |""".stripMargin
       .format(Description)
@@ -130,6 +137,7 @@ object ReportTask {
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
     val srcDigestString = opts.get("--srcDigest").asInstanceOf[String]
+    val dedup = opts.get("--dedupDir").asInstanceOf[Boolean]
 
     val srcDigest: File = File(srcDigestString).toAbsolute
     if (!srcDigest.exists)
@@ -141,27 +149,57 @@ object ReportTask {
         s"Source is not a file: $srcDigestString"
       )
 
-    // Read all of the information from the two digest files.
-    val src: SkryncGo.Analysis = Json.read(srcDigest)
-
     // Check the two digests for differences.
-    val r = report(src)
+    if (dedup) {
+      val dedupDirString = opts.get("DEDUP_DIR").asInstanceOf[String]
+      val dedupDir: Directory = Directory(dedupDirString).toAbsolute
+      if (!dedupDir.exists)
+        throw new IllegalArgumentException(
+          s"Deduplication directory doesn't exist: $dedupDirString"
+        )
+      if (!dedupDir.isDirectory)
+        throw new IllegalArgumentException(
+          s"Deduplication directory is not a directory: $dedupDirString"
+        )
 
-    // TODO: implement
-    println("REPORT")
-    println("===========")
-    println("from: " + srcDigestString)
-    println("src: " + src.src)
-    println(s"total files: ${src.info.deepFileCount}")
-    println()
-    println("Duplicates")
-    println("----------")
-    for (fs <- r.duplicateFiles.takeRight(10)) {
-      println(s"${fs.head._1.size} (${fs.size}) -->")
-      for (fs2 <- fs) {
-        println(s"   ${fs2._2}")
+      // Read all of the information from the two digest files.
+      val src: SkryncGo.Analysis = Json.read(srcDigest)
+      val r = DedupPathReport(src, dedupDir)
+
+      println("DEDUPLICATION REPORT")
+      println("===========")
+      println("from: " + srcDigestString)
+      println("src: " + src.src)
+      println("dedup: " + dedupDir)
+      println(s"uniques: ${r.uniques.size}")
+      println(s"duplicates: ${r.duplicates.size}")
+      println()
+      r.duplicates.map(_._1).foreach { f =>
+        System.out.println(
+          s"""mv "$f" "${f.changeExtension("dup." + f.extension)}" """
+        )
+
+      }
+    } else {
+      // Read all of the information from the two digest files.
+      val src: SkryncGo.Analysis = Json.read(srcDigest)
+      val r = report(src)
+
+      // TODO: implement
+      println("REPORT")
+      println("===========")
+      println("from: " + srcDigestString)
+      println("src: " + src.src)
+      println(s"total files: ${src.info.deepFileCount}")
+      println()
+      println("Duplicates")
+      println("----------")
+      for (fs <- r.duplicateFiles.takeRight(10)) {
+        println(s"${fs.head._1.size} (${fs.size}) -->")
+        for (fs2 <- fs) {
+          println(s"   ${fs2._2}")
+        }
       }
     }
-
   }
 }

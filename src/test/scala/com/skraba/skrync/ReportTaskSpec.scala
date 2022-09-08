@@ -2,7 +2,6 @@ package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec.{withSkryncGo, withSkryncGoAnalysis}
-import com.skraba.skrync.SkryncPath.isIn
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -20,6 +19,8 @@ class ReportTaskSpec
     Directory.makeTemp(getClass.getSimpleName),
     deleteRootOnCleanup = true
   )
+
+  val DoesntExist = (Small.root / "doesnt-exist").toString()
 
   override protected def afterAll(): Unit = Small.cleanup()
 
@@ -52,18 +53,18 @@ class ReportTaskSpec
       t.docopt shouldBe ReportTask.Doc
     }
 
-    it("throws an exception when the source or destination doesn't exist") {
+    it("throws an exception when the source digest doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
         withSkryncGo(
           "report",
           "--srcDigest",
-          "/doesnt-exist"
+          DoesntExist
         )
       }
-      tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
+      tSrc.getMessage shouldBe s"Source doesn't exist: $DoesntExist"
     }
 
-    it("throws an exception when the source or destination is a directory") {
+    it("throws an exception when the source digest is a directory") {
       val tSrc = intercept[IllegalArgumentException] {
         withSkryncGo(
           "report",
@@ -72,6 +73,44 @@ class ReportTaskSpec
         )
       }
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
+    }
+
+    ignore("throws an exception when the source digest is not a JSON file") {
+      // TODO
+      val tSrc = intercept[IllegalArgumentException] {
+        withSkryncGo(
+          "report",
+          "--srcDigest",
+          (Small.src / "ids.txt").toString()
+        )
+      }
+      tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
+    }
+
+    it("throws an exception when the dedup directory doesn't exist") {
+      val tSrc = intercept[IllegalArgumentException] {
+        withSkryncGo(
+          "report",
+          "--srcDigest",
+          (Small.src / "ids.txt").toString(),
+          "--dedupDir",
+          DoesntExist
+        )
+      }
+      tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: $DoesntExist"
+    }
+
+    it("throws an exception when the dedup directory is not a directory") {
+      val tSrc = intercept[IllegalArgumentException] {
+        withSkryncGo(
+          "report",
+          "--srcDigest",
+          (Small.src / "ids.txt").toString(),
+          "--dedupDir",
+          (Small.src / "ids.txt").toString()
+        )
+      }
+      tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
     }
   }
 
@@ -129,7 +168,7 @@ class ReportTaskSpec
   def extractNameForTests(src: Path)(f: (Path, SkryncPath)): String =
     src.relativize(f._1).toString()
 
-  describe(s" Using ${ReportTask.DedupPathReport.getClass.getSimpleName}") {
+  describe(s"Using ${ReportTask.DedupPathReport.getClass.getSimpleName}") {
 
     // Generate an analysis of the scenario6 directory
     val (_, analysis) = withSkryncGoAnalysis(
