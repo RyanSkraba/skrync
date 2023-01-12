@@ -20,9 +20,9 @@ class ReportTaskSpec
     deleteRootOnCleanup = true
   )
 
-  val DoesntExist = (Small.root / "doesnt-exist").toString()
-
   override protected def afterAll(): Unit = Small.cleanup()
+
+  val DoesntExist = (Small.root / "doesnt-exist").toString()
 
   describe("SkryncGo report command line") {
     it("throws an exception with --help") {
