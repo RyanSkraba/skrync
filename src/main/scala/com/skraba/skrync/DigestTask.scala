@@ -1,7 +1,5 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.Analysis
-
 import java.io.IOException
 import java.time.{LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
