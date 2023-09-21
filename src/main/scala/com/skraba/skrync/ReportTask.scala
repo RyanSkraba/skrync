@@ -19,11 +19,11 @@ object ReportTask {
       |Usage:
       |  SkryncGo report --srcDigest SRC
       |  SkryncGo report --srcDigest SRC --dedupDir DEDUP_DIR
-      |      |
+      |
       |Options:
-      |  --srcDigest SRC        The file generated from the source directory.
-      |  --dedupDir  DEDUP_DIR  Provide a deduplication report on all the files
-      |                         in DEDUP_DIR
+      |  --srcDigest SRC       The file generated from the source directory.
+      |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
+      |                        in DEDUP_DIR
       |
       |Examples:
       |
@@ -137,7 +137,7 @@ object ReportTask {
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
     val srcDigestString = opts.get("--srcDigest").asInstanceOf[String]
-    val dedup = opts.get("--dedupDir").asInstanceOf[Boolean]
+    val dedup = opts.get("--dedupDir").asInstanceOf[String]
 
     val srcDigest: File = File(srcDigestString).toAbsolute
     if (!srcDigest.exists)
@@ -150,8 +150,8 @@ object ReportTask {
       )
 
     // Check the two digests for differences.
-    if (dedup) {
-      val dedupDirString = opts.get("DEDUP_DIR").asInstanceOf[String]
+    if (dedup != null) {
+      val dedupDirString = dedup
       val dedupDir: Directory = Directory(dedupDirString).toAbsolute
       if (!dedupDir.exists)
         throw new IllegalArgumentException(
@@ -178,7 +178,12 @@ object ReportTask {
         System.out.println(
           s"""mv "$f" "${f.changeExtension("dup." + f.extension)}" """
         )
-
+      }
+      println()
+      r.uniques.map(_._1).foreach { f =>
+        System.out.println(
+          s"""mv "$f" "${f.changeExtension("uniq." + f.extension)}" """
+        )
       }
     } else {
       // Read all of the information from the two digest files.
