@@ -92,6 +92,21 @@ case class SkryncDir(
 
 object SkryncDir {
 
+  /** Returns that the given string corresponds to a directory on the filesystem.
+    * @param argSrcDir The argument
+    * @return The validated directory on the filesystem
+    */
+  def validateSourceDirectory(argSrcDir: String): Directory = {
+    val srcDir: Directory = Directory(argSrcDir).toAbsolute
+    if (!srcDir.exists)
+      throw new IllegalArgumentException(s"Source doesn't exist: $argSrcDir")
+    if (!srcDir.isDirectory)
+      throw new IllegalArgumentException(
+        s"Source is not a directory: $argSrcDir"
+      )
+    srcDir
+  }
+
   /** Create a [[SkryncDir]] of the basic path elements, including all subdirectories and files
     * recursively.  This does not calculate the digest.
     *

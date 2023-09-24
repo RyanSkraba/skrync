@@ -51,15 +51,9 @@ object DigestTask {
     val silent = opts.get("--silent").asInstanceOf[Boolean]
     val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
 
-    val srcDir: Directory = Directory(srcDirString).toAbsolute
-    if (!srcDir.exists)
-      throw new IllegalArgumentException(
-        s"Source doesn't exist: $srcDirString"
-      )
-    if (!srcDir.isDirectory)
-      throw new IllegalArgumentException(
-        s"Source is not a directory: $srcDirString"
-      )
+    val srcDir = SkryncDir.validateSourceDirectory(
+      opts.get("--srcDir").asInstanceOf[String]
+    )
 
     // If no destination is specified, this will be None and standard out will be used.
     val dst: Option[File] = dstString
