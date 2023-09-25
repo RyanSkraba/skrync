@@ -1,5 +1,7 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.SkryncGo.validateFileSystemFile
+
 import java.io.IOException
 import scala.reflect.io._
 
@@ -46,41 +48,27 @@ object ExecuteTask {
       .map(plan => goExecute(plan.asInstanceOf[String], backup))
       .getOrElse(
         goExecute(
-          opts.get("--srcDigest").asInstanceOf[String],
-          opts.get("--dstDigest").asInstanceOf[String],
+          validateFileSystemFile(
+            opts.get("--srcDigest").asInstanceOf[String]
+          ),
+          validateFileSystemFile(
+            opts.get("--dstDigest").asInstanceOf[String],
+            tag = "Destination"
+          ),
           backup
         )
       )
   }
 
   def goExecute(
-      srcDigestString: String,
-      dstDigestString: String,
+      srcDigest: File,
+      dstDigest: File,
       backupDirString: Option[String]
   ): Unit = {
-    val srcDigest: File = File(srcDigestString).toAbsolute
-    val dstDigest: File = File(dstDigestString).toAbsolute
-    if (!srcDigest.exists)
-      throw new IllegalArgumentException(
-        s"Source doesn't exist: $srcDigestString"
-      )
-    if (!dstDigest.exists)
-      throw new IllegalArgumentException(
-        s"Destination doesn't exist: $dstDigestString"
-      )
-    if (!srcDigest.isFile)
-      throw new IllegalArgumentException(
-        s"Source is not a file: $srcDigestString"
-      )
-    if (!dstDigest.isFile)
-      throw new IllegalArgumentException(
-        s"Destination is not a file: $dstDigestString"
-      )
-
     System.out.println("EXECUTE")
     System.out.println("===========")
-    System.out.println("srcDigest:" + srcDigestString)
-    System.out.println("dstDigest:" + dstDigestString)
+    System.out.println("srcDigest:" + srcDigest)
+    System.out.println("dstDigest:" + dstDigest)
     System.out.println("backupDir:" + backupDirString)
   }
 

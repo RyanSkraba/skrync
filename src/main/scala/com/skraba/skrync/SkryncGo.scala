@@ -3,7 +3,7 @@ package com.skraba.skrync
 import org.docopt.{Docopt, DocoptExitException}
 
 import scala.collection.JavaConverters._
-import scala.reflect.io.Directory
+import scala.reflect.io.{Directory, File, Path}
 
 /** My synchronization tool.
   */
@@ -139,4 +139,53 @@ object SkryncGo {
     }
   }
 
+  /** Returns that the given string corresponds to a directory on the filesystem.
+    *
+    * @param arg The argument
+    * @return The validated directory on the filesystem
+    */
+  def validateFileSystem(
+      arg: String,
+      tag: String = "Source",
+      isDir: Boolean = false,
+      isFile: Boolean = false,
+      exists: Boolean = true
+  ): Path = {
+    val srcDir: Path = Directory(arg).toAbsolute
+    if (exists && !srcDir.exists)
+      throw new IllegalArgumentException(s"$tag doesn't exist: $arg")
+    if (isDir && !srcDir.isDirectory)
+      throw new IllegalArgumentException(
+        s"$tag is not a directory: $arg"
+      )
+    if (isFile && !srcDir.isFile)
+      throw new IllegalArgumentException(
+        s"$tag is not a file: $arg"
+      )
+    srcDir
+  }
+
+  def validateFileSystemDir(
+      arg: String,
+      tag: String = "Source",
+      exists: Boolean = true
+  ): Directory = validateFileSystem(
+    arg,
+    tag,
+    isDir = true,
+    isFile = false,
+    exists
+  ).toDirectory
+
+  def validateFileSystemFile(
+      arg: String,
+      tag: String = "Source",
+      exists: Boolean = true
+  ): File = validateFileSystem(
+    arg,
+    tag,
+    isDir = false,
+    isFile = true,
+    exists
+  ).toFile
 }

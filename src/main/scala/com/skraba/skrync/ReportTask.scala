@@ -1,6 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
+import com.skraba.skrync.SkryncGo.validateFileSystemFile
 import com.skraba.skrync.SkryncPath.isIn
 
 import scala.reflect.io._
@@ -136,18 +137,11 @@ object ReportTask {
   }
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
-    val srcDigestString = opts.get("--srcDigest").asInstanceOf[String]
     val dedup = opts.get("--dedupDir").asInstanceOf[String]
 
-    val srcDigest: File = File(srcDigestString).toAbsolute
-    if (!srcDigest.exists)
-      throw new IllegalArgumentException(
-        s"Source doesn't exist: $srcDigestString"
-      )
-    if (!srcDigest.isFile)
-      throw new IllegalArgumentException(
-        s"Source is not a file: $srcDigestString"
-      )
+    val srcDigest: File = validateFileSystemFile(
+      opts.get("--srcDigest").asInstanceOf[String]
+    )
 
     // Check the two digests for differences.
     if (dedup != null) {
@@ -168,7 +162,7 @@ object ReportTask {
 
       println("DEDUPLICATION REPORT")
       println("===========")
-      println("from: " + srcDigestString)
+      println("from: " + srcDigest)
       println("src: " + src.src)
       println("dedup: " + dedupDir)
       println(s"uniques: ${r.uniques.size}")
@@ -193,7 +187,7 @@ object ReportTask {
       // TODO: implement
       println("REPORT")
       println("===========")
-      println("from: " + srcDigestString)
+      println("from: " + srcDigest)
       println("src: " + src.src)
       println(s"total files: ${src.info.deepFileCount}")
       println()
