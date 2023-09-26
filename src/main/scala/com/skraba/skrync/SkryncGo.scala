@@ -139,10 +139,14 @@ object SkryncGo {
     }
   }
 
-  /** Returns that the given string corresponds to a directory on the filesystem.
+  /** Helper to validate command line arguments against an expected system state
     *
-    * @param arg The argument
-    * @return The validated directory on the filesystem
+    * @param arg The string value of the argument
+    * @param tag A human readable description for the expected argument
+    * @param isDir Whether to test if the argument is a Directory
+    * @param isFile Whether to test if the argument is a File
+    * @param exists Whether to test if the argument already exists
+    * @return The validated path that the argument represents on the filesystem.
     */
   def validateFileSystem(
       arg: String,
@@ -151,18 +155,16 @@ object SkryncGo {
       isFile: Boolean = false,
       exists: Boolean = true
   ): Path = {
-    val srcDir: Path = Directory(arg).toAbsolute
-    if (exists && !srcDir.exists)
+    val path: Path = Path(arg).toAbsolute
+    if (exists && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $arg")
-    if (isDir && !srcDir.isDirectory)
-      throw new IllegalArgumentException(
-        s"$tag is not a directory: $arg"
-      )
-    if (isFile && !srcDir.isFile)
+    if (isDir && !path.isDirectory)
+      throw new IllegalArgumentException(s"$tag is not a directory: $arg")
+    if (isFile && !path.isFile)
       throw new IllegalArgumentException(
         s"$tag is not a file: $arg"
       )
-    srcDir
+    path
   }
 
   def validateFileSystemDir(
