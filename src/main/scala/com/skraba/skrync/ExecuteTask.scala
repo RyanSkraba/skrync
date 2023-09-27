@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.validateFileSystemFile
+import com.skraba.skrync.SkryncGo.validateFile
 
 import java.io.IOException
 import scala.reflect.io._
@@ -48,10 +48,10 @@ object ExecuteTask {
       .map(plan => goExecute(plan.asInstanceOf[String], backup))
       .getOrElse(
         goExecute(
-          validateFileSystemFile(
+          validateFile(
             opts.get("--srcDigest").asInstanceOf[String]
           ),
-          validateFileSystemFile(
+          validateFile(
             opts.get("--dstDigest").asInstanceOf[String],
             tag = "Destination"
           ),

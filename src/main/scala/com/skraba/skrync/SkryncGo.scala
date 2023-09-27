@@ -139,7 +139,7 @@ object SkryncGo {
     }
   }
 
-  /** Helper to validate command line arguments against an expected system state
+  /** Helper to validate command line arguments against an expected filesystem state.
     *
     * @param arg The string value of the argument
     * @param tag A human readable description for the expected argument
@@ -167,7 +167,14 @@ object SkryncGo {
     path
   }
 
-  def validateFileSystemDir(
+  /** Helper to validate command line arguments against an expected filesystem directory.
+    *
+    * @param arg    The string value of the argument
+    * @param tag    A human readable description for the expected argument
+    * @param exists Whether to test if the argument already exists
+    * @return The validated directory that the argument represents on the filesystem.
+    */
+  def validateDirectory(
       arg: String,
       tag: String = "Source",
       exists: Boolean = true
@@ -179,7 +186,14 @@ object SkryncGo {
     exists
   ).toDirectory
 
-  def validateFileSystemFile(
+  /** Helper to validate command line arguments against an expected filesystem directory.
+    *
+    * @param arg    The string value of the argument
+    * @param tag    A human readable description for the expected argument
+    * @param exists Whether to test if the argument already exists
+    * @return The validated directory that the argument represents on the filesystem.
+    */
+  def validateFile(
       arg: String,
       tag: String = "Source",
       exists: Boolean = true

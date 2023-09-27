@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.validateFileSystemFile
+import com.skraba.skrync.SkryncGo.validateFile
 import com.skraba.skrync.SkryncPath.isIn
 
 import scala.reflect.io._
@@ -139,7 +139,7 @@ object ReportTask {
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
     val dedup = opts.get("--dedupDir").asInstanceOf[String]
 
-    val srcDigest: File = validateFileSystemFile(
+    val srcDigest: File = validateFile(
       opts.get("--srcDigest").asInstanceOf[String]
     )
 

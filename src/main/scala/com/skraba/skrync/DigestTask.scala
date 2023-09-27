@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.validateFileSystemDir
+import com.skraba.skrync.SkryncGo.validateDirectory
 
 import java.io.IOException
 import java.time.{LocalDateTime, ZoneOffset}
@@ -53,7 +53,7 @@ object DigestTask {
     val silent = opts.get("--silent").asInstanceOf[Boolean]
     val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
 
-    val srcDir = validateFileSystemDir(srcDirString)
+    val srcDir = validateDirectory(srcDirString)
 
     // If no destination is specified, this will be None and standard out will be used.
     val dst: Option[File] = dstString
