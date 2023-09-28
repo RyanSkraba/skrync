@@ -140,7 +140,7 @@ object ReportTask {
     val dedup = opts.get("--dedupDir").asInstanceOf[String]
 
     val srcDigest: File = validateFile(
-      opts.get("--srcDigest").asInstanceOf[String]
+      opts.get("--srcDigest")
     )
 
     // Check the two digests for differences.

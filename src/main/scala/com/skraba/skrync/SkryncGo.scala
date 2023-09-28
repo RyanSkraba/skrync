@@ -2,6 +2,7 @@ package com.skraba.skrync
 
 import org.docopt.{Docopt, DocoptExitException}
 
+import java.util
 import scala.collection.JavaConverters._
 import scala.reflect.io.{Directory, File, Path}
 
@@ -149,13 +150,13 @@ object SkryncGo {
     * @return The validated path that the argument represents on the filesystem.
     */
   def validateFileSystem(
-      arg: String,
+      arg: AnyRef,
       tag: String = "Source",
       isDir: Boolean = false,
       isFile: Boolean = false,
       exists: Boolean = true
   ): Path = {
-    val path: Path = Path(arg).toAbsolute
+    val path: Path = Path(arg.toString).toAbsolute
     if (exists && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $arg")
     if (isDir && !path.isDirectory)
@@ -175,7 +176,7 @@ object SkryncGo {
     * @return The validated directory that the argument represents on the filesystem.
     */
   def validateDirectory(
-      arg: String,
+      arg: AnyRef,
       tag: String = "Source",
       exists: Boolean = true
   ): Directory = validateFileSystem(
@@ -194,7 +195,7 @@ object SkryncGo {
     * @return The validated directory that the argument represents on the filesystem.
     */
   def validateFile(
-      arg: String,
+      arg: AnyRef,
       tag: String = "Source",
       exists: Boolean = true
   ): File = validateFileSystem(
