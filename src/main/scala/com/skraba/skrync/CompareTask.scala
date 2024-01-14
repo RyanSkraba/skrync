@@ -84,12 +84,21 @@ object CompareTask {
     val compares = compare(src.info, dst.info)
 
     // TODO: implement
-    println("COMPARE")
-    println("===========")
-    println("srcDigest:" + srcDigestString)
-    println("dstDigest:" + dstDigestString)
-    println(
-      "Compares:" + (compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.modified.isEmpty)
-    )
+    println(s"""COMPARE
+      |srcDigest: $srcDigestString
+      |dstDigest:" $dstDigestString
+      |srcOnly: ${compares.srcOnly.size}
+      |dstOnly: ${compares.dstOnly.size}
+      |modified: ${compares.modified.size}
+      |identical: ${compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.modified.isEmpty}
+      |
+      """.stripMargin)
+
+    val all: Seq[(Path, String)] =
+      (compares.srcOnly.map((_, "<<")) ++ compares.dstOnly.map(
+        (_, ">>")
+      ) ++ compares.modified.map((_, "!="))).toSeq.sortBy(_._1.toString())
+
+    all.foreach(str => println(str._2 + " " + str._1))
   }
 }

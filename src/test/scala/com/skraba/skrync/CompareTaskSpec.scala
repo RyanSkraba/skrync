@@ -176,7 +176,7 @@ class CompareTaskSpec
       )
 
       stdout should not have size(0)
-      stdout should include("Compares:true")
+      stdout should include("identical: true")
       stderr shouldBe ""
     }
   }
