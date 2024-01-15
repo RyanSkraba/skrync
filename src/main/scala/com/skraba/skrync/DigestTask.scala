@@ -93,7 +93,7 @@ object DigestTask {
       time: LocalDateTime
   ): String = {
     var defaultName = srcDirString.replaceAll("""[/\\]""", " ").trim
-    defaultName += "_" + time.format(
+    defaultName += "__" + time.format(
       DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
     )
     defaultName = defaultName.replace(" ", "_")
