@@ -5,6 +5,7 @@ import org.docopt.{Docopt, DocoptExitException}
 import java.util
 import scala.collection.JavaConverters._
 import scala.reflect.io.{Directory, File, Path}
+import scala.util.Properties
 
 /** My synchronization tool.
   */
@@ -142,20 +143,38 @@ object SkryncGo {
 
   /** Helper to validate command line arguments against an expected filesystem state.
     *
-    * @param arg The string value of the argument
-    * @param tag A human readable description for the expected argument
-    * @param isDir Whether to test if the argument is a Directory
-    * @param isFile Whether to test if the argument is a File
-    * @param exists Whether to test if the argument already exists
-    * @return The validated path that the argument represents on the filesystem.
+    * @param root
+    *   An absolute directory to use in constructing the path
+    * @param arg
+    *   An absolute or relative (to root) directory to use in constructing the path
+    * @param tag
+    *   A human readable description for the expected argument
+    * @param isDir
+    *   Whether to test if the resulti is a Directory
+    * @param isFile
+    *   Whether to test if the argument is a File
+    * @param exists
+    *   Whether to test if the argument already exists
+    * @return
+    *   The validated path that the argument represents on the filesystem.
     */
   def validateFileSystem(
+      root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
       isDir: Boolean = false,
       isFile: Boolean = false,
       exists: Boolean = true
   ): Path = {
+    val rootPath =
+      Path(
+        root
+          .map(_.toString)
+          .orElse(sys.env.get("SKRYNC_ROOT_DIR"))
+          .orElse(Option(Properties.userDir))
+          .getOrElse("/")
+      )
+
     val path: Path = Path(arg.toString).toAbsolute
     if (exists && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $arg")
@@ -170,39 +189,41 @@ object SkryncGo {
 
   /** Helper to validate command line arguments against an expected filesystem directory.
     *
-    * @param arg    The string value of the argument
-    * @param tag    A human readable description for the expected argument
-    * @param exists Whether to test if the argument already exists
-    * @return The validated directory that the argument represents on the filesystem.
+    * @param root
+    *   An absolute directory to use in constructing the path
+    * @param arg
+    *   An absolute or relative (to root) directory to use in constructing the path
+    * @param tag
+    *   A human readable description for the expected argument
+    * @param exists
+    *   Whether to test if the argument already exists
+    * @return
+    *   The validated directory that the argument represents on the filesystem.
     */
   def validateDirectory(
+      root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
       exists: Boolean = true
-  ): Directory = validateFileSystem(
-    arg,
-    tag,
-    isDir = true,
-    isFile = false,
-    exists
-  ).toDirectory
+  ): Directory = validateFileSystem(root, arg, tag, isDir = true, isFile = false, exists).toDirectory
 
   /** Helper to validate command line arguments against an expected filesystem directory.
     *
-    * @param arg    The string value of the argument
-    * @param tag    A human readable description for the expected argument
-    * @param exists Whether to test if the argument already exists
-    * @return The validated directory that the argument represents on the filesystem.
+    * @param root
+    *   An absolute directory to use in constructing the path
+    * @param arg
+    *   An absolute or relative (to root) directory to use in constructing the path
+    * @param tag
+    *   A human readable description for the expected argument
+    * @param exists
+    *   Whether to test if the argument already exists
+    * @return
+    *   The validated directory that the argument represents on the filesystem.
     */
   def validateFile(
+      root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
       exists: Boolean = true
-  ): File = validateFileSystem(
-    arg,
-    tag,
-    isDir = false,
-    isFile = true,
-    exists
-  ).toFile
+  ): File = validateFileSystem(root, arg, tag, isDir = false, isFile = true, exists).toFile
 }

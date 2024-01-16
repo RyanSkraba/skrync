@@ -102,8 +102,7 @@ object ReportTask {
       // Partition by whether the file is unique or not
       val (uniques, duplicates) = dedupContents
         .partition {
-          case (_, SkryncPath(_, _, _, _, _, Some(dig)))
-              if srcOutDedupDigests.contains(dig) =>
+          case (_, SkryncPath(_, _, _, _, _, Some(dig))) if srcOutDedupDigests.contains(dig) =>
             false
           case path @ (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
             // The file doesn't exist in the source, but it might be duplicated inside the dedup path.
@@ -140,6 +139,8 @@ object ReportTask {
     val dedup = opts.get("--dedupDir").asInstanceOf[String]
 
     val srcDigest: File = validateFile(
+      // TODO
+      None,
       opts.get("--srcDigest")
     )
 

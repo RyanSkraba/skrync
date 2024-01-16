@@ -48,8 +48,14 @@ object ExecuteTask {
       .map(plan => goExecute(plan.asInstanceOf[String], backup))
       .getOrElse(
         goExecute(
-          validateFile(opts.get("--srcDigest")),
           validateFile(
+            // TODO
+            None,
+            opts.get("--srcDigest")
+          ),
+          validateFile(
+            // TODO
+            None,
             opts.get("--dstDigest"),
             tag = "Destination"
           ),
