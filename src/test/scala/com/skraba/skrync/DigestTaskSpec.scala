@@ -13,10 +13,7 @@ import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[DigestTask]]
   */
-class DigestTaskSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -33,9 +30,7 @@ class DigestTaskSpec
   describe("SkryncGo digest command line") {
 
     it("throws an exception with --help") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("digest", "--help")
-      }
+      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--help") }
       t.getMessage shouldBe DigestTask.Doc
       t.docopt shouldBe DigestTask.Doc
     }
@@ -44,41 +39,33 @@ class DigestTaskSpec
       val invalid = List(
         List("digest"),
         List("digest", "--srcDir"),
+        List("digest", "--srcDir", "x", "--srcRoot"),
         List("digest", "--srcDir", "x", "--dstDir")
       )
       for (args <- invalid) {
-        val t = intercept[InternalDocoptException] {
-          withSkryncGo(args: _*)
-        }
+        val t = intercept[InternalDocoptException] { withSkryncGo(args: _*) }
         t.docopt shouldBe DigestTask.Doc
       }
     }
 
     it("throws an exception with unknown option") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("digest", "--srcDigest")
-      }
+      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--srcDigest") }
       t.docopt shouldBe DigestTask.Doc
     }
 
     it("throws an exception when the source doesn't exist") {
-      val t = intercept[IllegalArgumentException] {
-        withSkryncGo("digest", "--srcDir", "/doesnt-exist")
-      }
+      val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", "/doesnt-exist") }
       t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source is a file") {
-      val t = intercept[IllegalArgumentException] {
-        withSkryncGo("digest", "--srcDir", ExistingFile.toString)
-      }
+      val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", ExistingFile.toString) }
       t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
     }
 
     it("prints to standard out when no destination") {
       // No exception should occur, and output is dumped to the console.
-      val (stdout, stderr) =
-        withSkryncGo("digest", "--srcDir", Small.src.toString)
+      val (stdout, stderr) = withSkryncGo("digest", "--srcDir", Small.src.toString)
       stdout should not have size(0)
       stdout should include("ids.txt")
       stderr shouldBe ""
@@ -88,13 +75,7 @@ class DigestTaskSpec
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("autoDst").toDirectory
       dstDir.createDirectory()
-      val (stdout, stderr) = withSkryncGo(
-        "digest",
-        "--srcDir",
-        Small.src.toString,
-        "--dstDigest",
-        dstDir.toString
-      )
+      val (stdout, stderr) = withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", dstDir.toString)
       stdout shouldBe "[![!]]{<.>{<.>}}"
       stderr shouldBe ""
 
@@ -112,38 +93,23 @@ class DigestTaskSpec
 
       // The contents of the file should be readable and match the contents of the directory.
       val analysis = Json.read(dstDigestFile)
-      val expected =
-        SkryncDir
-          .scan(Small.src, digest = true)
-          .copyWithoutTimes()
+      val expected = SkryncDir.scan(Small.src, digest = true).copyWithoutTimes()
 
       analysis.src shouldBe Small.src
-      analysis.info
-        .copy(path = analysis.info.path.copy(name = "small"))
-        .copyWithoutTimes() shouldBe expected
+      analysis.info.copy(path = analysis.info.path.copy(name = "small")).copyWithoutTimes() shouldBe expected
 
       // The internal file time should match the filename.
       LocalDateTime
-        .ofInstant(
-          Instant.ofEpochMilli(analysis.created),
-          ZoneOffset.UTC
-        )
-        .format(
-          DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-        ) shouldBe dstDigestFileTime.value
+        .ofInstant(Instant.ofEpochMilli(analysis.created), ZoneOffset.UTC)
+        .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) shouldBe dstDigestFileTime.value
     }
 
     it("creates the file when a destination is explicitly specified.") {
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("dst").toDirectory
       dstDir.createDirectory()
-      val (stdout, stderr) = withSkryncGo(
-        "digest",
-        "--srcDir",
-        Small.src.toString,
-        "--dstDigest",
-        (dstDir / File("output.gz")).toString
-      )
+      val (stdout, stderr) =
+        withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", (dstDir / File("output.gz")).toString)
       stdout shouldBe "[![!]]{<.>{<.>}}"
       stderr shouldBe ""
 
@@ -157,11 +123,8 @@ class DigestTaskSpec
 
       // The contents of the file should be readable.
       val dstRoot = Json.read(dstDigestFile)
-      val expected =
-        SkryncDir.scan(Small.src, digest = true).copyWithoutTimes()
-      dstRoot.info.copy(path =
-        dstRoot.info.path.copy(name = "small")
-      ) shouldBe expected
+      val expected = SkryncDir.scan(Small.src, digest = true).copyWithoutTimes()
+      dstRoot.info.copy(path = dstRoot.info.path.copy(name = "small")) shouldBe expected
     }
 
     it("creates the file without digest information.") {
@@ -189,20 +152,14 @@ class DigestTaskSpec
 
       // The contents of the file should be readable.
       val dstRoot = Json.read(dstDigestFile)
-      val expected =
-        SkryncDir.scan(Small.src, digest = false).copyWithoutTimes()
-      dstRoot.info.copy(path =
-        dstRoot.info.path.copy(name = "small")
-      ) shouldBe expected
+      val expected = SkryncDir.scan(Small.src, digest = false).copyWithoutTimes()
+      dstRoot.info.copy(path = dstRoot.info.path.copy(name = "small")) shouldBe expected
     }
   }
 
   describe("DigestTask") {
     it("creates a default filename") {
-      val defaultName = DigestTask.getDefaultDigestName(
-        "/tmp/root\\dir",
-        LocalDateTime.of(1980, 2, 14, 12, 34, 56, 0)
-      )
+      val defaultName = DigestTask.getDefaultDigestName("/tmp/root\\dir", LocalDateTime.of(1980, 2, 14, 12, 34, 56, 0))
       defaultName shouldBe "tmp_root_dir__19800214123456"
     }
   }
