@@ -150,7 +150,7 @@ object SkryncGo {
     * @param tag
     *   A human readable description for the expected argument
     * @param isDir
-    *   Whether to test if the resulti is a Directory
+    *   Whether to test if the result is a Directory
     * @param isFile
     *   Whether to test if the argument is a File
     * @param exists
@@ -166,24 +166,19 @@ object SkryncGo {
       isFile: Boolean = false,
       exists: Boolean = true
   ): Path = {
-    val rootPath =
-      Path(
-        root
-          .map(_.toString)
-          .orElse(sys.env.get("SKRYNC_ROOT_DIR"))
-          .orElse(Option(Properties.userDir))
-          .getOrElse("/")
-      )
-
-    val path: Path = Path(arg.toString).toAbsolute
+    val path: Path = Path(
+      root
+        .map(_.toString)
+        .orElse(sys.env.get("SKRYNC_ROOT_DIR"))
+        .orElse(Option(Properties.userDir))
+        .getOrElse("/")
+    ).resolve(Path(arg.toString).toAbsolute)
     if (exists && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $arg")
     if (isDir && !path.isDirectory)
       throw new IllegalArgumentException(s"$tag is not a directory: $arg")
     if (isFile && !path.isFile)
-      throw new IllegalArgumentException(
-        s"$tag is not a file: $arg"
-      )
+      throw new IllegalArgumentException(s"$tag is not a file: $arg")
     path
   }
 
@@ -205,7 +200,14 @@ object SkryncGo {
       arg: AnyRef,
       tag: String = "Source",
       exists: Boolean = true
-  ): Directory = validateFileSystem(root, arg, tag, isDir = true, isFile = false, exists).toDirectory
+  ): Directory = validateFileSystem(
+    root,
+    arg,
+    tag,
+    isDir = true,
+    isFile = false,
+    exists
+  ).toDirectory
 
   /** Helper to validate command line arguments against an expected filesystem directory.
     *
@@ -225,5 +227,12 @@ object SkryncGo {
       arg: AnyRef,
       tag: String = "Source",
       exists: Boolean = true
-  ): File = validateFileSystem(root, arg, tag, isDir = false, isFile = true, exists).toFile
+  ): File = validateFileSystem(
+    root,
+    arg,
+    tag,
+    isDir = false,
+    isFile = true,
+    exists
+  ).toFile
 }
