@@ -33,7 +33,7 @@ Goals
    - Log and/or stash all changes that would lose data in the destination.
 
 ```bash
-# Create with default name (media_username_MYDISK_20210101120000).
+# Create with default name (media_username_MYDISK__20210101120000).
 # Unlikely that it exists already due to the timestamp.
 skrync digest --srcDir /media/username/MYDISK/backup \
     --dstDigest /media/username/MYDISK/.skrync/
@@ -41,16 +41,17 @@ skrync digest --srcDir /media/username/MYDISK2/backup \
     --dstDigest /media/username/MYDISK2/.skrync/
 
 # Dry run it (produces a plan)
-skrync compare --srcDigest \
-    /media/username/MYDISK/backup/.skrync/media_username_MYDISK_20210101120000 \
+skrync compare \
+    --srcDigest \
+    /media/username/MYDISK/backup/.skrync/media_username_MYDISK__20210101120000 \
     --dstDigest \
-    /media/username/MYDISK2/backup/.skrync/media_username_MYDISK2_20210101120010
+    /media/username/MYDISK2/backup/.skrync/media_username_MYDISK2__20210101120010
 
 # Do it.
 skrync execute --srcDigest \
-    /media/username/MYDISK/backup/.skrync/media_username_MYDISK_20210101120000 \
+    /media/username/MYDISK/backup/.skrync/media_username_MYDISK__20210101120000 \
     --dstDigest \
-    /media/username/MYDISK2/backup/.skrync/media_username_MYDISK2_20210101120010 \
+    /media/username/MYDISK2/backup/.skrync/media_username_MYDISK2__20210101120010 \
     --backup /tmp/skrync_changed/
 skrync execute --plan /tmp/todo/plan.json --backup /tmp/changed/
 ```
