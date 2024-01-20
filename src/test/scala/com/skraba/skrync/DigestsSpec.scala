@@ -4,7 +4,6 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.collection.Seq
 import scala.reflect.io.{Directory, File}
 
 /** Unit tests for [[Digests]]
@@ -32,7 +31,7 @@ class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
       Digests
         .fromHex("000000000FF0") shouldBe Seq(0, 0, 0, 0, 0x0f, 0xf0.toByte)
 
-      Digests.toHex(Seq()) shouldBe ""
+      Digests.toHex(Seq.empty) shouldBe ""
       Digests.toHex(Seq(0x01)) shouldBe "01"
       Digests.toHex(Seq(0x0a)) shouldBe "0A"
       Digests.toHex(Seq(0xa0.toByte)) shouldBe "A0"

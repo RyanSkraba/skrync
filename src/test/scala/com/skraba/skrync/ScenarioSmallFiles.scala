@@ -104,7 +104,7 @@ class ScenarioSmallFiles(
     // scenario1 has a deleted file
     val s1: Directory = srcDeletedFile
     createTxtContents(s1 / "ids.txt", File1Contents)
-    s1 / Directory("sub") createDirectory ()
+    (s1 / Directory("sub")).createDirectory()
 
     // scenario2 has a modified file
     val s2: Directory = srcModifiedFile
