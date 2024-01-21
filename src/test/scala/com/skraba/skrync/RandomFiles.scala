@@ -7,8 +7,8 @@ import scala.util.Random
 
 /** Utilities for generating random files in a directory for testing.
   *
-  * The files are generated using the PRNG, so the results are deterministic, and POSIX creation,
-  * access, and modification times can be set.
+  * The files are generated using the PRNG, so the results are deterministic, and POSIX creation, access, and
+  * modification times can be set.
   */
 object RandomFiles {
 
@@ -27,39 +27,52 @@ object RandomFiles {
 
   /** Generate a random integer between the two values (inclusive).
     *
-    * @param rnd PRNG for repeatability.
-    * @param min The minimum value.
-    * @param max The maximum value.
-    * @return A random alphanumeric string.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param min
+    *   The minimum value.
+    * @param max
+    *   The maximum value.
+    * @return
+    *   A random alphanumeric string.
     */
   def nextInt(rnd: Random, min: Int, max: Int): Int =
     min + rnd.nextInt(max - min + 1)
 
   /** Generate a random string.
     *
-    * @param rnd    PRNG for repeatability.
-    * @param length The exact length of the string to generate.
-    * @return A random alphanumeric string.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param length
+    *   The exact length of the string to generate.
+    * @return
+    *   A random alphanumeric string.
     */
   def nextString(rnd: Random, length: Int): String =
     List.fill(length)(Alphanumeric(rnd.nextInt(Alphanumeric.length))).mkString
 
   /** Generate a random string.
     *
-    * @param rnd       PRNG for repeatability.
-    * @param minLength Minimum length of the string.
-    * @param maxLength Maximum length of the string.
-    * @return A random alphanumeric string.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param minLength
+    *   Minimum length of the string.
+    * @param maxLength
+    *   Maximum length of the string.
+    * @return
+    *   A random alphanumeric string.
     */
   def nextString(rnd: Random, minLength: Int, maxLength: Int): String =
     nextString(rnd, nextInt(rnd, minLength, maxLength))
 
-  /** Generate a random file Path with an optional extension, checking that it doesn't exist on the
-    * filesystem.
+  /** Generate a random file Path with an optional extension, checking that it doesn't exist on the filesystem.
     *
-    * @param rnd       PRNG for repeatability.
-    * @param dir       The directory to generate the file.
-    * @param extension Optional extension for the file
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param dir
+    *   The directory to generate the file.
+    * @param extension
+    *   Optional extension for the file
     */
   def getNewFile(rnd: Random, dir: Directory, extension: Option[String]): File =
     Stream
@@ -71,11 +84,16 @@ object RandomFiles {
 
   /** Create a randomly named text file in the specified directory with the specified contents.
     *
-    * @param rnd     PRNG for repeatability.
-    * @param dir      The directory to generate the file.
-    * @param contents The string contents of the file.
-    * @param name     The name of the file, or None if generated outside this method.
-    * @return the path to the created file.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param dir
+    *   The directory to generate the file.
+    * @param contents
+    *   The string contents of the file.
+    * @param name
+    *   The name of the file, or None if generated outside this method.
+    * @return
+    *   the path to the created file.
     */
   def createTxtContents(
       rnd: Random,
@@ -89,9 +107,12 @@ object RandomFiles {
 
   /** Create a named text file in the specified directory with the specified contents.
     *
-    * @param file     The file to create, creating any necessary parent directories.
-    * @param contents The string contents of the file.
-    * @return the file passed in.
+    * @param file
+    *   The file to create, creating any necessary parent directories.
+    * @param contents
+    *   The string contents of the file.
+    * @return
+    *   the file passed in.
     */
   def createTxtContents(file: Path, contents: String): File = {
     if (!file.parent.exists)
@@ -105,13 +126,20 @@ object RandomFiles {
 
   /** Create a random text file in the specified directory.
     *
-    * @param rnd           PRNG for repeatability.
-    * @param dir           The directory to generate the file.
-    * @param numLines      The exact number of lines to generate in the file.
-    * @param minLineLength The minimum line length.
-    * @param maxLineLength The maximum line length.
-    * @param name          The name of the file, or None if generated outside this method.
-    * @return the path to the created file.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param dir
+    *   The directory to generate the file.
+    * @param numLines
+    *   The exact number of lines to generate in the file.
+    * @param minLineLength
+    *   The minimum line length.
+    * @param maxLineLength
+    *   The maximum line length.
+    * @param name
+    *   The name of the file, or None if generated outside this method.
+    * @return
+    *   the path to the created file.
     */
   def createTxtFile(
       rnd: Random,
@@ -135,11 +163,16 @@ object RandomFiles {
 
   /** Create a random binary file in the specified directory.
     *
-    * @param rnd     PRNG for repeatability.
-    * @param dir     The directory to generate the file.
-    * @param minSize The minimum size in bytes.
-    * @param maxSize The maximum size in bytes.
-    * @return the path to the created file.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param dir
+    *   The directory to generate the file.
+    * @param minSize
+    *   The minimum size in bytes.
+    * @param maxSize
+    *   The maximum size in bytes.
+    * @return
+    *   the path to the created file.
     */
   def createBinaryFile(
       rnd: Random,
@@ -172,15 +205,23 @@ object RandomFiles {
 
   /** Populates the given directory with files and subdirectories.
     *
-    * @param rnd      PRNG for repeatability.
-    * @param dir      The directory to populate.
-    * @param numFiles The exact number of files to generate in the directory and all subdirectories.
-    * @param minFiles The minimum number of files to place in any directory.
-    * @param maxFiles The maximum number of files to place in any directory.
-    * @param maxDirs  The maximum number of subdirectories to create in any directory.
-    * @param oneLarge If present, one binary file of exactly this size will be created in the root.
-    * @param time     If present, a base time to use when generating file attributes.  All files and
-    *                 directories will be generated consistently after this time.
+    * @param rnd
+    *   PRNG for repeatability.
+    * @param dir
+    *   The directory to populate.
+    * @param numFiles
+    *   The exact number of files to generate in the directory and all subdirectories.
+    * @param minFiles
+    *   The minimum number of files to place in any directory.
+    * @param maxFiles
+    *   The maximum number of files to place in any directory.
+    * @param maxDirs
+    *   The maximum number of subdirectories to create in any directory.
+    * @param oneLarge
+    *   If present, one binary file of exactly this size will be created in the root.
+    * @param time
+    *   If present, a base time to use when generating file attributes. All files and directories will be generated
+    *   consistently after this time.
     */
   def fillDirectory(
       rnd: Random,
@@ -260,10 +301,13 @@ object RandomFiles {
 
   /** Sets the time attributes on the path.
     *
-    * @param path The file or directory to modify.
-    * @param time The creation time to set on the path.  Access time will be one second more, and
-    *             modification time will be two seconds more.
-    * @param recursive Whether to apply attributes recursively on the contents as well.
+    * @param path
+    *   The file or directory to modify.
+    * @param time
+    *   The creation time to set on the path. Access time will be one second more, and modification time will be two
+    *   seconds more.
+    * @param recursive
+    *   Whether to apply attributes recursively on the contents as well.
     */
   def setTimeAttributes(
       path: Path,

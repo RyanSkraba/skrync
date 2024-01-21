@@ -6,8 +6,7 @@ import com.skraba.skrync.SkryncPath.isIn
 
 import scala.reflect.io._
 
-/** This task reads a digest file and provides some basic information.
-  */
+/** This task reads a digest file and provides some basic information. */
 object ReportTask {
 
   val Cmd = "report"
@@ -42,17 +41,19 @@ object ReportTask {
 
   case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
 
-  /** Analysis of the contents of one specific directory to find duplicate and
-    *  unique files.
+  /** Analysis of the contents of one specific directory to find duplicate and unique files.
     *
-    * Note that if there is a file that exists twice but only inside the
-    * dedupPath, one will appear in the uniques and one will appear in the
-    * duplicates.
+    * Note that if there is a file that exists twice but only inside the dedupPath, one will appear in the uniques and
+    * one will appear in the duplicates.
     *
-    * @param src        The prepared files analysis
-    * @param dedupPath  The path to deduplicate, relative to the root of the analysis.
-    * @param uniques    Files in the dedupPath that do not exist outside the dedupPath.
-    * @param duplicates Files in the dedupPath that exist more than once.
+    * @param src
+    *   The prepared files analysis
+    * @param dedupPath
+    *   The path to deduplicate, relative to the root of the analysis.
+    * @param uniques
+    *   Files in the dedupPath that do not exist outside the dedupPath.
+    * @param duplicates
+    *   Files in the dedupPath that exist more than once.
     */
   case class DedupPathReport(
       src: SkryncGo.Analysis,
@@ -63,13 +64,14 @@ object ReportTask {
 
   object DedupPathReport {
 
-    /** Given the analysis file and the dedup directory, determines which of the files in the directory already
-      * exist.
+    /** Given the analysis file and the dedup directory, determines which of the files in the directory already exist.
       *
-      * @param src The source analysis of an existing directory.
-      * @param dedupPath  A new directory.  If this is inside the src directory, then the information is directly used
-      *                   from there.
-      * @return  A deduplication report of different and unique files in the dedupPath.
+      * @param src
+      *   The source analysis of an existing directory.
+      * @param dedupPath
+      *   A new directory. If this is inside the src directory, then the information is directly used from there.
+      * @return
+      *   A deduplication report of different and unique files in the dedupPath.
       */
     def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
 
@@ -102,8 +104,7 @@ object ReportTask {
       // Partition by whether the file is unique or not
       val (uniques, duplicates) = dedupContents
         .partition {
-          case (_, SkryncPath(_, _, _, _, _, Some(dig)))
-              if srcOutDedupDigests.contains(dig) =>
+          case (_, SkryncPath(_, _, _, _, _, Some(dig))) if srcOutDedupDigests.contains(dig) =>
             false
           case path @ (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
             // The file doesn't exist in the source, but it might be duplicated inside the dedup path.

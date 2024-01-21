@@ -2,8 +2,7 @@ package com.skraba.skrync
 
 import scala.reflect.io._
 
-/** This task compares two digest files.
-  */
+/** This task compares two digest files. */
 object CompareTask {
 
   val Cmd = "compare"

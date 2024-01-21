@@ -7,17 +7,20 @@ import scala.collection.JavaConverters._
 import scala.reflect.io.{Directory, File, Path}
 import scala.util.Properties
 
-/** My synchronization tool.
-  */
+/** My synchronization tool. */
 object SkryncGo {
 
   val Version: String = "0.0.1-SNAPSHOT"
 
   /** The subcommands that this driver supports.
-    * @param doc The [[Docopt]] for the subcommand.
-    * @param cmd The subcommand token.
-    * @param description The short description for the subcommand.
-    * @param go The method to call with the argument map from the subcommand docopts.
+    * @param doc
+    *   The [[Docopt]] for the subcommand.
+    * @param cmd
+    *   The subcommand token.
+    * @param description
+    *   The short description for the subcommand.
+    * @param go
+    *   The method to call with the argument map from the subcommand docopts.
     */
   case class Task(
       doc: String,
@@ -30,9 +33,12 @@ object SkryncGo {
     *
     * This can be persisted to disk and used to communicate between the tasks.
     *
-    * @param src The root of the directory that was digested/analysed.
-    * @param created The time that the the analysis was performed.
-    * @param info All of the information information discovered at that location.
+    * @param src
+    *   The root of the directory that was digested/analysed.
+    * @param created
+    *   The time that the the analysis was performed.
+    * @param info
+    *   All of the information information discovered at that location.
     */
   case class Analysis(src: Directory, created: Long, info: SkryncDir)
 
@@ -69,10 +75,10 @@ object SkryncGo {
         .mkString("\n")
     }.trim
 
-  /** Runs the tool.  This does not handle any docopt exception automatically while parsing the
-    * command line.
+  /** Runs the tool. This does not handle any docopt exception automatically while parsing the command line.
     *
-    * @param args command-line arguments as described in [[Doc]]
+    * @param args
+    *   command-line arguments as described in [[Doc]]
     */
   @throws[DocoptExitException]
   @throws[InternalDocoptException]

@@ -9,12 +9,8 @@ import org.scalatest.matchers.should.Matchers
 import scala.collection.mutable
 import scala.reflect.io._
 
-/** Unit tests for [[DigestProgress]] using a small generated source directory.
-  */
-class DigestProgressSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+/** Unit tests for [[DigestProgress]] using a small generated source directory. */
+class DigestProgressSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(

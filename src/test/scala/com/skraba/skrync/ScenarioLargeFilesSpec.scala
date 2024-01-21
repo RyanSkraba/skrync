@@ -1,10 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{
-  withConsoleMatch,
-  withSkryncGo,
-  withSkryncGoMatch
-}
+import com.skraba.skrync.SkryncGoSpec.{withConsoleMatch, withSkryncGo, withSkryncGoMatch}
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -12,13 +8,8 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.reflect.io._
 
-/** Unit tests for [[SkryncGo]] using a large generated source directory.
-  */
-class ScenarioLargeFilesSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterEach
-    with BeforeAndAfterAll {
+/** Unit tests for [[SkryncGo]] using a large generated source directory. */
+class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Large: ScenarioLargeFiles = new ScenarioLargeFiles(
@@ -151,9 +142,7 @@ class ScenarioLargeFilesSpec
         val dstRoot = Json.read(dstDigestFile)
         val expected =
           SkryncDir.scan(Large.src, digest = true).copyWithoutTimes()
-        dstRoot.info.copy(path =
-          dstRoot.info.path.copy(name = "large")
-        ) shouldBe expected
+        dstRoot.info.copy(path = dstRoot.info.path.copy(name = "large")) shouldBe expected
       }
     }
   }

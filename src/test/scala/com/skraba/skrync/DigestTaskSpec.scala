@@ -11,12 +11,8 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
-/** Unit tests for [[DigestTask]]
-  */
-class DigestTaskSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+/** Unit tests for [[DigestTask]] */
+class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -152,9 +148,7 @@ class DigestTaskSpec
       // The contents of the file should be readable.
       val dstRoot = Json.read(dstDigestFile)
       val expected = SkryncDir.scan(Small.src, digest = true).copyWithoutTimes()
-      dstRoot.info.copy(path =
-        dstRoot.info.path.copy(name = "small")
-      ) shouldBe expected
+      dstRoot.info.copy(path = dstRoot.info.path.copy(name = "small")) shouldBe expected
     }
 
     it("creates the file without digest information.") {
@@ -184,9 +178,7 @@ class DigestTaskSpec
       val dstRoot = Json.read(dstDigestFile)
       val expected =
         SkryncDir.scan(Small.src, digest = false).copyWithoutTimes()
-      dstRoot.info.copy(path =
-        dstRoot.info.path.copy(name = "small")
-      ) shouldBe expected
+      dstRoot.info.copy(path = dstRoot.info.path.copy(name = "small")) shouldBe expected
     }
   }
 

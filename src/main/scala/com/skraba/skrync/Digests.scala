@@ -24,8 +24,10 @@ object Digests {
   private[this] def fromBytes(in: Iterable[Byte]): Digest = in.toSeq
 
   /** Get a SHA1 digest for a file.
-    * @param file The file to get the SHA1 digest for
-    * @param w A watcher to notify with progress on the digest
+    * @param file
+    *   The file to get the SHA1 digest for
+    * @param w
+    *   A watcher to notify with progress on the digest
     */
   @throws[IOException]
   def getSha1(
@@ -52,8 +54,7 @@ object Digests {
     digest.digest
   }
 
-  /** Get a SHA1 digest for a bunch of bytes.
-    */
+  /** Get a SHA1 digest for a bunch of bytes. */
   @throws[IOException]
   def getSha1(in: Iterable[Iterable[Byte]]): Digest = {
     val digested = in.foldLeft(sha1Digest()) { (sha1, bytes) =>

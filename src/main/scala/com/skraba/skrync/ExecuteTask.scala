@@ -5,8 +5,7 @@ import com.skraba.skrync.SkryncGo.validateFile
 import java.io.IOException
 import scala.reflect.io._
 
-/** This task copies or moves files according to a synchronisation plan.
-  */
+/** This task copies or moves files according to a synchronisation plan. */
 object ExecuteTask {
 
   val Cmd = "execute"

@@ -43,8 +43,7 @@ object Json {
       name = json.get(Name).getAsString,
       creation = if (ignoreTimes) -1 else json.get(CreationTime).getAsLong,
       access = if (ignoreTimes) -1 else json.get(AccessTime).getAsLong,
-      modification =
-        if (ignoreTimes) -1 else json.get(ModificationTime).getAsLong,
+      modification = if (ignoreTimes) -1 else json.get(ModificationTime).getAsLong,
       size = json.get(Size).getAsLong,
       digest = Option(json.get(Sha1)).map(_.getAsString).map(Digests.fromHex)
     )
@@ -136,13 +135,10 @@ object Json {
         .iterator
         .asScala
         .map(_.getAsJsonObject)
-        .flatMap(json =>
-          collectByPath(current.resolve(json.get(Name).getAsString), json)
-        )
+        .flatMap(json => collectByPath(current.resolve(json.get(Name).getAsString), json))
   }
 
-  /** @param src The source file generated from [[write()]]
-    */
+  /** @param src The source file generated from [[write()]] */
   def read(src: File, ignoreTimes: Boolean = true): Analysis = {
 
     // It's gzipped if the magic header matches these two bytes.
@@ -191,11 +187,16 @@ object Json {
 
   /** Write an analysis object with all of its files and directories to a file.
     *
-    * @param src The root of the directory that was digested/analysed.
-    * @param dst The destination file to write to, or None to go write to STDOUT.
-    * @param created The time that the the analysis was performed.
-    * @param gzipped Whether to gzip the output.
-    * @param wrapped An additional digest progress watcher to wrap.
+    * @param src
+    *   The root of the directory that was digested/analysed.
+    * @param dst
+    *   The destination file to write to, or None to go write to STDOUT.
+    * @param created
+    *   The time that the the analysis was performed.
+    * @param gzipped
+    *   Whether to gzip the output.
+    * @param wrapped
+    *   An additional digest progress watcher to wrap.
     */
   def writeProgress(
       src: Directory,

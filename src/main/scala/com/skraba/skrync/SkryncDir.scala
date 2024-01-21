@@ -7,9 +7,8 @@ import scala.reflect.io.{Directory, File, Path}
 
 /** Basic information about a directory.
   *
-  * This includes file system information and information about its contents.  The size is the
-  * deep size of all the files it contains, and the digest includes file and directory names
-  * information.
+  * This includes file system information and information about its contents. The size is the deep size of all the files
+  * it contains, and the digest includes file and directory names information.
   */
 case class SkryncDir(
     path: SkryncPath,
@@ -18,8 +17,7 @@ case class SkryncDir(
     dirs: List[SkryncDir]
 ) {
 
-  /** @return a copy of this instance without any time information.
-    */
+  /** @return a copy of this instance without any time information. */
   def copyWithoutTimes(): SkryncDir = {
     SkryncDir(
       path = path.copyWithoutTimes(),
@@ -29,8 +27,7 @@ case class SkryncDir(
     )
   }
 
-  /** Recalculate and add the sha1 digest.
-    */
+  /** Recalculate and add the sha1 digest. */
   def digest(location: Path, w: DigestProgress = IgnoreProgress): SkryncDir = {
     w.digestingDir(location, this)
 
@@ -58,9 +55,7 @@ case class SkryncDir(
           .getBytes(StandardCharsets.UTF_8)
           .toStream append digest.toStream
 
-    val rootWithDigest = path.copy(digest =
-      Some(Digests.getSha1(fileNamesAndSha1 ++ dirNamesAndSha1))
-    )
+    val rootWithDigest = path.copy(digest = Some(Digests.getSha1(fileNamesAndSha1 ++ dirNamesAndSha1)))
 
     w.digestedDir(
       location,
@@ -72,11 +67,12 @@ case class SkryncDir(
     )
   }
 
-  /** Flattens the contents of this directory recursively so that all of its contents are
-    * in the sequence.
+  /** Flattens the contents of this directory recursively so that all of its contents are in the sequence.
     *
-    * @param path The path at which this directory is considered to exist.  All of the contents are resolved relative to this path.
-    * @return A sequence of Path -> SkryncPath of all of the file contents inside his directory.
+    * @param path
+    *   The path at which this directory is considered to exist. All of the contents are resolved relative to this path.
+    * @return
+    *   A sequence of Path -> SkryncPath of all of the file contents inside his directory.
     */
   def flattenPaths(path: Path): Seq[(Path, SkryncPath)] = {
     // The files directly in this source directory.
@@ -92,11 +88,13 @@ case class SkryncDir(
 
 object SkryncDir {
 
-  /** Create a [[SkryncDir]] of the basic path elements, including all subdirectories and files
-    * recursively.  This does not calculate the digest.
+  /** Create a [[SkryncDir]] of the basic path elements, including all subdirectories and files recursively. This does
+    * not calculate the digest.
     *
-    * @param d The path to get from the filesystem.
-    * @param w A class that is notified as the file system is being traversed.
+    * @param d
+    *   The path to get from the filesystem.
+    * @param w
+    *   A class that is notified as the file system is being traversed.
     */
   private def scanInternal(
       d: Directory,
@@ -126,12 +124,15 @@ object SkryncDir {
     )
   }
 
-  /** Create a [[SkryncDir]] of the basic path elements, including all subdirectories and files
-    * recursively.  This only calculates the digest if requested.
+  /** Create a [[SkryncDir]] of the basic path elements, including all subdirectories and files recursively. This only
+    * calculates the digest if requested.
     *
-    * @param d The path to get from the filesystem.
-    * @param w A class that is notified as the file system is being traversed.
-    * @param digest Get the digests after scanning the file system.
+    * @param d
+    *   The path to get from the filesystem.
+    * @param w
+    *   A class that is notified as the file system is being traversed.
+    * @param digest
+    *   Get the digests after scanning the file system.
     */
   def scan(
       d: Directory,

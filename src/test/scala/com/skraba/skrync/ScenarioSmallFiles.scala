@@ -9,38 +9,39 @@ import scala.reflect.io._
   *
   * Given `root` as the base directory:
   *
-  *  1. An original scenario with two CSV files.
-  *    - `root/original/small/ids.txt`
-  *    - `root/original/small/sub/ids2.txt`
-  *  1. A variation where one of the files is deleted.
-  *    - `root/scenario1/small/ids.txt`
-  *  1. A variation where one of the files is modified.
-  *    - `root/scenario2/small/ids.txt`
-  *    - `root/scenario2/small/sub/ids2.txt` __same name but changed__
-  *  1. A variation where one of the files is unmodified but renamed.
-  *    - `root/scenario3/small/ids.txt`
-  *    - `root/scenario3/small/sub/ids2a.txt` __different name but unchanged__
-  *  1. A variation where one of the files was copied
-  *    - `root/scenario4/small/ids.txt`
-  *    - `root/scenario4/small/sub/ids.txt`
-  *    - `root/scenario4/small/sub/ids2.txt`
-  *  1. A variation where both files have switched places
-  *    - `root/scenario5/small/ids2.txt`
-  *    - `root/scenario5/small/sub/ids.txt`
-  *  1. A variation to explore duplicates
-  *    - `root/scenario6/small/ids.txt`
-  *    - `root/scenario6/small/sub/ids2.txt`
-  *    - `root/scenario6/small/dup1/ids.txt`
-  *    - `root/scenario6/small/dup1/ids3.txt`
-  *    - `root/scenario6/small/dup2/ids4a.txt`
-  *    - `root/scenario6/small/dup2/ids4b.txt`
-  *    - `root/scenario6/small/dup3/ids2a.txt`
-  *    - `root/scenario6/small/dup3/ids5.txt`
-  *    - `root/scenario6/small/dup3/sub/ids5.txt`
+  *   1. An original scenario with two CSV files.
+  *      - `root/original/small/ids.txt`
+  *      - `root/original/small/sub/ids2.txt`
+  *   1. A variation where one of the files is deleted.
+  *      - `root/scenario1/small/ids.txt`
+  *   1. A variation where one of the files is modified.
+  *      - `root/scenario2/small/ids.txt`
+  *      - `root/scenario2/small/sub/ids2.txt` __same name but changed__
+  *   1. A variation where one of the files is unmodified but renamed.
+  *      - `root/scenario3/small/ids.txt`
+  *      - `root/scenario3/small/sub/ids2a.txt` __different name but unchanged__
+  *   1. A variation where one of the files was copied
+  *      - `root/scenario4/small/ids.txt`
+  *      - `root/scenario4/small/sub/ids.txt`
+  *      - `root/scenario4/small/sub/ids2.txt`
+  *   1. A variation where both files have switched places
+  *      - `root/scenario5/small/ids2.txt`
+  *      - `root/scenario5/small/sub/ids.txt`
+  *   1. A variation to explore duplicates
+  *      - `root/scenario6/small/ids.txt`
+  *      - `root/scenario6/small/sub/ids2.txt`
+  *      - `root/scenario6/small/dup1/ids.txt`
+  *      - `root/scenario6/small/dup1/ids3.txt`
+  *      - `root/scenario6/small/dup2/ids4a.txt`
+  *      - `root/scenario6/small/dup2/ids4b.txt`
+  *      - `root/scenario6/small/dup3/ids2a.txt`
+  *      - `root/scenario6/small/dup3/ids5.txt`
+  *      - `root/scenario6/small/dup3/sub/ids5.txt`
   *
-  * @param root An existing directory.  The small and scenario directories will be created inside
-  *              and deleted on [[cleanup]].
-  * @param deleteRootOnCleanup Whether the root directory should also be deleted on cleanup.
+  * @param root
+  *   An existing directory. The small and scenario directories will be created inside and deleted on [[cleanup]].
+  * @param deleteRootOnCleanup
+  *   Whether the root directory should also be deleted on cleanup.
   */
 class ScenarioSmallFiles(
     val root: Directory,
@@ -60,8 +61,8 @@ class ScenarioSmallFiles(
 
   /** A directory with the initial scenario:
     *
-    *  - small/ids.txt
-    *  - small/sub/ids2.txt
+    *   - small/ids.txt
+    *   - small/sub/ids2.txt
     */
   val src: Directory = root / "original" / Directory("small")
 

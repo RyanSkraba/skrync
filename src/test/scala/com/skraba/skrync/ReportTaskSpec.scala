@@ -9,10 +9,7 @@ import org.scalatest.matchers.should.Matchers
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[ReportTask]] */
-class ReportTaskSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(

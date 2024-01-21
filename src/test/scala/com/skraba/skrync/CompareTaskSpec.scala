@@ -8,12 +8,8 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
-/** Unit tests for [[CompareTask]]
-  */
-class CompareTaskSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+/** Unit tests for [[CompareTask]] */
+class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(

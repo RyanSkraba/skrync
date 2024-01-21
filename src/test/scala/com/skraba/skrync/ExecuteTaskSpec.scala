@@ -8,13 +8,8 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
-/** Unit tests for [[ExecuteTask]]
-  */
-class ExecuteTaskSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterEach
-    with BeforeAndAfterAll {
+/** Unit tests for [[ExecuteTask]] */
+class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val TempFolder: Path = Directory.makeTemp("skryncGo")

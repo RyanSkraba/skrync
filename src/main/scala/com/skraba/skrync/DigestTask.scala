@@ -7,8 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import scala.reflect.io._
 
-/** This task creates a file with digest information for all of the files in a given directory.
-  */
+/** This task creates a file with digest information for all of the files in a given directory. */
 object DigestTask {
 
   val Cmd = "digest"
@@ -89,9 +88,12 @@ object DigestTask {
   }
 
   /** Create a default filename for a digest file.
-    * @param srcDirString The source directory being analysed (included in the file name)
-    * @param time The time to include in the file name.
-    * @return The filename for the digest file.
+    * @param srcDirString
+    *   The source directory being analysed (included in the file name)
+    * @param time
+    *   The time to include in the file name.
+    * @return
+    *   The filename for the digest file.
     */
   def getDefaultDigestName(
       srcDirString: String,

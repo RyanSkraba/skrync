@@ -10,12 +10,8 @@ import java.io.FileNotFoundException
 import java.nio.file.NoSuchFileException
 import scala.reflect.io._
 
-/** Unit tests for [[SkryncDir]] using a small generated source directory.
-  */
-class SkryncDirSpec
-    extends AnyFunSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+/** Unit tests for [[SkryncDir]] using a small generated source directory. */
+class SkryncDirSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(

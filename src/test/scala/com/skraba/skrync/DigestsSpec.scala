@@ -6,8 +6,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.{Directory, File}
 
-/** Unit tests for [[Digests]]
-  */
+/** Unit tests for [[Digests]] */
 class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   /** Temporary directory root for all tests. */
