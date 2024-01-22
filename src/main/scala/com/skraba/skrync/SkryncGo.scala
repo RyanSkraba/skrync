@@ -178,13 +178,13 @@ object SkryncGo {
         .orElse(sys.env.get("SKRYNC_ROOT_DIR"))
         .orElse(Option(Properties.userDir))
         .getOrElse("/")
-    ).resolve(Path(arg.toString).toAbsolute)
+    ).resolve(Path(arg.toString)).toAbsolute
     if (exists && !path.exists)
-      throw new IllegalArgumentException(s"$tag doesn't exist: $arg")
+      throw new IllegalArgumentException(s"$tag doesn't exist: $path")
     if (isDir && !path.isDirectory)
-      throw new IllegalArgumentException(s"$tag is not a directory: $arg")
+      throw new IllegalArgumentException(s"$tag is not a directory: $path")
     if (isFile && !path.isFile)
-      throw new IllegalArgumentException(s"$tag is not a file: $arg")
+      throw new IllegalArgumentException(s"$tag is not a file: $path")
     path
   }
 

@@ -29,9 +29,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
   describe("SkryncGo digest command line") {
 
     it("throws an exception with --help") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("digest", "--help")
-      }
+      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--help") }
       t.getMessage shouldBe DigestTask.Doc
       t.docopt shouldBe DigestTask.Doc
     }
@@ -50,30 +48,66 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("throws an exception with unknown option") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("digest", "--srcDigest")
-      }
+      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--srcDigest") }
       t.docopt shouldBe DigestTask.Doc
     }
 
-    it("throws an exception when the source doesn't exist") {
-      val t = intercept[IllegalArgumentException] {
-        withSkryncGo("digest", "--srcDir", "/doesnt-exist")
-      }
-      t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
-    }
+    describe("without --srcRoot") {
 
-    it("throws an exception when the source is a file") {
-      val t = intercept[IllegalArgumentException] {
-        withSkryncGo("digest", "--srcDir", ExistingFile.toString)
+      it("throws an exception when the source doesn't exist") {
+        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", "/doesnt-exist") }
+        t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
-      t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
+
+      it("throws an exception when the source is a file") {
+        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", ExistingFile.toString) }
+        t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
+      }
+
+    }
+    describe("with --srcRoot") {
+
+      it("throws an exception when the source doesn't exist (absolute + absolute)") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo("digest", "--srcRoot", "/ignored", "--srcDir", "/doesnt-exist")
+        }
+        t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
+      }
+
+      it("throws an exception when the source doesn't exist (relative + absolute)") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo("digest", "--srcRoot", "ignored", "--srcDir", "/doesnt-exist")
+        }
+        t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
+      }
+
+      it("throws an exception when the source doesn't exist (absolute + relative)") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo("digest", "--srcRoot", "/tmp", "--srcDir", "doesnt-exist")
+        }
+        t.getMessage shouldBe "Source doesn't exist: /tmp/doesnt-exist"
+      }
+
+      it("throws an exception when the source doesn't exist (relative + relative)") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo("digest", "--srcRoot", "tmp", "--srcDir", "doesnt-exist")
+        }
+        // The entire message contains the current user dir.
+        t.getMessage should startWith("Source doesn't exist: ")
+        t.getMessage should endWith("/tmp/doesnt-exist")
+      }
+
+      it("throws an exception when the source is a file") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo("digest", "--srcRoot", ExistingFile.parent.path, "--srcDir", ExistingFile.name)
+        }
+        t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
+      }
     }
 
     it("prints to standard out when no destination") {
       // No exception should occur, and output is dumped to the console.
-      val (stdout, stderr) =
-        withSkryncGo("digest", "--srcDir", Small.src.toString)
+      val (stdout, stderr) = withSkryncGo("digest", "--srcDir", Small.src.toString)
       stdout should not have size(0)
       stdout should include("ids.txt")
       stderr shouldBe ""
@@ -83,13 +117,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("autoDst").toDirectory
       dstDir.createDirectory()
-      val (stdout, stderr) = withSkryncGo(
-        "digest",
-        "--srcDir",
-        Small.src.toString,
-        "--dstDigest",
-        dstDir.toString
-      )
+      val (stdout, stderr) = withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", dstDir.toString)
       stdout shouldBe "[![!]]{<.>{<.>}}"
       stderr shouldBe ""
 
@@ -117,9 +145,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       // The internal file time should match the filename.
       LocalDateTime
         .ofInstant(Instant.ofEpochMilli(analysis.created), ZoneOffset.UTC)
-        .format(
-          DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-        ) shouldBe dstDigestFileTime.value
+        .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) shouldBe dstDigestFileTime.value
     }
 
     it("creates the file when a destination is explicitly specified.") {
@@ -127,13 +153,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       val dstDir: Directory = Small.root.resolve("dst").toDirectory
       dstDir.createDirectory()
       val (stdout, stderr) =
-        withSkryncGo(
-          "digest",
-          "--srcDir",
-          Small.src.toString,
-          "--dstDigest",
-          (dstDir / File("output.gz")).toString
-        )
+        withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", (dstDir / File("output.gz")).toString)
       stdout shouldBe "[![!]]{<.>{<.>}}"
       stderr shouldBe ""
 
@@ -184,10 +204,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   describe("DigestTask") {
     it("creates a default filename") {
-      val defaultName = DigestTask.getDefaultDigestName(
-        "/tmp/root\\dir",
-        LocalDateTime.of(1980, 2, 14, 12, 34, 56, 0)
-      )
+      val defaultName = DigestTask.getDefaultDigestName("/tmp/root\\dir", LocalDateTime.of(1980, 2, 14, 12, 34, 56, 0))
       defaultName shouldBe "tmp_root_dir__19800214123456"
     }
   }
