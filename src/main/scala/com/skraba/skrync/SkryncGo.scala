@@ -159,8 +159,10 @@ object SkryncGo {
     *   Whether to test if the result is a Directory
     * @param isFile
     *   Whether to test if the argument is a File
-    * @param exists
-    *   Whether to test if the argument already exists
+    * @param mustExist
+    *   Whether to test to ensure the argument already exists
+    * @param mustNotExist
+    *   Whether to test to ensure the argument does not already exist
     * @return
     *   The validated path that the argument represents on the filesystem.
     */
@@ -170,7 +172,8 @@ object SkryncGo {
       tag: String = "Source",
       isDir: Boolean = false,
       isFile: Boolean = false,
-      exists: Boolean = true
+      mustExist: Boolean = true,
+      mustNotExist: Boolean = false
   ): Path = {
     val path: Path = Path(
       root
@@ -179,8 +182,10 @@ object SkryncGo {
         .orElse(Option(Properties.userDir))
         .getOrElse("/")
     ).resolve(Path(arg.toString)).toAbsolute
-    if (exists && !path.exists)
+    if (mustExist && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $path")
+    if (mustNotExist && path.exists)
+      throw new IllegalArgumentException(s"$tag already exists: $path")
     if (isDir && !path.isDirectory)
       throw new IllegalArgumentException(s"$tag is not a directory: $path")
     if (isFile && !path.isFile)
@@ -196,8 +201,10 @@ object SkryncGo {
     *   An absolute or relative (to root) directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
-    * @param exists
-    *   Whether to test if the argument already exists
+    * @param mustExist
+    *   Whether to test to ensure the argument already exists
+    * @param mustNotExist
+    *   Whether to test to ensure the argument does not already exist
     * @return
     *   The validated directory that the argument represents on the filesystem.
     */
@@ -205,14 +212,15 @@ object SkryncGo {
       root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
-      exists: Boolean = true
+      mustExist: Boolean = true,
+      mustNotExist: Boolean = false
   ): Directory = validateFileSystem(
     root,
     arg,
     tag,
     isDir = true,
-    isFile = false,
-    exists
+    mustExist = mustExist,
+    mustNotExist = mustNotExist
   ).toDirectory
 
   /** Helper to validate command line arguments against an expected filesystem directory.
@@ -223,8 +231,10 @@ object SkryncGo {
     *   An absolute or relative (to root) directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
-    * @param exists
-    *   Whether to test if the argument already exists
+    * @param mustExist
+    *   Whether to test to ensure the argument already exists
+    * @param mustNotExist
+    *   Whether to test to ensure the argument does not already exist
     * @return
     *   The validated directory that the argument represents on the filesystem.
     */
@@ -232,13 +242,14 @@ object SkryncGo {
       root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
-      exists: Boolean = true
+      mustExist: Boolean = true,
+      mustNotExist: Boolean = false
   ): File = validateFileSystem(
     root,
     arg,
     tag,
-    isDir = false,
     isFile = true,
-    exists
+    mustExist = mustExist,
+    mustNotExist = mustNotExist
   ).toFile
 }

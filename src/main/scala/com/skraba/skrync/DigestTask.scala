@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.validateDirectory
+import com.skraba.skrync.SkryncGo.{validateDirectory, validateFileSystem}
 
 import java.io.IOException
 import java.time.format.DateTimeFormatter
@@ -52,7 +52,8 @@ object DigestTask {
     val srcRootOption = Option(opts.get("--srcRoot").asInstanceOf[String])
 
     val srcDirString = opts.get("--srcDir").asInstanceOf[String]
-    // The destination, if present.  If this is already a directory, a default file name will be generated, including the date.  If not present, dumps to stdout
+    // The destination, if present.  If this is already a directory, a default file name will be generated,
+    // including the date.  If not present, dumps to stdout
     val dstString = Option(opts.get("--dstDigest").asInstanceOf[String])
     val silent = opts.get("--silent").asInstanceOf[Boolean]
     val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
@@ -61,13 +62,14 @@ object DigestTask {
 
     // If no destination is specified, this will be None and standard out will be used.
     val dst: Option[File] = dstString
-      .map(Path(_))
+      .map(validateFileSystem(srcRootOption, _, mustExist = false))
       .map(p => {
         // If the destination is a directory, auto-create the filename based on the time.
         if (p.exists && p.isDirectory)
-          p / File(getDefaultDigestName(srcDirString, now))
+          p / File(getDefaultDigestName(srcDir.toString, now))
         else p.toFile
       })
+      .map(validateFileSystem(None, _, tag = "Destination digest", mustExist = false, mustNotExist = true).toFile)
 
     // Whether to write the output to the console as well.
     val consoleOut =
