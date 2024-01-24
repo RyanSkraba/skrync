@@ -156,13 +156,9 @@ object SkryncGo {
     * @param tag
     *   A human readable description for the expected argument
     * @param isDir
-    *   Whether to test if the result is a Directory
-    * @param isFile
-    *   Whether to test if the argument is a File
-    * @param mustExist
-    *   Whether to test to ensure the argument already exists
-    * @param mustNotExist
-    *   Whether to test to ensure the argument does not already exist
+    *   Whether to test to ensure the argument must be a Directory or must be a File (or None if it doesn't matter).
+    * @param exists
+    *   Whether to test to ensure the argument must exist or must not exist (or None if it doesn't matter).
     * @return
     *   The validated path that the argument represents on the filesystem.
     */
@@ -170,10 +166,8 @@ object SkryncGo {
       root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
-      isDir: Boolean = false,
-      isFile: Boolean = false,
-      mustExist: Boolean = true,
-      mustNotExist: Boolean = false
+      isDir: Option[Boolean] = None,
+      exists: Option[Boolean] = Some(true)
   ): Path = {
     val path: Path = Path(
       root
@@ -182,13 +176,13 @@ object SkryncGo {
         .orElse(Option(Properties.userDir))
         .getOrElse("/")
     ).resolve(Path(arg.toString)).toAbsolute
-    if (mustExist && !path.exists)
+    if (exists.contains(true) && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $path")
-    if (mustNotExist && path.exists)
+    if (exists.contains(false) && path.exists)
       throw new IllegalArgumentException(s"$tag already exists: $path")
-    if (isDir && !path.isDirectory)
+    if (isDir.contains(true) && exists.contains(true) && !path.isDirectory)
       throw new IllegalArgumentException(s"$tag is not a directory: $path")
-    if (isFile && !path.isFile)
+    if (isDir.contains(false) && exists.contains(true) && !path.isFile)
       throw new IllegalArgumentException(s"$tag is not a file: $path")
     path
   }
@@ -201,10 +195,8 @@ object SkryncGo {
     *   An absolute or relative (to root) directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
-    * @param mustExist
-    *   Whether to test to ensure the argument already exists
-    * @param mustNotExist
-    *   Whether to test to ensure the argument does not already exist
+    * @param exists
+    *   Whether to test to ensure the argument must exist or must not exist (or None if it doesn't matter).
     * @return
     *   The validated directory that the argument represents on the filesystem.
     */
@@ -212,15 +204,13 @@ object SkryncGo {
       root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
-      mustExist: Boolean = true,
-      mustNotExist: Boolean = false
+      exists: Option[Boolean] = Some(true)
   ): Directory = validateFileSystem(
     root,
     arg,
     tag,
-    isDir = true,
-    mustExist = mustExist,
-    mustNotExist = mustNotExist
+    isDir = Some(true),
+    exists = exists
   ).toDirectory
 
   /** Helper to validate command line arguments against an expected filesystem directory.
@@ -231,10 +221,8 @@ object SkryncGo {
     *   An absolute or relative (to root) directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
-    * @param mustExist
-    *   Whether to test to ensure the argument already exists
-    * @param mustNotExist
-    *   Whether to test to ensure the argument does not already exist
+    * @param exists
+    *   Whether to test to ensure the argument must exist or must not exist (or None if it doesn't matter).
     * @return
     *   The validated directory that the argument represents on the filesystem.
     */
@@ -242,14 +230,12 @@ object SkryncGo {
       root: Option[AnyRef],
       arg: AnyRef,
       tag: String = "Source",
-      mustExist: Boolean = true,
-      mustNotExist: Boolean = false
+      exists: Option[Boolean] = Some(true)
   ): File = validateFileSystem(
     root,
     arg,
     tag,
-    isFile = true,
-    mustExist = mustExist,
-    mustNotExist = mustNotExist
+    isDir = Some(false),
+    exists = exists
   ).toFile
 }
