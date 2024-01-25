@@ -70,7 +70,7 @@ object DigestTask {
         else p.toFile
       })
       .map(validateFile(None, _, tag = "Destination digest", exists = Some(false)))
-    dst.map(_.parent).foreach(validateDirectory(srcRootOption, _))
+    dst.map(_.parent).foreach(validateDirectory(None, _, tag = "Destination digest directory"))
 
     // Whether to write the output to the console as well.
     val consoleOut =
