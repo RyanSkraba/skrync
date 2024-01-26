@@ -142,6 +142,37 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         }
         t.getMessage shouldBe s"Destination digest already exists: $dstDigest"
       }
+
+      it("throws an exception when the dstDigest path is inside a file") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo(
+            "digest",
+            "--srcRoot",
+            ExistingFile.parent.path,
+            "--srcDir",
+            Small.src.path,
+            "--dstDigest",
+            "exists/impossible"
+          )
+        }
+        t.getMessage shouldBe s"Destination digest directory is not a directory: $ExistingFile"
+      }
+
+      it("throws an exception when the dst directory folder structure doesn't exist") {
+        val t = intercept[IllegalArgumentException] {
+          withSkryncGo(
+            "digest",
+            "--srcRoot",
+            Small.root.path,
+            "--srcDir",
+            Small.src.path,
+            "--dstDigest",
+            "does/not/exist"
+          )
+        }
+        t.getMessage shouldBe s"Destination digest directory doesn't exist: ${Small.root / "does" / "not"}"
+      }
+
     }
 
     it("prints to standard out when no destination") {
