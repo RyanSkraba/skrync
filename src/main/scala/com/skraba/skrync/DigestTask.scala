@@ -71,6 +71,7 @@ object DigestTask {
       })
       .map(validateFile(None, _, tag = "Destination digest", exists = Some(false)))
     dst.map(_.parent).foreach(validateDirectory(None, _, tag = "Destination digest directory"))
+    val dstInProgress = dst.map(f => f.parent / (f.name + ".running")).map(_.toFile)
 
     // Whether to write the output to the console as well.
     val consoleOut =
@@ -80,7 +81,7 @@ object DigestTask {
     // The destination for writing the actual digest.
     val out: DigestProgress = Json.writeProgress(
       src = srcDir,
-      dst = dst,
+      dst = dstInProgress,
       created = now.toInstant(ZoneOffset.UTC).toEpochMilli,
       gzipped = true,
       wrapped = consoleOut
@@ -88,6 +89,10 @@ object DigestTask {
 
     // Run the scan, saving the information via the progress
     SkryncDir.scan(srcDir, digest, out)
+
+    // If the file was created then rename it to the final destination
+    if (!dstInProgress.forall(_.jfile.renameTo(dst.get.jfile)))
+      throw new IllegalArgumentException(s"Unable to rename ${dstInProgress.get}")
   }
 
   /** Create a default filename for a digest file.
