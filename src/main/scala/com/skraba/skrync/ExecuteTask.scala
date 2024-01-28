@@ -49,13 +49,11 @@ object ExecuteTask {
         goExecute(
           validateFile(
             // TODO
-            None,
-            opts.get("--srcDigest")
+            arg = opts.get("--srcDigest")
           ),
           validateFile(
             // TODO
-            None,
-            opts.get("--dstDigest"),
+            arg = opts.get("--dstDigest"),
             tag = "Destination"
           ),
           backup

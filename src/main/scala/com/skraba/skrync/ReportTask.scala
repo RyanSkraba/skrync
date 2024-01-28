@@ -142,8 +142,7 @@ object ReportTask {
 
     val srcDigest: File = validateFile(
       // TODO
-      None,
-      opts.get("--srcDigest")
+      arg = opts.get("--srcDigest")
     )
 
     // Check the two digests for differences.

@@ -163,7 +163,7 @@ object SkryncGo {
     *   The validated path that the argument represents on the filesystem.
     */
   def validateFileSystem(
-      root: Option[AnyRef],
+      root: Option[AnyRef] = None,
       arg: AnyRef,
       tag: String = "Source",
       isDir: Option[Boolean] = None,
@@ -201,7 +201,7 @@ object SkryncGo {
     *   The validated directory that the argument represents on the filesystem.
     */
   def validateDirectory(
-      root: Option[AnyRef],
+      root: Option[AnyRef] = None,
       arg: AnyRef,
       tag: String = "Source",
       exists: Option[Boolean] = Some(true)
@@ -227,7 +227,7 @@ object SkryncGo {
     *   The validated directory that the argument represents on the filesystem.
     */
   def validateFile(
-      root: Option[AnyRef],
+      root: Option[AnyRef] = None,
       arg: AnyRef,
       tag: String = "Source",
       exists: Option[Boolean] = Some(true)

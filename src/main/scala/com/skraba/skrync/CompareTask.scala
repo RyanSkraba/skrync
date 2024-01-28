@@ -1,5 +1,7 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.SkryncGo.validateFile
+
 import scala.reflect.io._
 
 /** This task compares two digest files. */
@@ -37,8 +39,8 @@ object CompareTask {
   )
 
   def compare(src: SkryncDir, dst: SkryncDir): Comparison = {
-    val srcMap = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
-    val dstMap = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
+    val srcMap: Map[Path, SkryncPath] = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
+    val dstMap: Map[Path, SkryncPath] = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
 
     val srcKeys: Set[Path] = srcMap.keySet
     val dstKeys: Set[Path] = dstMap.keySet
@@ -53,27 +55,8 @@ object CompareTask {
   }
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
-    val srcDigestString = opts.get("--srcDigest").asInstanceOf[String]
-    val dstDigestString = opts.get("--dstDigest").asInstanceOf[String]
-
-    val srcDigest: File = File(srcDigestString).toAbsolute
-    val dstDigest: File = File(dstDigestString).toAbsolute
-    if (!srcDigest.exists)
-      throw new IllegalArgumentException(
-        s"Source doesn't exist: $srcDigestString"
-      )
-    if (!dstDigest.exists)
-      throw new IllegalArgumentException(
-        s"Destination doesn't exist: $dstDigestString"
-      )
-    if (!srcDigest.isFile)
-      throw new IllegalArgumentException(
-        s"Source is not a file: $srcDigestString"
-      )
-    if (!dstDigest.isFile)
-      throw new IllegalArgumentException(
-        s"Destination is not a file: $dstDigestString"
-      )
+    val srcDigest: File = validateFile(arg = opts.get("--srcDigest"))
+    val dstDigest: File = validateFile(arg = opts.get("--dstDigest"), tag = "Destination")
 
     // Read all of the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)
@@ -84,8 +67,8 @@ object CompareTask {
 
     // TODO: implement
     println(s"""COMPARE
-      |srcDigest: $srcDigestString
-      |dstDigest:" $dstDigestString
+      |srcDigest: $srcDigest
+      |dstDigest:" $dstDigest
       |srcOnly: ${compares.srcOnly.size}
       |dstOnly: ${compares.dstOnly.size}
       |modified: ${compares.modified.size}
