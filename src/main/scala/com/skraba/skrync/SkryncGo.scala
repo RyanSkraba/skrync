@@ -149,10 +149,10 @@ object SkryncGo {
 
   /** Helper to validate command line arguments against an expected filesystem state.
     *
-    * @param root
-    *   An absolute directory to use in constructing the path
     * @param arg
     *   An absolute or relative (to root) directory to use in constructing the path
+    * @param root
+    *   An absolute directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
     * @param isDir
@@ -163,8 +163,8 @@ object SkryncGo {
     *   The validated path that the argument represents on the filesystem.
     */
   def validateFileSystem(
-      root: Option[AnyRef] = None,
       arg: AnyRef,
+      root: Option[AnyRef] = None,
       tag: String = "Source",
       isDir: Option[Boolean] = None,
       exists: Option[Boolean] = Some(true)
@@ -189,10 +189,10 @@ object SkryncGo {
 
   /** Helper to validate command line arguments against an expected filesystem directory.
     *
-    * @param root
-    *   An absolute directory to use in constructing the path
     * @param arg
     *   An absolute or relative (to root) directory to use in constructing the path
+    * @param root
+    *   An absolute directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
     * @param exists
@@ -201,24 +201,18 @@ object SkryncGo {
     *   The validated directory that the argument represents on the filesystem.
     */
   def validateDirectory(
-      root: Option[AnyRef] = None,
       arg: AnyRef,
+      root: Option[AnyRef] = None,
       tag: String = "Source",
       exists: Option[Boolean] = Some(true)
-  ): Directory = validateFileSystem(
-    root,
-    arg,
-    tag,
-    isDir = Some(true),
-    exists = exists
-  ).toDirectory
+  ): Directory = validateFileSystem(arg, root, tag, isDir = Some(true), exists = exists).toDirectory
 
   /** Helper to validate command line arguments against an expected filesystem directory.
     *
-    * @param root
-    *   An absolute directory to use in constructing the path
     * @param arg
     *   An absolute or relative (to root) directory to use in constructing the path
+    * @param root
+    *   An absolute directory to use in constructing the path
     * @param tag
     *   A human readable description for the expected argument
     * @param exists
@@ -227,15 +221,9 @@ object SkryncGo {
     *   The validated directory that the argument represents on the filesystem.
     */
   def validateFile(
-      root: Option[AnyRef] = None,
       arg: AnyRef,
+      root: Option[AnyRef] = None,
       tag: String = "Source",
       exists: Option[Boolean] = Some(true)
-  ): File = validateFileSystem(
-    root,
-    arg,
-    tag,
-    isDir = Some(false),
-    exists = exists
-  ).toFile
+  ): File = validateFileSystem(arg, root, tag, isDir = Some(false), exists = exists).toFile
 }

@@ -58,19 +58,19 @@ object DigestTask {
     val silent = opts.get("--silent").asInstanceOf[Boolean]
     val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
 
-    val srcDir = validateDirectory(srcRootOption, srcDirString)
+    val srcDir = validateDirectory(srcDirString, srcRootOption)
 
     // If no destination is specified, this will be None and standard out will be used.
     val dst: Option[File] = dstString
-      .map(validateFileSystem(srcRootOption, _, exists = None))
+      .map(validateFileSystem(_, srcRootOption, exists = None))
       .map(p => {
         // If the destination is a directory, auto-create the filename based on the time.
         if (p.exists && p.isDirectory)
           p / File(getDefaultDigestName(srcDir.toString, now))
         else p.toFile
       })
-      .map(validateFile(None, _, tag = "Destination digest", exists = Some(false)))
-    dst.map(_.parent).foreach(validateDirectory(None, _, tag = "Destination digest directory"))
+      .map(validateFile(_, tag = "Destination digest", exists = Some(false)))
+    dst.map(_.parent).foreach(validateDirectory(_, tag = "Destination digest directory"))
     val dstInProgress = dst.map(f => f.parent / (f.name + ".running")).map(_.toFile)
 
     // Whether to write the output to the console as well.
