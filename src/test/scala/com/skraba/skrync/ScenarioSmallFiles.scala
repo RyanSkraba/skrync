@@ -99,36 +99,37 @@ class ScenarioSmallFiles(
   val File5Contents = "9;nine\n10;ten\n"
 
   {
+    // The original source
     createTxtContents(src / "ids.txt", File1Contents)
     createTxtContents(src / "sub" / "ids2.txt", File2Contents)
 
-    // scenario1 has a deleted file
+    // This scenario has a deleted file
     val s1: Directory = srcDeletedFile
     createTxtContents(s1 / "ids.txt", File1Contents)
     (s1 / Directory("sub")).createDirectory()
 
-    // scenario2 has a modified file
+    // This scenario has a modified file
     val s2: Directory = srcModifiedFile
     createTxtContents(s2 / "ids.txt", File1Contents)
     createTxtContents(s2 / "sub" / "ids2.txt", "4;four\n3;three\n")
 
-    // scenario3
+    // This scenario has a renamed file
     val s3: Directory = srcRenamedFile
     createTxtContents(s3 / "ids.txt", File1Contents)
     createTxtContents(s3 / "sub" / "ids2a.txt", File2Contents)
 
-    // scenario4
+    // This scenario has a duplicated file
     val s4: Directory = srcWithDuplicateFile
     createTxtContents(s4 / "ids.txt", File1Contents)
     createTxtContents(s4 / "sub" / "ids.txt", File1Contents)
     createTxtContents(s4 / "sub" / "ids2.txt", File2Contents)
 
-    // scenario5
+    // The contents in this scenario have been swapped
     val s5: Directory = srcSwappedFiles
     createTxtContents(s5 / "sub" / "ids.txt", File1Contents)
     createTxtContents(s5 / File("ids2.txt"), File2Contents)
 
-    // scenario6
+    // Different types of duplicate files in this scenario
     val s6: Directory = srcWithDuplicates
     createTxtContents(s6 / "ids.txt", File1Contents)
     createTxtContents(s6 / "sub" / "ids2.txt", File2Contents)

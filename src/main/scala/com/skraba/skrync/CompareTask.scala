@@ -1,5 +1,6 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.validateFile
 
 import scala.reflect.io._
@@ -35,6 +36,7 @@ object CompareTask {
   case class Comparison(
       srcOnly: Set[Path],
       dstOnly: Set[Path],
+      moved: Set[(Set[Path], Set[Path])],
       modified: Set[Path]
   )
 
@@ -45,9 +47,19 @@ object CompareTask {
     val srcKeys: Set[Path] = srcMap.keySet
     val dstKeys: Set[Path] = dstMap.keySet
 
+    val srcOnly = srcKeys.diff(dstKeys)
+    val dstOnly = dstKeys.diff(srcKeys)
+
+    val srcDigest: Map[Digest, Set[Path]] =
+      srcOnly.groupMap(srcMap(_).digest)(identity).filter(_._1.nonEmpty).map(f => f._1.get -> f._2)
+    val dstDigest: Map[Digest, Set[Path]] =
+      dstOnly.groupMap(dstMap(_).digest.getOrElse(Seq.empty))(identity).filter(_._1.nonEmpty)
+    val moved = srcDigest.keySet.intersect(dstDigest.keySet).map(mv => (srcDigest(mv), dstDigest(mv)))
+
     Comparison(
-      srcKeys.diff(dstKeys),
-      dstKeys.diff(srcKeys),
+      srcOnly.diff(moved.flatMap(_._1)),
+      dstOnly.diff(moved.flatMap(_._2)),
+      moved,
       srcKeys.intersect(dstKeys).filter { p =>
         srcMap(p) != dstMap(p)
       }
@@ -71,8 +83,9 @@ object CompareTask {
       |dstDigest:" $dstDigest
       |srcOnly: ${compares.srcOnly.size}
       |dstOnly: ${compares.dstOnly.size}
+      |moved: ${compares.moved.size}
       |modified: ${compares.modified.size}
-      |identical: ${compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.modified.isEmpty}
+      |identical: ${compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.moved.isEmpty && compares.modified.isEmpty}
       |
       """.stripMargin)
 

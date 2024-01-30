@@ -186,6 +186,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
       )
       cmp.srcOnly shouldBe Set(Path("small/sub/ids2.txt"))
       cmp.dstOnly shouldBe Set()
+      cmp.moved shouldBe Set()
       cmp.modified shouldBe Set()
     }
 
@@ -196,6 +197,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
       )
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set(Path("small/sub/ids2.txt"))
+      cmp.moved shouldBe Set()
       cmp.modified shouldBe Set()
     }
 
@@ -206,6 +208,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
       )
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set()
+      cmp.moved shouldBe Set()
       cmp.modified shouldBe Set(Path("small/sub/ids2.txt"))
     }
 
@@ -215,8 +218,9 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
         SkryncDir.scan(Small.srcRenamedFile, digest = true)
       )
       // TODO: This is currently treated as an addition and deletion
-      cmp.srcOnly shouldBe Set(Path("small/sub/ids2.txt"))
-      cmp.dstOnly shouldBe Set(Path("small/sub/ids2a.txt"))
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.moved shouldBe Set(Set(Path("small/sub/ids2.txt")) -> Set(Path("small/sub/ids2a.txt")))
       cmp.modified shouldBe Set()
     }
   }
