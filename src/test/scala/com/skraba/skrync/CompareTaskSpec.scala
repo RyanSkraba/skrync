@@ -217,10 +217,20 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
         SkryncDir.scan(Small.src, digest = true),
         SkryncDir.scan(Small.srcRenamedFile, digest = true)
       )
-      // TODO: This is currently treated as an addition and deletion
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set()
       cmp.moved shouldBe Set(Set(Path("small/sub/ids2.txt")) -> Set(Path("small/sub/ids2a.txt")))
+      cmp.modified shouldBe Set()
+    }
+
+    it("when a file is moved") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.srcMovedFile, digest = true)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.moved shouldBe Set(Set(Path("small/sub/ids2.txt")) -> Set(Path("small/sub2/ids2.txt")))
       cmp.modified shouldBe Set()
     }
   }
