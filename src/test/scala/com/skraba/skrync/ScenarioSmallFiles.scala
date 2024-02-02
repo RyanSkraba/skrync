@@ -67,25 +67,25 @@ class ScenarioSmallFiles(
   val src: Directory = root / "original" / Directory("small")
 
   /** Identical to src without ids2.txt. */
-  val srcDeletedFile: Directory = root / "scenario1" / Directory("small")
+  val srcDeletedFile: Directory = root / "srcDeletedFile" / Directory("small")
 
   /** Identical to src with ids2.txt modified. */
-  val srcModifiedFile: Directory = root / "scenario2" / Directory("small")
+  val srcModifiedFile: Directory = root / "srcModifiedFile" / Directory("small")
 
   /** Identical to src with ids2.txt renamed to ids2a.txt. */
-  val srcRenamedFile: Directory = root / "scenario3" / Directory("small")
+  val srcRenamedFile: Directory = root / "srcRenamedFile" / Directory("small")
 
   /** Identical to src with ids2.txt moved to a different directory. */
-  val srcMovedFile: Directory = root / "scenario3" / Directory("small")
+  val srcMovedFile: Directory = root / "srcMovedFile" / Directory("small")
 
   /** Identical to src with a duplicate ids.txt file. */
-  val srcWithDuplicateFile: Directory = root / "scenario4" / Directory("small")
+  val srcWithDuplicateFile: Directory = root / "srcWithDuplicateFile" / Directory("small")
 
   /** Identical to src, swapping the directories the two files are in. */
-  val srcSwappedFiles: Directory = root / "scenario5" / Directory("small")
+  val srcSwappedFiles: Directory = root / "srcSwappedFiles" / Directory("small")
 
   /** Identical to src, with additional directories containing duplicate and unique files. */
-  val srcWithDuplicates: Directory = root / "scenario6" / Directory("small")
+  val srcWithDuplicates: Directory = root / "srcWithDuplicates" / Directory("small")
 
   /** The SHA1 digest of the ids.txt file. */
   val fileIdTxtDigest: Digest =

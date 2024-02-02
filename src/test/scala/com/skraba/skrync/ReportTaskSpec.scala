@@ -238,11 +238,11 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
       dupReport.uniques should have size 1
       dupReport.uniques.map(extract) shouldBe List(
-        "../../scenario2/small/sub/ids2.txt"
+        "../../srcModifiedFile/small/sub/ids2.txt"
       )
       dupReport.duplicates should have size 1
       dupReport.duplicates.map(extract) shouldBe List(
-        "../../scenario2/small/ids.txt"
+        "../../srcModifiedFile/small/ids.txt"
       )
     }
   }
