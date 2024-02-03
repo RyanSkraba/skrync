@@ -49,20 +49,19 @@ object CompareTask {
 
     val srcOnly = srcKeys.diff(dstKeys)
     val dstOnly = dstKeys.diff(srcKeys)
+    val bothButModified = srcKeys.intersect(dstKeys).filter { p => srcMap(p) != dstMap(p) }
 
     val srcDigest: Map[Digest, Set[Path]] =
-      srcOnly.groupMap(srcMap(_).digest)(identity).filter(_._1.nonEmpty).map(f => f._1.get -> f._2)
+      (srcOnly ++ bothButModified).groupMap(srcMap(_).digest)(identity).filter(_._1.nonEmpty).map(f => f._1.get -> f._2)
     val dstDigest: Map[Digest, Set[Path]] =
-      dstOnly.groupMap(dstMap(_).digest.getOrElse(Seq.empty))(identity).filter(_._1.nonEmpty)
+      (dstOnly ++ bothButModified).groupMap(dstMap(_).digest.getOrElse(Seq.empty))(identity).filter(_._1.nonEmpty)
     val moved = srcDigest.keySet.intersect(dstDigest.keySet).map(mv => (srcDigest(mv), dstDigest(mv)))
 
     Comparison(
       srcOnly.diff(moved.flatMap(_._1)),
       dstOnly.diff(moved.flatMap(_._2)),
       moved,
-      srcKeys.intersect(dstKeys).filter { p =>
-        srcMap(p) != dstMap(p)
-      }
+      bothButModified
     )
   }
 

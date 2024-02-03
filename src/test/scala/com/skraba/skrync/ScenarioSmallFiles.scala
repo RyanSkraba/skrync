@@ -145,8 +145,8 @@ class ScenarioSmallFiles(
     // The contents in this scenario have been swapped
     {
       val scenario: Directory = srcSwappedFiles
-      createTxtContents(scenario / "sub" / "ids.txt", File1Contents)
-      createTxtContents(scenario / File("ids2.txt"), File2Contents)
+      createTxtContents(scenario / "ids.txt", File2Contents)
+      createTxtContents(scenario / "sub" / "ids2.txt", File1Contents)
     }
 
     // Different types of duplicate files in this scenario

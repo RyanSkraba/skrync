@@ -245,5 +245,20 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
       cmp.moved shouldBe Set()
       cmp.modified shouldBe Set()
     }
+
+    it("when two files are swapped") {
+      val cmp = CompareTask.compare(
+        SkryncDir.scan(Small.src, digest = true),
+        SkryncDir.scan(Small.srcSwappedFiles, digest = true)
+      )
+      cmp.srcOnly shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.moved shouldBe Set(
+        Set(Path("small/ids.txt")) -> Set(Path("small/sub/ids2.txt")),
+        Set(Path("small/sub/ids2.txt")) -> Set(Path("small/ids.txt"))
+      )
+      // TODO: This should be empty, but it's the same as moved.
+      // cmp.modified shouldBe Set()
+    }
   }
 }
