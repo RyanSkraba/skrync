@@ -76,23 +76,32 @@ object CompareTask {
     // Check the two digests for differences.
     val compares = compare(src.info, dst.info)
 
-    // TODO: implement
     println(s"""COMPARE
       |srcDigest: $srcDigest
+      |         : ${src.src}
       |dstDigest:" $dstDigest
-      |srcOnly: ${compares.srcOnly.size}
-      |dstOnly: ${compares.dstOnly.size}
-      |moved: ${compares.moved.size}
-      |modified: ${compares.modified.size}
-      |identical: ${compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.moved.isEmpty && compares.modified.isEmpty}
-      |
-      """.stripMargin)
+      |         : ${dst.src}
+      |""".stripMargin)
 
-    val all: Seq[(Path, String)] =
-      (compares.srcOnly.map((_, "<<")) ++ compares.dstOnly.map(
-        (_, ">>")
-      ) ++ compares.modified.map((_, "!="))).toSeq.sortBy(_._1.toString())
+    if (compares.srcOnly.isEmpty && compares.dstOnly.isEmpty && compares.moved.isEmpty && compares.modified.isEmpty) {
+      println("No differences have been detected.")
+    } else {
+      // TODO: implement
+      println(s"""COMPARE
+        |srcOnly: ${compares.srcOnly.size}
+        |dstOnly: ${compares.dstOnly.size}
+        |moved: ${compares.moved.size}
+        |modified: ${compares.modified.size}
+        |""".stripMargin)
 
-    all.foreach(str => println(str._2 + " " + str._1))
+      val all: Seq[(Path, String)] =
+        (compares.srcOnly.map((_, "<< SRC"))
+          ++ compares.dstOnly.map((_, ">> DST"))
+          ++ compares.modified.map((_, "!="))).toSeq.sortBy(_._1.toString())
+
+      all.foreach(str => println(str._2 + " " + str._1))
+
+      compares.moved.foreach(println)
+    }
   }
 }

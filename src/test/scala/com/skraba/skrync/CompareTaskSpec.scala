@@ -172,7 +172,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
       )
 
       stdout should not have size(0)
-      stdout should include("identical: true")
+      stdout should include("\nNo differences have been detected.\n")
       stderr shouldBe ""
     }
   }
