@@ -19,7 +19,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   override protected def afterAll(): Unit = Small.cleanup()
 
-  val DoesntExist = (Small.root / "doesnt-exist").toString()
+  val DoesntExist: String = (Small.root / "doesnt-exist").toString()
 
   describe("SkryncGo report command line") {
     it("throws an exception with --help") {
@@ -108,6 +108,36 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         )
       }
       tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
+    }
+
+    it("throws an exception when the dedup move directory doesn't exist") {
+      val tSrc = intercept[IllegalArgumentException] {
+        withSkryncGo(
+          "report",
+          "--srcDigest",
+          (Small.src / "ids.txt").toString(),
+          "--dedupDir",
+          Small.src.toString,
+          "--mvDir",
+          DoesntExist
+        )
+      }
+      tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: $DoesntExist"
+    }
+
+    it("throws an exception when the dedup move directory is not a directory") {
+      val tSrc = intercept[IllegalArgumentException] {
+        withSkryncGo(
+          "report",
+          "--srcDigest",
+          (Small.src / "ids.txt").toString(),
+          "--dedupDir",
+          Small.src.toString,
+          "--mvDir",
+          (Small.src / "ids.txt").toString()
+        )
+      }
+      tSrc.getMessage shouldBe s"Duplicate destination directory is not a directory: ${Small.src / "ids.txt"}"
     }
   }
 

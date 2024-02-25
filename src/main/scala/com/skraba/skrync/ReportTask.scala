@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.validateFile
+import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
 
 import scala.reflect.io._
@@ -18,12 +18,13 @@ object ReportTask {
       |
       |Usage:
       |  SkryncGo report --srcDigest SRC
-      |  SkryncGo report --srcDigest SRC --dedupDir DEDUP_DIR
+      |  SkryncGo report --srcDigest SRC --dedupDir DEDUP_DIR [--mvDir MV_DIR]
       |
       |Options:
       |  --srcDigest SRC       The file generated from the source directory.
       |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
       |                        in DEDUP_DIR
+      |  --mvDir MV_DIR        If present, moves duplicates to MV_DIR
       |
       |Examples:
       |
@@ -147,16 +148,9 @@ object ReportTask {
 
     // Check the two digests for differences.
     if (dedup != null) {
-      val dedupDirString = dedup
-      val dedupDir: Directory = Directory(dedupDirString).toAbsolute
-      if (!dedupDir.exists)
-        throw new IllegalArgumentException(
-          s"Deduplication directory doesn't exist: $dedupDirString"
-        )
-      if (!dedupDir.isDirectory)
-        throw new IllegalArgumentException(
-          s"Deduplication directory is not a directory: $dedupDirString"
-        )
+      val dedupDir: Directory = validateDirectory(dedup, tag = "Deduplication directory").toAbsolute
+      val mvDir: Option[Directory] =
+        Option(opts.get("--mvDir")).map(validateDirectory(_, tag = "Duplicate destination directory"))
 
       // Read all of the information from the two digest files.
       val src: SkryncGo.Analysis = Json.read(srcDigest)
@@ -171,8 +165,9 @@ object ReportTask {
       println(s"duplicates: ${r.duplicates.size}")
       println()
       r.duplicates.map(_._1).foreach { f =>
+        val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("dup." + f.extension))
         System.out.println(
-          s"""mv "$f" "${f.changeExtension("dup." + f.extension)}" """
+          s"""mv "$f" "$dst" """
         )
       }
       println()
