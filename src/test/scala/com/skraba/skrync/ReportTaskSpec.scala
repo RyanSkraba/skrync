@@ -1,5 +1,6 @@
 package com.skraba.skrync
 
+import com.skraba.skrync.DeduplicateTask.DedupPathReport
 import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec.{withSkryncGo, withSkryncGoAnalysis}
 import org.scalatest.BeforeAndAfterAll
@@ -87,7 +88,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     it("throws an exception when the dedup directory doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
         withSkryncGo(
-          "report",
+          "dedup",
           "--srcDigest",
           (Small.src / "ids.txt").toString(),
           "--dedupDir",
@@ -100,7 +101,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     it("throws an exception when the dedup directory is not a directory") {
       val tSrc = intercept[IllegalArgumentException] {
         withSkryncGo(
-          "report",
+          "dedup",
           "--srcDigest",
           (Small.src / "ids.txt").toString(),
           "--dedupDir",
@@ -113,7 +114,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     it("throws an exception when the dedup move directory doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
         withSkryncGo(
-          "report",
+          "dedup",
           "--srcDigest",
           (Small.src / "ids.txt").toString(),
           "--dedupDir",
@@ -128,7 +129,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     it("throws an exception when the dedup move directory is not a directory") {
       val tSrc = intercept[IllegalArgumentException] {
         withSkryncGo(
-          "report",
+          "dedup",
           "--srcDigest",
           (Small.src / "ids.txt").toString(),
           "--dedupDir",
@@ -195,7 +196,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
   def extractNameForTests(src: Path)(f: (Path, SkryncPath)): String =
     src.relativize(f._1).toString()
 
-  describe(s"Using ${ReportTask.DedupPathReport.getClass.getSimpleName}") {
+  describe(s"Using ${DedupPathReport.getClass.getSimpleName}") {
 
     // Generate an analysis of the scenario6 directory
     val (_, analysis) = withSkryncGoAnalysis(
@@ -206,7 +207,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     val extract = extractNameForTests(Small.srcWithDuplicates) _
 
     it("has one duplicate in dup1/") {
-      val dupReport = ReportTask.DedupPathReport(
+      val dupReport = DedupPathReport(
         analysis,
         Small.srcWithDuplicates / Directory("dup1")
       )
@@ -218,7 +219,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("has one duplicate in dup2/") {
-      val dupReport = ReportTask.DedupPathReport(
+      val dupReport = DedupPathReport(
         analysis,
         Small.srcWithDuplicates / Directory("dup2")
       )
@@ -232,7 +233,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("has two duplicates in dup3/") {
-      val dupReport = ReportTask.DedupPathReport(
+      val dupReport = DedupPathReport(
         analysis,
         Small.srcWithDuplicates / Directory("dup3")
       )
@@ -247,7 +248,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("outside original scenario is entirely duplicated in this scenario") {
-      val dupReport = ReportTask.DedupPathReport(
+      val dupReport = DedupPathReport(
         analysis,
         Small.src
       )
@@ -261,7 +262,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("outside scenario2/ has some duplicated files in this scenario") {
-      val dupReport = ReportTask.DedupPathReport(
+      val dupReport = DedupPathReport(
         analysis,
         Small.srcModifiedFile
       )

@@ -42,87 +42,6 @@ object ReportTask {
 
   case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
 
-  /** Analysis of the contents of one specific directory to find duplicate and unique files.
-    *
-    * Note that if there is a file that exists twice but only inside the dedupPath, one will appear in the uniques and
-    * one will appear in the duplicates.
-    *
-    * @param src
-    *   The prepared files analysis
-    * @param dedupPath
-    *   The path to deduplicate, relative to the root of the analysis.
-    * @param uniques
-    *   Files in the dedupPath that do not exist outside the dedupPath.
-    * @param duplicates
-    *   Files in the dedupPath that exist more than once.
-    */
-  case class DedupPathReport(
-      src: SkryncGo.Analysis,
-      dedupPath: Directory,
-      uniques: Seq[(Path, SkryncPath)],
-      duplicates: Seq[(Path, SkryncPath)]
-  )
-
-  object DedupPathReport {
-
-    /** Given the analysis file and the dedup directory, determines which of the files in the directory already exist.
-      *
-      * @param src
-      *   The source analysis of an existing directory.
-      * @param dedupPath
-      *   A new directory. If this is inside the src directory, then the information is directly used from there.
-      * @return
-      *   A deduplication report of different and unique files in the dedupPath.
-      */
-    def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
-
-      // All of the files in the analysis, sorted into whether they are in the dedupPath
-      val (
-        srcInDedup: Seq[(Path, SkryncPath)],
-        srcOutDedup: Seq[(Path, SkryncPath)]
-      ) =
-        src.info
-          .flattenPaths(src.src)
-          .filter(_._2.digest.nonEmpty)
-          .partition(p => isIn(dedupPath, p._1))
-
-      // All of the files in the dedupPath
-      val dedupContents =
-        if (isIn(src.src, dedupPath)) srcInDedup
-        else
-          SkryncDir
-            .scan(dedupPath, digest = true)
-            .flattenPaths(dedupPath)
-
-      // And all of the candidate files sorted by digest
-      val srcOutDedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
-        srcOutDedup.groupBy(_._2.digest.get)
-
-      // All of the files that we're testing for duplication
-      val dedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
-        dedupContents.groupBy(_._2.digest.get)
-
-      // Partition by whether the file is unique or not
-      val (uniques, duplicates) = dedupContents
-        .partition {
-          case (_, SkryncPath(_, _, _, _, _, Some(dig))) if srcOutDedupDigests.contains(dig) =>
-            false
-          case path @ (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
-            // The file doesn't exist in the source, but it might be duplicated inside the dedup path.
-            // One should be considered a duplicate, and the other a unique file.
-            dedupDigests.getOrElse(dig, Nil).headOption.contains(path)
-          case _ => false
-        }
-
-      DedupPathReport(
-        src,
-        dedupPath,
-        uniques = uniques,
-        duplicates = duplicates
-      )
-    }
-  }
-
   def report(src: SkryncGo.Analysis): Report = {
     val digests: Map[Digest, Seq[(Path, SkryncPath)]] =
       src.info
@@ -147,54 +66,23 @@ object ReportTask {
     )
 
     // Check the two digests for differences.
-    if (dedup != null) {
-      val dedupDir: Directory = validateDirectory(dedup, tag = "Deduplication directory").toAbsolute
-      val mvDir: Option[Directory] =
-        Option(opts.get("--mvDir")).map(validateDirectory(_, tag = "Duplicate destination directory"))
+    // Read all of the information from the two digest files.
+    val src: SkryncGo.Analysis = Json.read(srcDigest)
+    val r = report(src)
 
-      // Read all of the information from the two digest files.
-      val src: SkryncGo.Analysis = Json.read(srcDigest)
-      val r = DedupPathReport(src, dedupDir)
-
-      println("DEDUPLICATION REPORT")
-      println("===========")
-      println("from: " + srcDigest)
-      println("src: " + src.src)
-      println("dedup: " + dedupDir)
-      println(s"uniques: ${r.uniques.size}")
-      println(s"duplicates: ${r.duplicates.size}")
-      println()
-      r.duplicates.map(_._1).foreach { f =>
-        val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("dup." + f.extension))
-        System.out.println(
-          s"""mv "$f" "$dst" """
-        )
-      }
-      println()
-      r.uniques.map(_._1).foreach { f =>
-        System.out.println(
-          s"""mv "$f" "${f.changeExtension("uniq." + f.extension)}" """
-        )
-      }
-    } else {
-      // Read all of the information from the two digest files.
-      val src: SkryncGo.Analysis = Json.read(srcDigest)
-      val r = report(src)
-
-      // TODO: implement
-      println("REPORT")
-      println("===========")
-      println("from: " + srcDigest)
-      println("src: " + src.src)
-      println(s"total files: ${src.info.deepFileCount}")
-      println()
-      println("Duplicates")
-      println("----------")
-      for (fs <- r.duplicateFiles.takeRight(10)) {
-        println(s"${fs.head._1.size} (${fs.size}) -->")
-        for (fs2 <- fs) {
-          println(s"   ${fs2._2}")
-        }
+    // TODO: implement
+    println("REPORT")
+    println("===========")
+    println("from: " + srcDigest)
+    println("src: " + src.src)
+    println(s"total files: ${src.info.deepFileCount}")
+    println()
+    println("Duplicates")
+    println("----------")
+    for (fs <- r.duplicateFiles.takeRight(10)) {
+      println(s"${fs.head._1.size} (${fs.size}) -->")
+      for (fs2 <- fs) {
+        println(s"   ${fs2._2}")
       }
     }
   }
