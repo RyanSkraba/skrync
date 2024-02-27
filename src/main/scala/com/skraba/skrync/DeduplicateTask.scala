@@ -40,27 +40,24 @@ object DeduplicateTask {
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
-  case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
-
-  /** Analysis of the contents of one specific directory to find duplicate and unique files.
-    *
-    * Note that if there is a file that exists twice but only inside the dedupPath, one will appear in the uniques and
-    * one will appear in the duplicates.
+  /** Analysis of the contents of one specific directory to find known (exists in the source digest) and unknown files.
     *
     * @param src
     *   The prepared files analysis
     * @param dedupPath
-    *   The path to deduplicate, relative to the root of the analysis.
-    * @param uniques
-    *   Files in the dedupPath that do not exist outside the dedupPath.
-    * @param duplicates
-    *   Files in the dedupPath that exist more than once.
+    *   A new directory. If this is *inside* the analysis directory, then the file information is used from the files in
+    *   the analysis. If this is *external* then that directory will be scanned.
+    * @param known
+    *   Files in the dedupPath that in the source analysis outside of the dedupPath, or are duplicated in the dedupPath.
+    * @param unknown
+    *   Files in the dedupPath that do not exist outside the dedupPath. If there is a file that exists twice but only
+    *   inside the dedupPath, one will appear in the uniques and one will appear as known.
     */
   case class DedupPathReport(
       src: SkryncGo.Analysis,
       dedupPath: Directory,
-      uniques: Seq[(Path, SkryncPath)],
-      duplicates: Seq[(Path, SkryncPath)]
+      known: Seq[(Path, SkryncPath)],
+      unknown: Seq[(Path, SkryncPath)]
   )
 
   object DedupPathReport {
@@ -70,56 +67,40 @@ object DeduplicateTask {
       * @param src
       *   The source analysis of an existing directory.
       * @param dedupPath
-      *   A new directory. If this is inside the src directory, then the information is directly used from there.
+      *   A new directory. If this is *inside* the analysis directory, then the file information is used from the files
+      *   in the analysis. If this is *external* then that directory will be scanned.
       * @return
-      *   A deduplication report of different and unique files in the dedupPath.
+      *   A deduplication report of known and unknown files in the dedupPath.
       */
     def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
 
       // All of the files in the analysis, sorted into whether they are in the dedupPath
-      val (
-        srcInDedup: Seq[(Path, SkryncPath)],
-        srcOutDedup: Seq[(Path, SkryncPath)]
-      ) =
-        src.info
-          .flattenPaths(src.src)
-          .filter(_._2.digest.nonEmpty)
-          .partition(p => isIn(dedupPath, p._1))
+      val (srcInDedup: Seq[(Path, SkryncPath)], srcOutDedup: Seq[(Path, SkryncPath)]) =
+        src.info.flattenPaths(src.src).filter(_._2.digest.nonEmpty).partition(p => isIn(dedupPath, p._1))
 
-      // All of the files in the dedupPath
+      // All of the files in the dedupPath, taken from the analysis or the filesystem
       val dedupContents =
         if (isIn(src.src, dedupPath)) srcInDedup
-        else
-          SkryncDir
-            .scan(dedupPath, digest = true)
-            .flattenPaths(dedupPath)
+        else SkryncDir.scan(dedupPath, digest = true).flattenPaths(dedupPath)
 
-      // And all of the candidate files sorted by digest
-      val srcOutDedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
-        srcOutDedup.groupBy(_._2.digest.get)
+      // All of the files in the analysis keyed on digest.  This is the set that determines whether the file in the dedupPath is known or unknown.
+      val srcOutDedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] = srcOutDedup.groupBy(_._2.digest.get)
 
-      // All of the files that we're testing for duplication
-      val dedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] =
-        dedupContents.groupBy(_._2.digest.get)
+      // All of the files that we're testing
+      val dedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] = dedupContents.groupBy(_._2.digest.get)
 
-      // Partition by whether the file is unique or not
-      val (uniques, duplicates) = dedupContents
-        .partition {
-          case (_, SkryncPath(_, _, _, _, _, Some(dig))) if srcOutDedupDigests.contains(dig) =>
-            false
-          case path @ (_, SkryncPath(_, _, _, _, _, Some(dig))) =>
-            // The file doesn't exist in the source, but it might be duplicated inside the dedup path.
-            // One should be considered a duplicate, and the other a unique file.
-            dedupDigests.getOrElse(dig, Nil).headOption.contains(path)
-          case _ => false
-        }
+      // Partition by whether the file is known or not
+      val (unknown, known) = dedupContents.partition {
+        case (_, SkryncPath(_, _, _, _, _, Some(dgst))) if srcOutDedupDigests.contains(dgst) =>
+          false
+        case path @ (_, SkryncPath(_, _, _, _, _, Some(dgst))) =>
+          // The file doesn't exist in the source, but it might be duplicated inside the dedup path.
+          // One should be considered a duplicate, and the other a unique file.
+          dedupDigests.getOrElse(dgst, Nil).headOption.contains(path)
+        case _ => false
+      }
 
-      DedupPathReport(
-        src,
-        dedupPath,
-        uniques = uniques,
-        duplicates = duplicates
-      )
+      DedupPathReport(src, dedupPath, known = known, unknown = unknown)
     }
   }
 
@@ -142,19 +123,19 @@ object DeduplicateTask {
     println("from: " + srcDigest)
     println("src: " + src.src)
     println("dedup: " + dedupDir)
-    println(s"uniques: ${r.uniques.size}")
-    println(s"duplicates: ${r.duplicates.size}")
+    println(s"new files: ${r.unknown.size}")
+    println(s"known files: ${r.known.size}")
     println()
-    r.duplicates.map(_._1).foreach { f =>
-      val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("dup." + f.extension))
+    r.known.map(_._1).foreach { f =>
+      val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("known." + f.extension))
       System.out.println(
         s"""mv "$f" "$dst" """
       )
     }
     println()
-    r.uniques.map(_._1).foreach { f =>
+    r.unknown.map(_._1).foreach { f =>
       System.out.println(
-        s"""mv "$f" "${f.changeExtension("uniq." + f.extension)}" """
+        s"""mv "$f" "${f.changeExtension("unknown." + f.extension)}" """
       )
     }
   }

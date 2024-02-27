@@ -212,10 +212,10 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         Small.srcWithDuplicates / Directory("dup1")
       )
 
-      dupReport.uniques should have size 1
-      dupReport.uniques.map(extract) shouldBe List("dup1/ids3.txt")
-      dupReport.duplicates should have size 1
-      dupReport.duplicates.map(extract) shouldBe List("dup1/ids.txt")
+      dupReport.unknown should have size 1
+      dupReport.unknown.map(extract) shouldBe List("dup1/ids3.txt")
+      dupReport.known should have size 1
+      dupReport.known.map(extract) shouldBe List("dup1/ids.txt")
     }
 
     it("has one duplicate in dup2/") {
@@ -224,12 +224,12 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         Small.srcWithDuplicates / Directory("dup2")
       )
 
-      dupReport.uniques should have size 1
-      dupReport.uniques.map(extract) shouldBe List(
+      dupReport.unknown should have size 1
+      dupReport.unknown.map(extract) shouldBe List(
         "dup2/ids4.txt"
       )
-      dupReport.duplicates should have size 1
-      dupReport.duplicates.map(extract) shouldBe List("dup2/ids4a.txt")
+      dupReport.known should have size 1
+      dupReport.known.map(extract) shouldBe List("dup2/ids4a.txt")
     }
 
     it("has two duplicates in dup3/") {
@@ -238,10 +238,10 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         Small.srcWithDuplicates / Directory("dup3")
       )
 
-      dupReport.uniques should have size 1
-      dupReport.uniques.map(extract) shouldBe List("dup3/ids5.txt")
-      dupReport.duplicates should have size 2
-      dupReport.duplicates.map(extract) shouldBe List(
+      dupReport.unknown should have size 1
+      dupReport.unknown.map(extract) shouldBe List("dup3/ids5.txt")
+      dupReport.known should have size 2
+      dupReport.known.map(extract) shouldBe List(
         "dup3/ids2a.txt",
         "dup3/sub/ids5.txt"
       )
@@ -253,9 +253,9 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         Small.src
       )
 
-      dupReport.uniques shouldBe empty
-      dupReport.duplicates should have size 2
-      dupReport.duplicates.map(extract) shouldBe List(
+      dupReport.unknown shouldBe empty
+      dupReport.known should have size 2
+      dupReport.known.map(extract) shouldBe List(
         "../../original/small/ids.txt",
         "../../original/small/sub/ids2.txt"
       )
@@ -267,12 +267,12 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         Small.srcModifiedFile
       )
 
-      dupReport.uniques should have size 1
-      dupReport.uniques.map(extract) shouldBe List(
+      dupReport.unknown should have size 1
+      dupReport.unknown.map(extract) shouldBe List(
         "../../srcModifiedFile/small/sub/ids2.txt"
       )
-      dupReport.duplicates should have size 1
-      dupReport.duplicates.map(extract) shouldBe List(
+      dupReport.known should have size 1
+      dupReport.known.map(extract) shouldBe List(
         "../../srcModifiedFile/small/ids.txt"
       )
     }
