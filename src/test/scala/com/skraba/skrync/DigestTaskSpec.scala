@@ -22,10 +22,6 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   override protected def afterAll(): Unit = Small.cleanup()
 
-  /** A pre-existing file outside the small scenario. */
-  val ExistingFile: File = Small.root / File("exists")
-  Streamable.closing(ExistingFile.outputStream())(_.write(1))
-
   describe("SkryncGo digest command line") {
 
     it("throws an exception with --help") {
@@ -48,35 +44,35 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("throws an exception with unknown option") {
-      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--srcDigest") }
+      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--garbage") }
       t.docopt shouldBe DigestTask.Doc
     }
 
     describe("without --srcRoot") {
 
       it("throws an exception when the source doesn't exist") {
-        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", "/doesnt-exist") }
-        t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
+        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", Small.DoesntExist) }
+        t.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source is a file") {
-        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", ExistingFile.toString) }
-        t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
+        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", Small.ExistingFile.toString) }
+        t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst exists") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", ExistingFile.toString())
+          withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())
         }
-        t.getMessage shouldBe s"Destination digest already exists: $ExistingFile"
+        t.getMessage shouldBe s"Destination digest already exists: $Small.ExistingFile"
       }
 
       it("throws an exception when the dstDigest path is inside a file") {
-        val fileExists = (ExistingFile / "impossible").toString()
+        val fileExists = (Small.ExistingFile / "impossible").toString()
         val t = intercept[IllegalArgumentException] {
           withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
         }
-        t.getMessage shouldBe s"Destination digest directory is not a directory: $ExistingFile"
+        t.getMessage shouldBe s"Destination digest directory is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
@@ -122,9 +118,9 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
       it("throws an exception when the source is a file") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcRoot", ExistingFile.parent.path, "--srcDir", ExistingFile.name)
+          withSkryncGo("digest", "--srcRoot", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
         }
-        t.getMessage shouldBe s"Source is not a directory: $ExistingFile"
+        t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}e"
       }
 
       it("throws an exception when the dst exists") {
@@ -148,14 +144,14 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
           withSkryncGo(
             "digest",
             "--srcRoot",
-            ExistingFile.parent.path,
+            Small.ExistingFile.parent.path,
             "--srcDir",
             Small.src.path,
             "--dstDigest",
             "exists/impossible"
           )
         }
-        t.getMessage shouldBe s"Destination digest directory is not a directory: $ExistingFile"
+        t.getMessage shouldBe s"Destination digest directory is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
