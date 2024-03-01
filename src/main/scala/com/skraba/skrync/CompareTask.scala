@@ -5,7 +5,9 @@ import com.skraba.skrync.SkryncGo.validateFile
 
 import scala.reflect.io._
 
-/** This task compares two digest files. */
+/** This task compares two digest files, a source and destination, and calculates the changes that need to be made to
+  * the destination in order for it to be identical to the source.
+  */
 object CompareTask {
 
   val Cmd = "compare"
@@ -34,9 +36,17 @@ object CompareTask {
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
   case class Comparison(
+      /** Files that exist only in the source directory without any corresponding destination. Should be copied over. */
       srcOnly: Set[Path],
+      /** Files that exist only in the destination directory without any corresponding source. Should be removed. */
       dstOnly: Set[Path],
+      /** Identical files that exist in the source AND destination but at different paths. Any file in the destination
+        * set can be moved or copied to all of the paths in the source set.
+        */
       moved: Set[(Set[Path], Set[Path])],
+      /** Files that exist in both the source and destination at the same path, but have been changed. The destination
+        * needs to be overwritten fron the source.
+        */
       modified: Set[Path]
   )
 
