@@ -24,6 +24,10 @@ object DeduplicateTask {
       |  SkryncGo dedup --srcDigest SRC --dedupDir DEDUP_DIR [options]
       |
       |Options:
+      |  --srcRoot SRC_ROOT    Root directory to use as the parent for all file
+      |                        options. If not present, its value is taken from
+      |                        the SKRYNC_SRC_ROOT environment variable or the
+      |                        current working directory.
       |  --srcDigest SRC       The file generated from the source directory.
       |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
       |                        in DEDUP_DIR
@@ -105,14 +109,16 @@ object DeduplicateTask {
   }
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
-    val srcDigest: File = validateFile(
-      // TODO
-      arg = opts.get("--srcDigest")
-    )
 
-    val dedupDir: Directory = validateDirectory(opts.get("--dedupDir"), tag = "Deduplication directory").toAbsolute
+    // A root directory taken from the command line, or from the environment, or from the current working directory.
+    val root = Option(opts.get("--srcRoot").asInstanceOf[String])
+
+    // The file resources used by this task
+    val srcDigest: File = validateFile(arg = opts.get("--srcDigest"), root)
+    val dedupDir: Directory =
+      validateDirectory(opts.get("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
     val mvDir: Option[Directory] =
-      Option(opts.get("--mvDir")).map(validateDirectory(_, tag = "Duplicate destination directory"))
+      Option(opts.get("--mvDir")).map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
     // Read all of the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)

@@ -122,6 +122,67 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         tSrc.getMessage shouldBe s"Duplicate destination directory is not a directory: ${Small.src / "ids.txt"}"
       }
     }
+
+    describe("with --srcRoot") {
+
+      /** We'll test that the root is taken into account by using a nonsense command line. We want to provoke a "doesn't
+        * exist: FILENAME" CLI error. Outside of the root, all of the file resources exist, so we'll replace them one by
+        * one with resources that don't exist, and examine the errors that result.
+        */
+      val dedupExistingArgs = Seq(
+        "dedup",
+        "--srcRoot",
+        Small.DoesntExist,
+        "--srcDigest",
+        (Small.src / "ids.txt").toString,
+        "--dedupDir",
+        Small.src.toString,
+        "--mvDir",
+        Small.src.toString
+      )
+
+      it("throws an exception when a relative --srcDigest doesn't exist") {
+        val tSrc = intercept[IllegalArgumentException] {
+          withSkryncGo(dedupExistingArgs.updated(4, "nox"): _*)
+        }
+        tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}/nox"
+      }
+
+      it("throws an exception when an absolute --srcDigest doesn't exist") {
+        val tSrc = intercept[IllegalArgumentException] {
+          withSkryncGo(dedupExistingArgs.updated(4, Small.DoesntExist): _*)
+        }
+        tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
+      }
+
+      it("throws an exception when a relative --dedupDir doesn't exist") {
+        val tSrc = intercept[IllegalArgumentException] {
+          withSkryncGo(dedupExistingArgs.updated(6, "nox"): _*)
+        }
+        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}/nox"
+      }
+
+      it("throws an exception when an absolute --dedupDir doesn't exist") {
+        val tSrc = intercept[IllegalArgumentException] {
+          withSkryncGo(dedupExistingArgs.updated(6, Small.DoesntExist): _*)
+        }
+        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
+      }
+
+      it("throws an exception when a relative --mvDir doesn't exist") {
+        val tSrc = intercept[IllegalArgumentException] {
+          withSkryncGo(dedupExistingArgs.updated(8, "nox"): _*)
+        }
+        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}/nox"
+      }
+
+      it("throws an exception when an absolute --mvDir doesn't exist") {
+        val tSrc = intercept[IllegalArgumentException] {
+          withSkryncGo(dedupExistingArgs.updated(8, Small.DoesntExist): _*)
+        }
+        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
+      }
+    }
   }
 
   /** Extracts paths relative to src/ for testing as strings. */

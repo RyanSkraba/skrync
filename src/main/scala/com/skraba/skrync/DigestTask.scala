@@ -48,21 +48,18 @@ object DigestTask {
     // The current date/time
     val now = LocalDateTime.now
 
-    // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val srcRootOption = Option(opts.get("--srcRoot").asInstanceOf[String])
-
-    val srcDirString = opts.get("--srcDir").asInstanceOf[String]
-    // The destination, if present.  If this is already a directory, a default file name will be generated,
-    // including the date.  If not present, dumps to stdout
-    val dstString = Option(opts.get("--dstDigest").asInstanceOf[String])
     val silent = opts.get("--silent").asInstanceOf[Boolean]
     val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
 
-    val srcDir = validateDirectory(srcDirString, srcRootOption)
+    // A root directory taken from the command line, or from the environment, or from the current working directory.
+    val root = Option(opts.get("--srcRoot").asInstanceOf[String])
 
-    // If no destination is specified, this will be None and standard out will be used.
-    val dst: Option[File] = dstString
-      .map(validateFileSystem(_, srcRootOption, exists = None))
+    // The file resources used by this task
+    val srcDir = validateDirectory(opts.get("--srcDir"), root)
+    // The destination, if present.  If this is already a directory, a default file name will be generated,
+    // including the date. If no destination is specified, this will be None and standard out will be used.
+    val dst: Option[File] = Option(opts.get("--dstDigest").asInstanceOf[String])
+      .map(validateFileSystem(_, root, exists = None))
       .map(p => {
         // If the destination is a directory, auto-create the filename based on the time.
         if (p.exists && p.isDirectory)
