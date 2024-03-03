@@ -22,10 +22,10 @@ object DigestTask {
       |  skrync digest --srcDir=<SRC_DIR> [options]
       |
       |Options:
-      |  --srcRoot SRC_ROOT  Root directory to use as the parent for all file options.
-      |                      If not present, it's value is taken from the
-      |                      SKRYNC_SRC_ROOT environment variable or the current
-      |                      working directory.
+      |  --root SRC_ROOT     Root directory to use as the parent for all file
+      |                      options. If not present, its value is taken from
+      |                      the SKRYNC_SRC_ROOT environment variable or the
+      |                      current working directory.
       |  --srcDir SRC_DIR    The directory to analyze. Relative to SRC_ROOT.
       |  --dstDigest DST     The destination of the persistent file, or a directory to
       |                      auto generate a destination.  Relative to SRC_ROOT. If
@@ -52,7 +52,7 @@ object DigestTask {
     val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val root = Option(opts.get("--srcRoot").asInstanceOf[String])
+    val root = Option(opts.get("--root").asInstanceOf[String])
 
     // The file resources used by this task
     val srcDir = validateDirectory(opts.get("--srcDir"), root)

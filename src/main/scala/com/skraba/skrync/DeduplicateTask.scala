@@ -24,7 +24,7 @@ object DeduplicateTask {
       |  SkryncGo dedup --srcDigest SRC --dedupDir DEDUP_DIR [options]
       |
       |Options:
-      |  --srcRoot SRC_ROOT    Root directory to use as the parent for all file
+      |  --root SRC_ROOT       Root directory to use as the parent for all file
       |                        options. If not present, its value is taken from
       |                        the SKRYNC_SRC_ROOT environment variable or the
       |                        current working directory.
@@ -111,7 +111,7 @@ object DeduplicateTask {
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val root = Option(opts.get("--srcRoot").asInstanceOf[String])
+    val root = Option(opts.get("--root").asInstanceOf[String])
 
     // The file resources used by this task
     val srcDigest: File = validateFile(arg = opts.get("--srcDigest"), root)

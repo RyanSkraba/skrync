@@ -34,7 +34,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       val invalid = List(
         List("digest"),
         List("digest", "--srcDir"),
-        List("digest", "--srcDir", "x", "--srcRoot"),
+        List("digest", "--srcDir", "x", "--root"),
         List("digest", "--srcDir", "x", "--dstDir")
       )
       for (args <- invalid) {
@@ -48,7 +48,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       t.docopt shouldBe DigestTask.Doc
     }
 
-    describe("without --srcRoot") {
+    describe("without --root") {
 
       it("throws an exception when the source doesn't exist") {
         val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", Small.DoesntExist) }
@@ -84,32 +84,32 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       }
     }
 
-    describe("with --srcRoot") {
+    describe("with --root") {
 
       it("throws an exception when the source doesn't exist (absolute + absolute)") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcRoot", "/ignored", "--srcDir", "/doesnt-exist")
+          withSkryncGo("digest", "--root", "/ignored", "--srcDir", "/doesnt-exist")
         }
         t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (relative + absolute)") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcRoot", "ignored", "--srcDir", "/doesnt-exist")
+          withSkryncGo("digest", "--root", "ignored", "--srcDir", "/doesnt-exist")
         }
         t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (absolute + relative)") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcRoot", "/tmp", "--srcDir", "doesnt-exist")
+          withSkryncGo("digest", "--root", "/tmp", "--srcDir", "doesnt-exist")
         }
         t.getMessage shouldBe "Source doesn't exist: /tmp/doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (relative + relative)") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcRoot", "tmp", "--srcDir", "doesnt-exist")
+          withSkryncGo("digest", "--root", "tmp", "--srcDir", "doesnt-exist")
         }
         // The entire message contains the current user dir.
         t.getMessage should startWith("Source doesn't exist: ")
@@ -118,7 +118,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
       it("throws an exception when the source is a file") {
         val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcRoot", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
+          withSkryncGo("digest", "--root", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
         }
         t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}"
       }
@@ -128,7 +128,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         val t = intercept[IllegalArgumentException] {
           withSkryncGo(
             "digest",
-            "--srcRoot",
+            "--root",
             Small.src.toString,
             "--srcDir",
             Small.src.toString,
@@ -143,7 +143,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         val t = intercept[IllegalArgumentException] {
           withSkryncGo(
             "digest",
-            "--srcRoot",
+            "--root",
             Small.ExistingFile.parent.path,
             "--srcDir",
             Small.src.path,
@@ -158,7 +158,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         val t = intercept[IllegalArgumentException] {
           withSkryncGo(
             "digest",
-            "--srcRoot",
+            "--root",
             Small.root.path,
             "--srcDir",
             Small.src.path,

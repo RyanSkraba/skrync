@@ -34,7 +34,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         List("dedup"),
         List("dedup", "--srcDigest"),
         List("dedup", "--srcDigest", "x", "--dedupDir"),
-        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--srcRoot"),
+        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--root"),
         List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--mvDir")
       )
       for (args <- invalid) {
@@ -48,7 +48,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       t.docopt shouldBe DeduplicateTask.Doc
     }
 
-    describe("without --srcRoot") {
+    describe("without --root") {
 
       it("throws an exception when the source digest doesn't exist") {
         val tSrc = intercept[IllegalArgumentException] {
@@ -123,7 +123,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       }
     }
 
-    describe("with --srcRoot") {
+    describe("with --root") {
 
       /** We'll test that the root is taken into account by using a nonsense command line. We want to provoke a "doesn't
         * exist: FILENAME" CLI error. Outside of the root, all of the file resources exist, so we'll replace them one by
@@ -131,7 +131,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         */
       val dedupExistingArgs = Seq(
         "dedup",
-        "--srcRoot",
+        "--root",
         Small.DoesntExist,
         "--srcDigest",
         (Small.src / "ids.txt").toString,
