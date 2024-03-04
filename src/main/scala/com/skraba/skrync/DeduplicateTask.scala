@@ -4,6 +4,7 @@ import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
 
+import java.nio.file.{Files, StandardCopyOption}
 import scala.reflect.io._
 
 /** This task reads a digest file, and makes a comparison with an external directory to find files that are known or
@@ -20,8 +21,16 @@ object DeduplicateTask {
   val Doc: String =
     """%s
       |
+      |All of the files in the deduplication directory are categorized as known
+      |or unknown.  Known files exist elsewhere, either in the source digest outside
+      |of the deduplication directory OR have a duplicate inside the directory.  An
+      |unknown file has information that can't be found elsewhere.
+      |
+      |(If a file is duplicated in the deduplication directory but doesn't exist in
+      |the digest, only one will be unknown.)
+      |
       |Usage:
-      |  SkryncGo dedup --srcDigest SRC --dedupDir DEDUP_DIR [options]
+      |  SkryncGo dedup --srcDigest SRC --dedupDir DEDUP [options]
       |
       |Options:
       |  --root SRC_ROOT       Root directory to use as the parent for all file
@@ -30,8 +39,11 @@ object DeduplicateTask {
       |                        current working directory.
       |  --srcDigest SRC       The file generated from the source directory.
       |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
-      |                        in DEDUP_DIR
-      |  --mvDir MV_DIR        If present, moves duplicates to MV_DIR
+      |                        in DEDUP.
+      |  --mvDir KN_DIR        If present, moves known files to MV_DIR
+      |  --verbose             Print detailed information to stdout
+      |  --dryRun              If any actions are to be taken, describe them on
+      |                        stdout instead of executing them
       |
       |Examples:
       |
@@ -41,6 +53,13 @@ object DeduplicateTask {
       |""".stripMargin
       .format(Description)
       .trim
+
+  //      |  --rmKnown             If present, deletes known files from the DEDUP_DIR
+  //      |  --knownExt KN_EXT     If present, renames known files by augmenting with this
+  //      |                        extension (for example a.jpg would become a.known.jpg)
+  //      |  --unknownExt UKN_EXT  If present, renames unknown files by augmenting with
+  //      |                        this extension (for example a.jpg would become
+  //      |                        a.unknown.jpg)
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
@@ -55,7 +74,7 @@ object DeduplicateTask {
     *   Files in the dedupPath that in the source analysis outside of the dedupPath, or are duplicated in the dedupPath.
     * @param unknown
     *   Files in the dedupPath that do not exist outside the dedupPath. If there is a file that exists twice but only
-    *   inside the dedupPath, one will appear in the uniques and one will appear as known.
+    *   inside the dedupPath, one will appear in the unknown and one will appear as known.
     */
   case class DedupPathReport(
       src: SkryncGo.Analysis,
@@ -110,6 +129,12 @@ object DeduplicateTask {
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
 
+    // Setup the expected output.
+    val verbose = Option(opts.get("--verbose")).contains(true)
+    if (verbose) println("Verbose is ON")
+    val dryRun = Option(opts.get("--dryRun")).contains(true)
+    if (dryRun) println("Dry run. No commands will be executed.")
+
     // A root directory taken from the command line, or from the environment, or from the current working directory.
     val root = Option(opts.get("--root").asInstanceOf[String])
 
@@ -132,17 +157,27 @@ object DeduplicateTask {
     println(s"new files: ${r.unknown.size}")
     println(s"known files: ${r.known.size}")
     println()
+
+    // Process the known files first
+    if (verbose || dryRun) System.out.println(s"""Known files (duplicates)
+         |==================================================
+         |""".stripMargin)
     r.known.map(_._1).foreach { f =>
       val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("known." + f.extension))
-      System.out.println(
-        s"""mv "$f" "$dst" """
-      )
+      if (verbose || dryRun) System.out.println(s"""mv "$f" "$dst" """)
+      if (!dryRun && f != dst) System.out.println(s"""MOVE""")
+      // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
     }
-    println()
+
+    if (verbose || dryRun) System.out.println(s"""
+       |Unknown files (unique)
+       |==================================================
+       |""".stripMargin)
+
     r.unknown.map(_._1).foreach { f =>
-      System.out.println(
-        s"""mv "$f" "${f.changeExtension("unknown." + f.extension)}" """
-      )
+      val dst = f.changeExtension("unknown." + f.extension)
+      if (verbose || dryRun) System.out.println(s"""mv "$f" "$dst" """)
+      if (!dryRun && f != dst) System.out.println(s"""RENAME""")
     }
   }
 }
