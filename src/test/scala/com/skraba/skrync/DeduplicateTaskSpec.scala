@@ -21,6 +21,12 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
 
   override protected def afterAll(): Unit = Small.cleanup()
 
+  // Generate an analysis of the scenario6 directory
+  val (srcDigest, analysis) = withSkryncGoAnalysis(
+    Small.srcWithDuplicates,
+    Small.root / Directory("dst")
+  )
+
   describe("SkryncGo dedup command line") {
 
     it("throws an exception with --help") {
@@ -191,12 +197,6 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
 
   describe(s"Using ${DedupPathReport.getClass.getSimpleName}") {
 
-    // Generate an analysis of the scenario6 directory
-    val (_, analysis) = withSkryncGoAnalysis(
-      Small.srcWithDuplicates,
-      Small.root / Directory("dst")
-    )
-
     val extract = extractNameForTests(Small.srcWithDuplicates) _
 
     it("has one duplicate in dup1/") {
@@ -270,4 +270,42 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       )
     }
   }
+
+  describe("Does a dry run") {
+    it("on dup1/") {
+      val (stdoutLong, stderr) = withSkryncGo(
+        "dedup",
+        "--srcDigest",
+        srcDigest.toString,
+        "--dedupDir",
+        (Small.srcWithDuplicates / "dup1").toString,
+        "--dryRun"
+      )
+      val stdout =
+        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+          |""".stripMargin
+    }
+  }
+
 }

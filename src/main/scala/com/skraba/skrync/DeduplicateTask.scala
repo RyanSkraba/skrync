@@ -134,6 +134,7 @@ object DeduplicateTask {
     if (verbose) println("Verbose is ON")
     val dryRun = Option(opts.get("--dryRun")).contains(true)
     if (dryRun) println("Dry run. No commands will be executed.")
+    if (dryRun || verbose) println()
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
     val root = Option(opts.get("--root").asInstanceOf[String])
@@ -159,25 +160,25 @@ object DeduplicateTask {
     println()
 
     // Process the known files first
-    if (verbose || dryRun) System.out.println(s"""Known files (duplicates)
+    if (verbose || dryRun) println(s"""Known files (duplicates)
          |==================================================
          |""".stripMargin)
     r.known.map(_._1).foreach { f =>
       val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("known." + f.extension))
-      if (verbose || dryRun) System.out.println(s"""mv "$f" "$dst" """)
-      if (!dryRun && f != dst) System.out.println(s"""MOVE""")
+      if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
+      if (!dryRun && f != dst) println(s"""MOVE""")
       // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
     }
 
-    if (verbose || dryRun) System.out.println(s"""
-       |Unknown files (unique)
-       |==================================================
-       |""".stripMargin)
+    if (verbose || dryRun) println(s"""
+         |Unknown files (unique)
+         |==================================================
+         |""".stripMargin)
 
     r.unknown.map(_._1).foreach { f =>
       val dst = f.changeExtension("unknown." + f.extension)
-      if (verbose || dryRun) System.out.println(s"""mv "$f" "$dst" """)
-      if (!dryRun && f != dst) System.out.println(s"""RENAME""")
+      if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
+      if (!dryRun && f != dst) println(s"""RENAME""")
     }
   }
 }
