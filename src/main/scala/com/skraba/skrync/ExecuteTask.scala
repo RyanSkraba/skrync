@@ -66,11 +66,11 @@ object ExecuteTask {
       dstDigest: File,
       backupDirString: Option[String]
   ): Unit = {
-    System.out.println("EXECUTE")
-    System.out.println("===========")
-    System.out.println("srcDigest:" + srcDigest)
-    System.out.println("dstDigest:" + dstDigest)
-    System.out.println("backupDir:" + backupDirString)
+    println("EXECUTE")
+    println("===========")
+    println("srcDigest:" + srcDigest)
+    println("dstDigest:" + dstDigest)
+    println("backupDir:" + backupDirString)
   }
 
   def goExecute(
@@ -78,9 +78,9 @@ object ExecuteTask {
       backupDirString: Option[String]
   ): Unit = {
     // TODO: implement
-    System.out.println("EXECUTE")
-    System.out.println("===========")
-    System.out.println("planJson:" + planJsonString)
-    System.out.println("backupDir:" + backupDirString)
+    println("EXECUTE")
+    println("===========")
+    println("planJson:" + planJsonString)
+    println("backupDir:" + backupDirString)
   }
 }

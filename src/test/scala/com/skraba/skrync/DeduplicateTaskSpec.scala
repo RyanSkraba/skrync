@@ -7,8 +7,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.collection.immutable.List
-import scala.reflect.io.{Directory, File, Path}
+import scala.reflect.io.{Directory, Path}
 
 /** Unit tests for [[DeduplicateTask]] */
 class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
