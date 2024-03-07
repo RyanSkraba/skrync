@@ -65,48 +65,24 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
 
     it("throws an exception when the source or destination doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "execute",
-          "--srcDigest",
-          "/doesnt-exist",
-          "--dstDigest",
-          ExistingFile.toString
-        )
+        withSkryncGo("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
       }
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
       val tDst = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "execute",
-          "--srcDigest",
-          ExistingFile.toString,
-          "--dstDigest",
-          "/doesnt-exist"
-        )
+        withSkryncGo("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
       }
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
       val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "execute",
-          "--srcDigest",
-          TempFolder.toString(),
-          "--dstDigest",
-          ExistingFile.toString
-        )
+        withSkryncGo("execute", "--srcDigest", TempFolder, "--dstDigest", ExistingFile)
       }
       tSrc.getMessage shouldBe s"Source is not a file: $TempFolder"
 
       val tDst = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "execute",
-          "--srcDigest",
-          ExistingFile.toString,
-          "--dstDigest",
-          TempFolder.toString()
-        )
+        withSkryncGo("execute", "--srcDigest", ExistingFile, "--dstDigest", TempFolder)
       }
       tDst.getMessage shouldBe s"Destination is not a file: $TempFolder"
     }

@@ -119,15 +119,10 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
         // Run the application and check the output files.
         val dstDir: Directory = Large.root.resolve("dstDigest").toDirectory
         dstDir.createDirectory()
-        withSkryncGoMatch(
-          "digest",
-          "--srcDir",
-          Large.src.toString,
-          "--dstDigest",
-          (dstDir / File("output.gz")).toString
-        ) { case (stdout, stderr) =>
-          stdout should have size 7396
-          stderr shouldBe ""
+        withSkryncGoMatch("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("output.gz")) {
+          case (stdout, stderr) =>
+            stdout should have size 7396
+            stderr shouldBe ""
         }
 
         // One file is created.
@@ -153,30 +148,20 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
     dstDir.createDirectory()
 
     // Create a digests on the input.
-    withSkryncGoMatch(
-      "digest",
-      "--srcDir",
-      Large.src.toString,
-      "--dstDigest",
-      (dstDir / File("compare.gz")).toString
-    ) { case (stdout, stderr) =>
-      stdout should have size 7396
-      stderr shouldBe ""
+    withSkryncGoMatch("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare.gz")) {
+      case (stdout, stderr) =>
+        stdout should have size 7396
+        stderr shouldBe ""
     }
 
     describe("compare running the compare command") {
       it(
         "finds no differences when run on digests created on the same directory."
       ) {
-        withSkryncGoMatch(
-          "digest",
-          "--srcDir",
-          Large.src.toString,
-          "--dstDigest",
-          (dstDir / File("compare2.gz")).toString
-        ) { case (stdout, stderr) =>
-          stdout should have size 7396
-          stderr shouldBe ""
+        withSkryncGoMatch("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare2.gz")) {
+          case (stdout, stderr) =>
+            stdout should have size 7396
+            stderr shouldBe ""
         }
 
         // Ignore the time the backup was created.
@@ -186,13 +171,7 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
           Json.read(dstDir / File("compare2.gz")).copy(created = -1)
         root shouldBe root2
 
-        withSkryncGo(
-          "compare",
-          "--srcDigest",
-          (dstDir / File("compare.gz")).toString,
-          "--dstDigest",
-          (dstDir / File("compare2.gz")).toString
-        )
+        withSkryncGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))
       }
     }
   }

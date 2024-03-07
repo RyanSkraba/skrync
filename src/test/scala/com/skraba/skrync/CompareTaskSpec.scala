@@ -58,48 +58,24 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
 
     it("throws an exception when the source or destination doesn't exist") {
       val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "compare",
-          "--srcDigest",
-          "/doesnt-exist",
-          "--dstDigest",
-          ExistingFile.toString
-        )
+        withSkryncGo("compare", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
       }
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
       val tDst = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "compare",
-          "--srcDigest",
-          ExistingFile.toString,
-          "--dstDigest",
-          "/doesnt-exist"
-        )
+        withSkryncGo("compare", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
       }
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
       val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "compare",
-          "--srcDigest",
-          Small.src.toString(),
-          "--dstDigest",
-          ExistingFile.toString
-        )
+        withSkryncGo("compare", "--srcDigest", Small.src, "--dstDigest", ExistingFile)
       }
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
 
       val tDst = intercept[IllegalArgumentException] {
-        withSkryncGo(
-          "compare",
-          "--srcDigest",
-          ExistingFile.toString,
-          "--dstDigest",
-          Small.src.toString()
-        )
+        withSkryncGo("compare", "--srcDigest", ExistingFile, "--dstDigest", Small.src)
       }
       tDst.getMessage shouldBe s"Destination is not a file: ${Small.src}"
     }
@@ -111,20 +87,8 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
     // folders, or the same unchanged folder at two different times.
     val dstDir: Directory = Small.root.resolve("dst").toDirectory
     dstDir.createDirectory()
-    withSkryncGo(
-      "digest",
-      "--srcDir",
-      Small.src.toString,
-      "--dstDigest",
-      (dstDir / File("compare.gz")).toString
-    )
-    withSkryncGo(
-      "digest",
-      "--srcDir",
-      Small.src.toString,
-      "--dstDigest",
-      (dstDir / File("compare2.gz")).toString
-    )
+    withSkryncGo("digest", "--srcDir", Small.src, "--dstDigest", dstDir / File("compare.gz"))
+    withSkryncGo("digest", "--srcDir", Small.src, "--dstDigest", dstDir / File("compare2.gz"))
 
     it("on the filesystem including digests") {
       val cmp = CompareTask.compare(
@@ -163,13 +127,8 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
 
     it("via the CLI") {
       // No exception should occur, and output is dumped to the console.
-      val (stdout, stderr) = withSkryncGo(
-        "compare",
-        "--srcDigest",
-        (dstDir / File("compare.gz")).toString(),
-        "--dstDigest",
-        (dstDir / File("compare2.gz")).toString()
-      )
+      val (stdout, stderr) =
+        withSkryncGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))
 
       stdout should not have size(0)
       stdout should include("\nNo differences have been detected.\n")

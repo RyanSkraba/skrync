@@ -57,14 +57,14 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
 
       it("throws an exception when the source digest doesn't exist") {
         val tSrc = intercept[IllegalArgumentException] {
-          withSkryncGo("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src.toString)
+          withSkryncGo("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
         }
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source digest is a directory") {
         val tSrc = intercept[IllegalArgumentException] {
-          withSkryncGo("dedup", "--srcDigest", Small.src.toString, "--dedupDir", Small.src.toString)
+          withSkryncGo("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
         }
         tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
       }
@@ -72,27 +72,21 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       ignore("throws an exception when the source digest is not a JSON file") {
         // TODO
         val tSrc = intercept[IllegalArgumentException] {
-          withSkryncGo("dedup", "--srcDigest", (Small.src / "ids.txt").toString(), "--dedupDir", Small.src.toString)
+          withSkryncGo("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
         }
         tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup directory doesn't exist") {
         val tSrc = intercept[IllegalArgumentException] {
-          withSkryncGo("dedup", "--srcDigest", (Small.src / "ids.txt").toString(), "--dedupDir", Small.DoesntExist)
+          withSkryncGo("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.DoesntExist)
         }
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the dedup directory is not a directory") {
         val tSrc = intercept[IllegalArgumentException] {
-          withSkryncGo(
-            "dedup",
-            "--srcDigest",
-            (Small.src / "ids.txt").toString(),
-            "--dedupDir",
-            (Small.src / "ids.txt").toString()
-          )
+          withSkryncGo("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
         }
         tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
       }
@@ -102,9 +96,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           withSkryncGo(
             "dedup",
             "--srcDigest",
-            (Small.src / "ids.txt").toString(),
+            Small.src / "ids.txt",
             "--dedupDir",
-            Small.src.toString,
+            Small.src,
             "--mvDir",
             Small.DoesntExist
           )
@@ -117,11 +111,11 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           withSkryncGo(
             "dedup",
             "--srcDigest",
-            (Small.src / "ids.txt").toString(),
+            Small.src / "ids.txt",
             "--dedupDir",
             Small.src.toString,
             "--mvDir",
-            (Small.src / "ids.txt").toString()
+            Small.src / "ids.txt"
           )
         }
         tSrc.getMessage shouldBe s"Duplicate destination directory is not a directory: ${Small.src / "ids.txt"}"
@@ -139,11 +133,11 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         "--root",
         Small.DoesntExist,
         "--srcDigest",
-        (Small.src / "ids.txt").toString,
+        Small.src / "ids.txt",
         "--dedupDir",
-        Small.src.toString,
+        Small.src,
         "--mvDir",
-        Small.src.toString
+        Small.src
       )
 
       it("throws an exception when a relative --srcDigest doesn't exist") {
@@ -272,14 +266,8 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
 
   describe("Does a dry run") {
     it("on dup1/") {
-      val (stdoutLong, stderr) = withSkryncGo(
-        "dedup",
-        "--srcDigest",
-        srcDigest.toString,
-        "--dedupDir",
-        (Small.srcWithDuplicates / "dup1").toString,
-        "--dryRun"
-      )
+      val (stdoutLong, stderr) =
+        withSkryncGo("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1", "--dryRun")
       val stdout =
         stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
       stderr shouldBe empty

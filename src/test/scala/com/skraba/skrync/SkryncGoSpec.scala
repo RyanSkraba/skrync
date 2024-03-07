@@ -146,9 +146,9 @@ object SkryncGoSpec {
     *   The return value of the partial function.
     */
   def withSkryncGoMatch[T, U](
-      args: String*
+      args: Any*
   )(pf: scala.PartialFunction[(String, String), U]): U = {
-    withConsoleMatch(SkryncGo.go(args: _*)) { case (_, stdout, stderr) =>
+    withConsoleMatch(SkryncGo.go(args.map(_.toString): _*)) { case (_, stdout, stderr) =>
       pf(stdout, stderr)
     }
   }
@@ -160,7 +160,7 @@ object SkryncGoSpec {
     * @return
     *   A tuple of the stdout and stderr
     */
-  def withSkryncGo(args: String*): (String, String) = {
+  def withSkryncGo(args: Any*): (String, String) = {
     withSkryncGoMatch(args: _*) { case any => any }
   }
 
@@ -185,25 +185,13 @@ object SkryncGoSpec {
       case f: File if f.exists || mustExist => (f, Json.read(f))
       case f: File =>
         f.parent.createDirectory(force = true, failIfExists = false);
-        withSkryncGo(
-          "digest",
-          "--srcDir",
-          srcDir.toString,
-          "--dstDigest",
-          dstDigest.toString
-        )
+        withSkryncGo("digest", "--srcDir", srcDir, "--dstDigest", dstDigest)
         (f, Json.read(f))
       case d: Directory =>
         if (!d.exists)
           d.createDirectory(force = true, failIfExists = false)
         if (!mustExist)
-          withSkryncGo(
-            "digest",
-            "--srcDir",
-            srcDir.toString,
-            "--dstDigest",
-            dstDigest.toString
-          )
+          withSkryncGo("digest", "--srcDir", srcDir, "--dstDigest", dstDigest)
         val dstDigestDefault: File = d.list.maxBy(_.lastModified).toFile
         (dstDigestDefault, Json.read(dstDigestDefault))
     }

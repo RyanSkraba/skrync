@@ -54,7 +54,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
     it("throws an exception when the source digest is a directory") {
       val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("report", "--srcDigest", Small.src.toString())
+        withSkryncGo("report", "--srcDigest", Small.src)
       }
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
     }
@@ -62,7 +62,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO
       val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("report", "--srcDigest", (Small.src / "ids.txt").toString())
+        withSkryncGo("report", "--srcDigest", Small.src / "ids.txt")
       }
       tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
     }
@@ -94,11 +94,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       it("via the CLI") {
 
         // No exception should occur, and output is dumped to the console.
-        val (stdout, stderr) = withSkryncGo(
-          "report",
-          "--srcDigest",
-          dstFile.toString()
-        )
+        val (stdout, stderr) = withSkryncGo("report", "--srcDigest", dstFile)
 
         stdout should not have size(0)
         stdout should include(s"\nfrom: $dstFile\n")
