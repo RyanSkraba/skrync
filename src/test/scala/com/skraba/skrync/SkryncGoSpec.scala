@@ -1,14 +1,17 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.InternalDocoptException
-import com.skraba.skrync.SkryncGoSpec.withSkryncGo
+import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGo, withSkryncGo}
 import org.docopt.DocoptExitException
+import org.scalactic.source
+import org.scalatest.Assertions.intercept
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Resources}
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import scala.reflect.ClassTag
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[SkryncGo]] */
@@ -34,25 +37,19 @@ class SkryncGoSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach 
 
   describe("SkryncGo valid commands") {
     it("throw an exception with --version") {
-      val t = intercept[DocoptExitException] {
-        withSkryncGo("--version")
-      }
+      val t = interceptSkryncGo[DocoptExitException]("--version")
       t.getExitCode shouldBe 0
       t.getMessage shouldBe SkryncGo.Version
     }
 
     it("throw an exception with --help") {
-      val t = intercept[DocoptExitException] {
-        withSkryncGo("--help")
-      }
+      val t = interceptSkryncGo[DocoptExitException]("--help")
       t.getExitCode shouldBe 0
       t.getMessage shouldBe SkryncGo.Doc
     }
 
     it("throw an exception like --help when run bare") {
-      val t = intercept[DocoptExitException] {
-        withSkryncGo()
-      }
+      val t = interceptSkryncGo[DocoptExitException]()
       t.getExitCode shouldBe 0
       t.getMessage shouldBe SkryncGo.Doc
     }
@@ -162,6 +159,17 @@ object SkryncGoSpec {
     */
   def withSkryncGo(args: Any*): (String, String) = {
     withSkryncGoMatch(args: _*) { case any => any }
+  }
+
+  /** A helper method used to capture an exception thrown by withSkryncGo
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptSkryncGo[EX <: AnyRef](args: Any*)(implicit classTag: ClassTag[EX], pos: source.Position): EX = {
+    intercept[EX] { withSkryncGo(args: _*) }(classTag, pos)
   }
 
   /** A helper method used to create an analysis file and read it into memory.
