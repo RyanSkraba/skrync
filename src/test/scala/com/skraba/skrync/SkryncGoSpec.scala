@@ -172,6 +172,28 @@ object SkryncGoSpec {
     intercept[EX] { withSkryncGo(args: _*) }(classTag, pos)
   }
 
+  /** A helper method used to capture an [[InternalDocoptException]] thrown by withSkryncGo
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptSkryncGoDocoptEx(args: Any*): InternalDocoptException = {
+    interceptSkryncGo[InternalDocoptException](args: _*)
+  }
+
+  /** A helper method used to capture an [[IllegalArgumentException]] thrown by withSkryncGo
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptSkryncGoIAEx(args: Any*): IllegalArgumentException = {
+    interceptSkryncGo[IllegalArgumentException](args: _*)
+  }
+
   /** A helper method used to create an analysis file and read it into memory.
     *
     * @param srcDir
