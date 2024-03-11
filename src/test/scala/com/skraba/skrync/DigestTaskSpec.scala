@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.InternalDocoptException
-import com.skraba.skrync.SkryncGoSpec.withSkryncGo
+import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoIAEx, withSkryncGo}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
@@ -25,7 +25,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
   describe("SkryncGo digest command line") {
 
     it("throws an exception with --help") {
-      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--help") }
+      val t = interceptSkryncGoDocoptEx("digest", "--help")
       t.getMessage shouldBe DigestTask.Doc
       t.docopt shouldBe DigestTask.Doc
     }
@@ -38,48 +38,43 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         List("digest", "--srcDir", "x", "--dstDir")
       )
       for (args <- invalid) {
-        val t = intercept[InternalDocoptException] { withSkryncGo(args: _*) }
+        val t = interceptSkryncGoDocoptEx(args: _*)
         t.docopt shouldBe DigestTask.Doc
       }
     }
 
     it("throws an exception with unknown option") {
-      val t = intercept[InternalDocoptException] { withSkryncGo("digest", "--garbage") }
+      val t = interceptSkryncGoDocoptEx("digest", "--garbage")
       t.docopt shouldBe DigestTask.Doc
     }
 
     describe("without --root") {
 
       it("throws an exception when the source doesn't exist") {
-        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", Small.DoesntExist) }
+        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.DoesntExist)
         t.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source is a file") {
-        val t = intercept[IllegalArgumentException] { withSkryncGo("digest", "--srcDir", Small.ExistingFile.toString) }
+        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.ExistingFile.toString)
         t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst exists") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())
-        }
+        val t =
+          interceptSkryncGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())
         t.getMessage shouldBe s"Destination digest already exists: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dstDigest path is inside a file") {
         val fileExists = (Small.ExistingFile / "impossible").toString()
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
-        }
+        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
         t.getMessage shouldBe s"Destination digest directory is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
         val fileExists = (Small.root / "does" / "not" / "exist").toString()
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
-        }
+        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
         t.getMessage shouldBe s"Destination digest directory doesn't exist: ${Small.root / "does" / "not"}"
       }
     }
@@ -87,85 +82,70 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     describe("with --root") {
 
       it("throws an exception when the source doesn't exist (absolute + absolute)") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--root", "/ignored", "--srcDir", "/doesnt-exist")
-        }
+        val t = interceptSkryncGoIAEx("digest", "--root", "/ignored", "--srcDir", "/doesnt-exist")
         t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (relative + absolute)") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--root", "ignored", "--srcDir", "/doesnt-exist")
-        }
+        val t = interceptSkryncGoIAEx("digest", "--root", "ignored", "--srcDir", "/doesnt-exist")
         t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (absolute + relative)") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--root", "/tmp", "--srcDir", "doesnt-exist")
-        }
+        val t = interceptSkryncGoIAEx("digest", "--root", "/tmp", "--srcDir", "doesnt-exist")
         t.getMessage shouldBe "Source doesn't exist: /tmp/doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (relative + relative)") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--root", "tmp", "--srcDir", "doesnt-exist")
-        }
+        val t = interceptSkryncGoIAEx("digest", "--root", "tmp", "--srcDir", "doesnt-exist")
         // The entire message contains the current user dir.
         t.getMessage should startWith("Source doesn't exist: ")
         t.getMessage should endWith("/tmp/doesnt-exist")
       }
 
       it("throws an exception when the source is a file") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo("digest", "--root", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
-        }
+        val t =
+          interceptSkryncGoIAEx("digest", "--root", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
         t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst exists") {
         val dstDigest = (Small.src / "ids.txt").toString()
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo(
-            "digest",
-            "--root",
-            Small.src.toString,
-            "--srcDir",
-            Small.src.toString,
-            "--dstDigest",
-            "ids.txt"
-          )
-        }
+        val t = interceptSkryncGoIAEx(
+          "digest",
+          "--root",
+          Small.src.toString,
+          "--srcDir",
+          Small.src.toString,
+          "--dstDigest",
+          "ids.txt"
+        )
         t.getMessage shouldBe s"Destination digest already exists: $dstDigest"
       }
 
       it("throws an exception when the dstDigest path is inside a file") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo(
-            "digest",
-            "--root",
-            Small.ExistingFile.parent.path,
-            "--srcDir",
-            Small.src.path,
-            "--dstDigest",
-            "exists/impossible"
-          )
-        }
+        val t = interceptSkryncGoIAEx(
+          "digest",
+          "--root",
+          Small.ExistingFile.parent.path,
+          "--srcDir",
+          Small.src.path,
+          "--dstDigest",
+          "exists/impossible"
+        )
         t.getMessage shouldBe s"Destination digest directory is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
-        val t = intercept[IllegalArgumentException] {
-          withSkryncGo(
-            "digest",
-            "--root",
-            Small.root.path,
-            "--srcDir",
-            Small.src.path,
-            "--dstDigest",
-            "does/not/exist"
-          )
-        }
+        val t = interceptSkryncGoIAEx(
+          "digest",
+          "--root",
+          Small.root.path,
+          "--srcDir",
+          Small.src.path,
+          "--dstDigest",
+          "does/not/exist"
+        )
         t.getMessage shouldBe s"Destination digest directory doesn't exist: ${Small.root / "does" / "not"}"
       }
 

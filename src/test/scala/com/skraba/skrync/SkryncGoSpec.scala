@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.InternalDocoptException
-import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGo, withSkryncGo}
+import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGo, interceptSkryncGoDocoptEx, withSkryncGo}
 import org.docopt.DocoptExitException
 import org.scalactic.source
 import org.scalatest.Assertions.intercept
@@ -57,9 +57,7 @@ class SkryncGoSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach 
 
   describe("SkryncGo command line options") {
     it("throw an exception like --help when run without a command") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("--debug")
-      }
+      val t = interceptSkryncGoDocoptEx("--debug")
       t.getMessage shouldBe "Missing command"
       t.docopt shouldBe SkryncGo.Doc
     }
@@ -85,9 +83,7 @@ class SkryncGoSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach 
         Seq("--debug", "garbage")
       )
     ) it(s"throw an exception when an unknown command is sent $args") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("garbage")
-      }
+      val t = interceptSkryncGoDocoptEx("garbage")
       t.getMessage shouldBe "Unknown command: garbage"
       t.docopt shouldBe SkryncGo.Doc
     }
