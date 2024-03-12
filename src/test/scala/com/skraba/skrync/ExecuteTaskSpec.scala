@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.InternalDocoptException
-import com.skraba.skrync.SkryncGoSpec.withSkryncGo
+import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoIAEx, withSkryncGo}
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
@@ -28,9 +28,7 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
 
   describe("SkryncGo execute command line") {
     it("throws an exception with --help") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("execute", "--help")
-      }
+      val t = interceptSkryncGoDocoptEx("execute", "--help")
       t.getMessage shouldBe ExecuteTask.Doc
       t.docopt shouldBe ExecuteTask.Doc
     }
@@ -49,41 +47,29 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
         List("execute", "--plan", "x", "--backup")
       )
       for (args <- invalid) {
-        val t = intercept[InternalDocoptException] {
-          withSkryncGo(args: _*)
-        }
+        val t = interceptSkryncGoDocoptEx(args: _*)
         t.docopt shouldBe ExecuteTask.Doc
       }
     }
 
     it("throws an exception with unknown option") {
-      val t = intercept[InternalDocoptException] {
-        withSkryncGo("execute", "--garbage")
-      }
+      val t = interceptSkryncGoDocoptEx("execute", "--garbage")
       t.docopt shouldBe ExecuteTask.Doc
     }
 
     it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
-      }
+      val tSrc = interceptSkryncGoIAEx("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
-      val tDst = intercept[IllegalArgumentException] {
-        withSkryncGo("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
-      }
+      val tDst = interceptSkryncGoIAEx("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
-      val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("execute", "--srcDigest", TempFolder, "--dstDigest", ExistingFile)
-      }
+      val tSrc = interceptSkryncGoIAEx("execute", "--srcDigest", TempFolder, "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe s"Source is not a file: $TempFolder"
 
-      val tDst = intercept[IllegalArgumentException] {
-        withSkryncGo("execute", "--srcDigest", ExistingFile, "--dstDigest", TempFolder)
-      }
+      val tDst = interceptSkryncGoIAEx("execute", "--srcDigest", ExistingFile, "--dstDigest", TempFolder)
       tDst.getMessage shouldBe s"Destination is not a file: $TempFolder"
     }
   }
