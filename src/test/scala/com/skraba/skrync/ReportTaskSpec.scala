@@ -1,8 +1,11 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.DeduplicateTask.DedupPathReport
-import com.skraba.skrync.SkryncGo.InternalDocoptException
-import com.skraba.skrync.SkryncGoSpec.{withSkryncGo, withSkryncGoAnalysis}
+import com.skraba.skrync.SkryncGoSpec.{
+  interceptSkryncGoDocoptEx,
+  interceptSkryncGoIAEx,
+  withSkryncGo,
+  withSkryncGoAnalysis
+}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -24,7 +27,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   describe("SkryncGo report command line") {
     it("throws an exception with --help") {
-      val t = intercept[InternalDocoptException] { withSkryncGo("report", "--help") }
+      val t = interceptSkryncGoDocoptEx("report", "--help")
       t.getMessage shouldBe ReportTask.Doc
       t.docopt shouldBe ReportTask.Doc
     }
@@ -35,35 +38,29 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         List("report", "--srcDigest")
       )
       for (args <- invalid) {
-        val t = intercept[InternalDocoptException] { withSkryncGo(args: _*) }
+        val t = interceptSkryncGoDocoptEx(args: _*)
         t.docopt shouldBe ReportTask.Doc
       }
     }
 
     it("throws an exception with unknown option") {
-      val t = intercept[InternalDocoptException] { withSkryncGo("report", "--garbage") }
+      val t = interceptSkryncGoDocoptEx("report", "--garbage")
       t.docopt shouldBe ReportTask.Doc
     }
 
     it("throws an exception when the source digest doesn't exist") {
-      val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("report", "--srcDigest", DoesntExist)
-      }
+      val tSrc = interceptSkryncGoIAEx("report", "--srcDigest", DoesntExist)
       tSrc.getMessage shouldBe s"Source doesn't exist: $DoesntExist"
     }
 
     it("throws an exception when the source digest is a directory") {
-      val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("report", "--srcDigest", Small.src)
-      }
+      val tSrc = interceptSkryncGoIAEx("report", "--srcDigest", Small.src)
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
     }
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO
-      val tSrc = intercept[IllegalArgumentException] {
-        withSkryncGo("report", "--srcDigest", Small.src / "ids.txt")
-      }
+      val tSrc = interceptSkryncGoIAEx("report", "--srcDigest", Small.src / "ids.txt")
       tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
     }
   }
