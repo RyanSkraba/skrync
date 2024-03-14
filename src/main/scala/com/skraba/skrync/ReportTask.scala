@@ -1,8 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
-import com.skraba.skrync.SkryncPath.isIn
+import com.skraba.skrync.SkryncGo.validateFile
 
 import scala.reflect.io._
 

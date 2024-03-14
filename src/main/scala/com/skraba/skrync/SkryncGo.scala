@@ -2,8 +2,7 @@ package com.skraba.skrync
 
 import org.docopt.{Docopt, DocoptExitException}
 
-import java.util
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.reflect.io.{Directory, File, Path}
 import scala.util.Properties
 

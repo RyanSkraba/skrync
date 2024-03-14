@@ -1,6 +1,5 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoIAEx, withSkryncGo}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._

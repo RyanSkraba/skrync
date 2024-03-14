@@ -1,6 +1,5 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.InternalDocoptException
 import com.skraba.skrync.SkryncGoSpec._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike

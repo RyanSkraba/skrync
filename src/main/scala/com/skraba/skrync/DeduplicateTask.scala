@@ -4,7 +4,6 @@ import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
 
-import java.nio.file.{Files, StandardCopyOption}
 import scala.reflect.io._
 
 /** This task reads a digest file, and makes a comparison with an external directory to find files that are known or
