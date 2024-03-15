@@ -39,6 +39,11 @@ object DeduplicateTask {
       |  --srcDigest SRC       The file generated from the source directory.
       |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
       |                        in DEDUP.
+      |  --knownExt KN_EXT     If present, renames known files by augmenting with this
+      |                        extension (for example a.jpg would become a.known.jpg)
+      |  --unknownExt UKN_EXT  If present, renames unknown files by augmenting with
+      |                        this extension (for example a.jpg would become
+      |                        a.unknown.jpg)
       |  --mvDir KN_DIR        If present, moves known files to MV_DIR
       |  --verbose             Print detailed information to stdout
       |  --dryRun              If any actions are to be taken, describe them on
@@ -54,11 +59,6 @@ object DeduplicateTask {
       .trim
 
   //      |  --rmKnown             If present, deletes known files from the DEDUP_DIR
-  //      |  --knownExt KN_EXT     If present, renames known files by augmenting with this
-  //      |                        extension (for example a.jpg would become a.known.jpg)
-  //      |  --unknownExt UKN_EXT  If present, renames unknown files by augmenting with
-  //      |                        this extension (for example a.jpg would become
-  //      |                        a.unknown.jpg)
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
@@ -142,6 +142,9 @@ object DeduplicateTask {
     val srcDigest: File = validateFile(arg = opts.get("--srcDigest"), root)
     val dedupDir: Directory =
       validateDirectory(opts.get("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
+
+    val knownExtension: Option[String] = Option(opts.get("--knownExt")).map(_.toString)
+    val unknownExtension: Option[String] = Option(opts.get("--unknownExt")).map(_.toString)
     val mvDir: Option[Directory] =
       Option(opts.get("--mvDir")).map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
@@ -158,15 +161,26 @@ object DeduplicateTask {
     println(s"known files: ${r.known.size}")
     println()
 
+    if (!verbose && mvDir.isEmpty && knownExtension.isEmpty && unknownExtension.isEmpty) {
+      println("No file modifications were performed.  Use --verbose to list the files.")
+      return
+    }
+
     // Process the known files first
     if (verbose || dryRun) println(s"""Known files (duplicates)
          |==================================================
          |""".stripMargin)
+
     r.known.map(_._1).foreach { f =>
-      val dst = mvDir.map(_.resolve(f.name)).getOrElse(f.changeExtension("known." + f.extension))
-      if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-      if (!dryRun && f != dst) println(s"""MOVE""")
-      // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+      val movedDst = mvDir.map(_.resolve(f.name)).getOrElse(f)
+      val dst = knownExtension.map(ext => movedDst.changeExtension(ext + "." + f.extension)).getOrElse(movedDst)
+      if (f == dst) {
+        if (verbose) println(s"""$f""")
+      } else {
+        if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
+        if (!dryRun && f != dst) println(s"""MOVE""")
+        // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+      }
     }
 
     if (verbose || dryRun) println(s"""
@@ -175,9 +189,14 @@ object DeduplicateTask {
          |""".stripMargin)
 
     r.unknown.map(_._1).foreach { f =>
-      val dst = f.changeExtension("unknown." + f.extension)
-      if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-      if (!dryRun && f != dst) println(s"""RENAME""")
+      val dst = unknownExtension.map(ext => f.changeExtension(ext + "." + f.extension)).getOrElse(f)
+      if (f == dst) {
+        if (verbose) println(s"""$f""")
+      } else {
+        if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
+        if (!dryRun && f != dst) println(s"""RENAME""")
+        // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+      }
     }
   }
 }

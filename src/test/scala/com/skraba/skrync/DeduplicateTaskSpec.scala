@@ -239,9 +239,46 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
   }
 
   describe("Does a dry run") {
+
+    it("on dup1/ without any modifications") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(
+          "dedup",
+          "--srcDigest",
+          srcDigest,
+          "--dedupDir",
+          Small.srcWithDuplicates / "dup1"
+        )
+      val stdout =
+        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |No file modifications were performed.  Use --verbose to list the files.
+          |""".stripMargin
+    }
+
     it("on dup1/") {
       val (stdoutLong, stderr) =
-        withSkryncGo("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1", "--dryRun")
+        withSkryncGo(
+          "dedup",
+          "--srcDigest",
+          srcDigest,
+          "--dedupDir",
+          Small.srcWithDuplicates / "dup1",
+          "--dryRun",
+          "--knownExt",
+          "known",
+          "--unknownExt",
+          "unknown"
+        )
       val stdout =
         stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
       stderr shouldBe empty
