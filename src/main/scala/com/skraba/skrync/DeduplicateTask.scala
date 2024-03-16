@@ -162,7 +162,7 @@ object DeduplicateTask {
     println()
 
     if (!verbose && mvDir.isEmpty && knownExtension.isEmpty && unknownExtension.isEmpty) {
-      println("No file modifications were performed.  Use --verbose to list the files.")
+      println("Use --verbose to list the files.")
       return
     }
 

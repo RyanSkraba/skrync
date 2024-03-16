@@ -238,17 +238,12 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
   }
 
-  describe("Does a dry run") {
+  describe("Executes dry run actions on known and unknown files in dup1/") {
 
-    it("on dup1/ without any modifications") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(
-          "dedup",
-          "--srcDigest",
-          srcDigest,
-          "--dedupDir",
-          Small.srcWithDuplicates / "dup1"
-        )
+    val dedup1Args = Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1")
+
+    it("getting information only (without dry run)") {
+      val (stdoutLong, stderr) = withSkryncGo(dedup1Args: _*)
       val stdout =
         stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
       stderr shouldBe empty
@@ -261,24 +256,42 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |new files: 1
           |known files: 1
           |
-          |No file modifications were performed.  Use --verbose to list the files.
+          |Use --verbose to list the files.
           |""".stripMargin
     }
 
     it("on dup1/") {
       val (stdoutLong, stderr) =
-        withSkryncGo(
-          "dedup",
-          "--srcDigest",
-          srcDigest,
-          "--dedupDir",
-          Small.srcWithDuplicates / "dup1",
-          "--dryRun",
-          "--knownExt",
-          "known",
-          "--unknownExt",
-          "unknown"
-        )
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--unknownExt", "unknown"): _*)
+      val stdout =
+        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+          |""".stripMargin
+    }
+
+    it("on dup1/") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--mvDir", "/nox"): _*)
       val stdout =
         stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
       stderr shouldBe empty
