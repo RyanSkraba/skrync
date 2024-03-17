@@ -260,7 +260,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |""".stripMargin
     }
 
-    it("on dup1/") {
+    it("renaming the extensions of both known and unknown") {
       val (stdoutLong, stderr) =
         withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--unknownExt", "unknown"): _*)
       val stdout =
@@ -289,11 +289,37 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |""".stripMargin
     }
 
-    it("on dup1/") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--mvDir", "/nox"): _*)
+    it("renaming the extensions of only unknown") {
+      val (stdoutLong, stderr) = withSkryncGo(dedup1Args ++ Seq("--dryRun", "--unknownExt", "unknown"): _*)
       val stdout =
         stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+          |""".stripMargin
+    }
+
+    it("moving known files to a new directory") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--mvDir", Small.dst): _*)
+      val stdout =
+        stdoutLong
+          .replace(Small.srcWithDuplicates.toString, "<SRC>")
+          .replace(srcDigest.toString, "<SRCDIGEST>")
+          .replace(Small.dst.toString, "<DST>")
       stderr shouldBe empty
       stdout shouldBe
         """Dry run. No commands will be executed.
@@ -309,12 +335,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |Known files (duplicates)
           |==================================================
           |
-          |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
           |""".stripMargin
     }
   }

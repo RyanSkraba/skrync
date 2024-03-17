@@ -73,6 +73,9 @@ class ScenarioSmallFiles(
     */
   val src: Directory = root / "original" / Directory("small")
 
+  /** A directory that is empty at the beginning of the scenario */
+  val dst: Directory = (root / "dst").createDirectory()
+
   /** Identical to src without ids2.txt. */
   val srcDeletedFile: Directory = root / "srcDeletedFile" / Directory("small")
 

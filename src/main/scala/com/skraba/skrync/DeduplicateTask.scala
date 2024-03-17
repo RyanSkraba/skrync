@@ -166,8 +166,12 @@ object DeduplicateTask {
       return
     }
 
-    // Process the known files first
-    if (verbose || dryRun) println(s"""Known files (duplicates)
+    // Determine whether there will be console output for either known or unknown files.
+    val outputForKnown = r.known.nonEmpty && (verbose || dryRun && (mvDir.nonEmpty || knownExtension.nonEmpty))
+    val outputForUnknown = r.unknown.nonEmpty && (verbose || dryRun && unknownExtension.nonEmpty)
+
+    if (outputForKnown)
+      println(s"""Known files (duplicates)
          |==================================================
          |""".stripMargin)
 
@@ -175,7 +179,7 @@ object DeduplicateTask {
       val movedDst = mvDir.map(_.resolve(f.name)).getOrElse(f)
       val dst = knownExtension.map(ext => movedDst.changeExtension(ext + "." + f.extension)).getOrElse(movedDst)
       if (f == dst) {
-        if (verbose) println(s"""$f""")
+        if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
         if (!dryRun && f != dst) println(s"""MOVE""")
@@ -183,8 +187,10 @@ object DeduplicateTask {
       }
     }
 
-    if (verbose || dryRun) println(s"""
-         |Unknown files (unique)
+    if (outputForKnown && outputForUnknown) println()
+
+    if (outputForUnknown)
+      println(s"""Unknown files (unique)
          |==================================================
          |""".stripMargin)
 
