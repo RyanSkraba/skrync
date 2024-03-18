@@ -39,7 +39,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         List("dedup", "--srcDigest"),
         List("dedup", "--srcDigest", "x", "--dedupDir"),
         List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--root"),
-        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--mvDir")
+        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--mvDir"),
+        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--knownExt"),
+        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--unknownExt")
       )
       for (args <- invalid) {
         val t = interceptSkryncGoDocoptEx(args: _*)
@@ -336,6 +338,33 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |==================================================
           |
           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
+          |""".stripMargin
+    }
+
+    it("deleting known files") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--rmKnown"): _*)
+      val stdout =
+        stdoutLong
+          .replace(Small.srcWithDuplicates.toString, "<SRC>")
+          .replace(srcDigest.toString, "<SRCDIGEST>")
+          .replace(Small.dst.toString, "<DST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |rm "<SRC>/dup1/ids.txt"
           |""".stripMargin
     }
   }

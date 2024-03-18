@@ -4,6 +4,7 @@ import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
 
+import java.nio.file.Files
 import scala.reflect.io._
 
 /** This task reads a digest file, and makes a comparison with an external directory to find files that are known or
@@ -45,6 +46,7 @@ object DeduplicateTask {
       |                        this extension (for example a.jpg would become
       |                        a.unknown.jpg)
       |  --mvDir KN_DIR        If present, moves known files to MV_DIR
+      |  --rmKnown             If present, deletes known files from the DEDUP_DIR
       |  --verbose             Print detailed information to stdout
       |  --dryRun              If any actions are to be taken, describe them on
       |                        stdout instead of executing them
@@ -57,8 +59,6 @@ object DeduplicateTask {
       |""".stripMargin
       .format(Description)
       .trim
-
-  //      |  --rmKnown             If present, deletes known files from the DEDUP_DIR
 
   val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
@@ -145,6 +145,7 @@ object DeduplicateTask {
 
     val knownExtension: Option[String] = Option(opts.get("--knownExt")).map(_.toString)
     val unknownExtension: Option[String] = Option(opts.get("--unknownExt")).map(_.toString)
+    val rmKnown = Option(opts.get("--rmKnown")).contains(true)
     val mvDir: Option[Directory] =
       Option(opts.get("--mvDir")).map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
@@ -161,14 +162,16 @@ object DeduplicateTask {
     println(s"known files: ${r.known.size}")
     println()
 
-    if (!verbose && mvDir.isEmpty && knownExtension.isEmpty && unknownExtension.isEmpty) {
-      println("Use --verbose to list the files.")
-      return
-    }
-
     // Determine whether there will be console output for either known or unknown files.
-    val outputForKnown = r.known.nonEmpty && (verbose || dryRun && (mvDir.nonEmpty || knownExtension.nonEmpty))
+    val outputForKnown =
+      r.known.nonEmpty && (verbose || dryRun && (mvDir.nonEmpty || knownExtension.nonEmpty || rmKnown))
     val outputForUnknown = r.unknown.nonEmpty && (verbose || dryRun && unknownExtension.nonEmpty)
+
+    // If there's no output expected to be printed to the screen, then indicate how to get
+    // output.
+    if (!outputForKnown && !outputForUnknown) {
+      println("Use --verbose to list the files.")
+    }
 
     if (outputForKnown)
       println(s"""Known files (duplicates)
@@ -178,11 +181,15 @@ object DeduplicateTask {
     r.known.map(_._1).foreach { f =>
       val movedDst = mvDir.map(_.resolve(f.name)).getOrElse(f)
       val dst = knownExtension.map(ext => movedDst.changeExtension(ext + "." + f.extension)).getOrElse(movedDst)
-      if (f == dst) {
+      if (rmKnown) {
+        if (verbose || dryRun) println(s"""rm "$f"""")
+        if (!dryRun && f != dst) println(s"""REMOVE""")
+        // Files.delete(f.jfile.toPath)
+      } else if (f == dst) {
         if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-        if (!dryRun && f != dst) println(s"""MOVE""")
+        if (!dryRun) println(s"""MOVE""")
         // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
       }
     }
