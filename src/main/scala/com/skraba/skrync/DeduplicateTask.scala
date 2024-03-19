@@ -204,7 +204,7 @@ object DeduplicateTask {
     r.unknown.map(_._1).foreach { f =>
       val dst = unknownExtension.map(ext => f.changeExtension(ext + "." + f.extension)).getOrElse(f)
       if (f == dst) {
-        if (verbose) println(s"""$f""")
+        if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
         if (!dryRun && f != dst) println(s"""RENAME""")

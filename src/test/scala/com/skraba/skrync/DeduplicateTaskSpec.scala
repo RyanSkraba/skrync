@@ -348,7 +348,6 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         stdoutLong
           .replace(Small.srcWithDuplicates.toString, "<SRC>")
           .replace(srcDigest.toString, "<SRCDIGEST>")
-          .replace(Small.dst.toString, "<DST>")
       stderr shouldBe empty
       stdout shouldBe
         """Dry run. No commands will be executed.
@@ -369,4 +368,160 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
   }
 
+  describe("Executes verbose and dry run actions on known and unknown files in dup1/") {
+
+    val dedup1Args = Seq("dedup", "--verbose", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1")
+
+    it("getting information only (without dry run)") {
+      val (stdoutLong, stderr) = withSkryncGo(dedup1Args: _*)
+      val stdout =
+        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Verbose is ON
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |# <SRC>/dup1/ids.txt
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |# <SRC>/dup1/ids3.txt
+          |""".stripMargin
+    }
+
+    it("renaming the extensions of both known and unknown") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--unknownExt", "unknown"): _*)
+      val stdout =
+        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Verbose is ON
+          |Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+          |""".stripMargin
+    }
+
+    it("renaming the extensions of only unknown") {
+      val (stdoutLong, stderr) = withSkryncGo(dedup1Args ++ Seq("--dryRun", "--unknownExt", "unknown"): _*)
+      val stdout =
+        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Verbose is ON
+          |Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |# <SRC>/dup1/ids.txt
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+          |""".stripMargin
+    }
+
+    it("moving known files to a new directory") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--mvDir", Small.dst): _*)
+      val stdout =
+        stdoutLong
+          .replace(Small.srcWithDuplicates.toString, "<SRC>")
+          .replace(srcDigest.toString, "<SRCDIGEST>")
+          .replace(Small.dst.toString, "<DST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Verbose is ON
+          |Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |# <SRC>/dup1/ids3.txt
+          |""".stripMargin
+    }
+
+    it("deleting known files") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--rmKnown"): _*)
+      val stdout =
+        stdoutLong
+          .replace(Small.srcWithDuplicates.toString, "<SRC>")
+          .replace(srcDigest.toString, "<SRCDIGEST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Verbose is ON
+          |Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |rm "<SRC>/dup1/ids.txt"
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |# <SRC>/dup1/ids3.txt
+          |""".stripMargin
+    }
+  }
 }
