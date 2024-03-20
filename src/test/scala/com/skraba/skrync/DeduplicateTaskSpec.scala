@@ -341,6 +341,33 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |""".stripMargin
     }
 
+    it("moving known files to a new directory and renaming") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--mvDir", Small.dst): _*)
+      val stdout =
+        stdoutLong
+          .replace(Small.srcWithDuplicates.toString, "<SRC>")
+          .replace(srcDigest.toString, "<SRCDIGEST>")
+          .replace(Small.dst.toString, "<DST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
+          |""".stripMargin
+    }
+
     it("deleting known files") {
       val (stdoutLong, stderr) =
         withSkryncGo(dedup1Args ++ Seq("--dryRun", "--rmKnown"): _*)
@@ -484,6 +511,39 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |==================================================
           |
           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
+          |
+          |Unknown files (unique)
+          |==================================================
+          |
+          |# <SRC>/dup1/ids3.txt
+          |""".stripMargin
+    }
+
+    it("moving known files to a new directory and renaming") {
+      val (stdoutLong, stderr) =
+        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--mvDir", Small.dst): _*)
+      val stdout =
+        stdoutLong
+          .replace(Small.srcWithDuplicates.toString, "<SRC>")
+          .replace(srcDigest.toString, "<SRCDIGEST>")
+          .replace(Small.dst.toString, "<DST>")
+      stderr shouldBe empty
+      stdout shouldBe
+        """Verbose is ON
+          |Dry run. No commands will be executed.
+          |
+          |DEDUPLICATION REPORT
+          |===========
+          |from: <SRCDIGEST>
+          |src: <SRC>
+          |dedup: <SRC>/dup1
+          |new files: 1
+          |known files: 1
+          |
+          |Known files (duplicates)
+          |==================================================
+          |
+          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
           |
           |Unknown files (unique)
           |==================================================
