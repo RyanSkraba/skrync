@@ -257,19 +257,21 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       testArgs
     )
 
+  val dedup1Report = """DEDUPLICATION REPORT
+      |===========
+      |from: <SRCDIGEST>
+      |src: <SRC>
+      |dedup: <SRC>/dup1
+      |new files: 1
+      |known files: 1
+      |""".stripMargin
+
   describe("Executes dry run actions on known and unknown files in dup1/") {
 
     it("getting information only (without dry run)") {
       val stdout = withDedup1DryRunGo()
       stdout shouldBe
-        """DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+        s"""$dedup1Report
           |Use --verbose to list the files.
           |""".stripMargin
     }
@@ -277,16 +279,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("renaming the extensions of both known and unknown") {
       val stdout = withDedup1DryRunGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
       stdout shouldBe
-        """Dry run. No commands will be executed.
+        s"""Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -302,16 +297,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("renaming the extensions of only unknown") {
       val stdout = withDedup1DryRunGo("--dryRun", "--unknownExt", "unknown")
       stdout shouldBe
-        """Dry run. No commands will be executed.
+        s"""Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Unknown files (unique)
           |==================================================
           |
@@ -322,16 +310,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("moving known files to a new directory") {
       val stdout = withDedup1DryRunGo("--dryRun", "--mvDir", Small.dst)
       stdout shouldBe
-        """Dry run. No commands will be executed.
+        s"""Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -342,16 +323,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("moving known files to a new directory and renaming") {
       val stdout = withDedup1DryRunGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
       stdout shouldBe
-        """Dry run. No commands will be executed.
+        s"""Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -362,16 +336,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("deleting known files") {
       val stdout = withDedup1DryRunGo("--dryRun", "--rmKnown")
       stdout shouldBe
-        """Dry run. No commands will be executed.
+        s"""Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -385,16 +352,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("getting information only (without dry run)") {
       val stdout = withDedup1DryRunVerboseGo()
       stdout shouldBe
-        """Verbose is ON
+        s"""Verbose is ON
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -410,17 +370,10 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("renaming the extensions of both known and unknown") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
       stdout shouldBe
-        """Verbose is ON
+        s"""Verbose is ON
           |Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -436,17 +389,10 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("renaming the extensions of only unknown") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--unknownExt", "unknown")
       stdout shouldBe
-        """Verbose is ON
+        s"""Verbose is ON
           |Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -462,17 +408,10 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("moving known files to a new directory") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--mvDir", Small.dst)
       stdout shouldBe
-        """Verbose is ON
+        s"""Verbose is ON
           |Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -488,17 +427,10 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("moving known files to a new directory and renaming") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
       stdout shouldBe
-        """Verbose is ON
+        s"""Verbose is ON
           |Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
@@ -514,17 +446,10 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("deleting known files") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--rmKnown")
       stdout shouldBe
-        """Verbose is ON
+        s"""Verbose is ON
           |Dry run. No commands will be executed.
           |
-          |DEDUPLICATION REPORT
-          |===========
-          |from: <SRCDIGEST>
-          |src: <SRC>
-          |dedup: <SRC>/dup1
-          |new files: 1
-          |known files: 1
-          |
+          |$dedup1Report
           |Known files (duplicates)
           |==================================================
           |
