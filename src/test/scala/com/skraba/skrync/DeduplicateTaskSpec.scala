@@ -22,7 +22,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
   // Generate an analysis of the scenario6 directory
   val (srcDigest, analysis) = withSkryncGoAnalysis(
     Small.srcWithDuplicates,
-    Small.root / Directory("dst")
+    Small.dst
   )
 
   describe("SkryncGo dedup command line") {
@@ -240,15 +240,27 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
   }
 
+  def withDedup1Go(baseArgs: Seq[Any])(testArgs: Seq[Any]): String = {
+    val (stdout, stderr) = withSkryncGo(baseArgs ++ testArgs: _*)
+    stderr shouldBe empty
+    stdout
+      .replace(Small.srcWithDuplicates.toString, "<SRC>")
+      .replace(srcDigest.toString, "<SRCDIGEST>")
+      .replace(Small.dst.toString, "<DST>")
+  }
+
+  def withDedup1DryRunGo(testArgs: Any*): String =
+    withDedup1Go(Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1"))(testArgs)
+
+  def withDedup1DryRunVerboseGo(testArgs: Any*): String =
+    withDedup1Go(Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1", "--verbose"))(
+      testArgs
+    )
+
   describe("Executes dry run actions on known and unknown files in dup1/") {
 
-    val dedup1Args = Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1")
-
     it("getting information only (without dry run)") {
-      val (stdoutLong, stderr) = withSkryncGo(dedup1Args: _*)
-      val stdout =
-        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunGo()
       stdout shouldBe
         """DEDUPLICATION REPORT
           |===========
@@ -263,11 +275,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("renaming the extensions of both known and unknown") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--unknownExt", "unknown"): _*)
-      val stdout =
-        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
       stdout shouldBe
         """Dry run. No commands will be executed.
           |
@@ -292,10 +300,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("renaming the extensions of only unknown") {
-      val (stdoutLong, stderr) = withSkryncGo(dedup1Args ++ Seq("--dryRun", "--unknownExt", "unknown"): _*)
-      val stdout =
-        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunGo("--dryRun", "--unknownExt", "unknown")
       stdout shouldBe
         """Dry run. No commands will be executed.
           |
@@ -315,14 +320,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("moving known files to a new directory") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--mvDir", Small.dst): _*)
-      val stdout =
-        stdoutLong
-          .replace(Small.srcWithDuplicates.toString, "<SRC>")
-          .replace(srcDigest.toString, "<SRCDIGEST>")
-          .replace(Small.dst.toString, "<DST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunGo("--dryRun", "--mvDir", Small.dst)
       stdout shouldBe
         """Dry run. No commands will be executed.
           |
@@ -342,14 +340,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("moving known files to a new directory and renaming") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--mvDir", Small.dst): _*)
-      val stdout =
-        stdoutLong
-          .replace(Small.srcWithDuplicates.toString, "<SRC>")
-          .replace(srcDigest.toString, "<SRCDIGEST>")
-          .replace(Small.dst.toString, "<DST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
       stdout shouldBe
         """Dry run. No commands will be executed.
           |
@@ -369,13 +360,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("deleting known files") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--rmKnown"): _*)
-      val stdout =
-        stdoutLong
-          .replace(Small.srcWithDuplicates.toString, "<SRC>")
-          .replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunGo("--dryRun", "--rmKnown")
       stdout shouldBe
         """Dry run. No commands will be executed.
           |
@@ -397,13 +382,8 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
 
   describe("Executes verbose and dry run actions on known and unknown files in dup1/") {
 
-    val dedup1Args = Seq("dedup", "--verbose", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1")
-
     it("getting information only (without dry run)") {
-      val (stdoutLong, stderr) = withSkryncGo(dedup1Args: _*)
-      val stdout =
-        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunVerboseGo()
       stdout shouldBe
         """Verbose is ON
           |
@@ -428,11 +408,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("renaming the extensions of both known and unknown") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--unknownExt", "unknown"): _*)
-      val stdout =
-        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
       stdout shouldBe
         """Verbose is ON
           |Dry run. No commands will be executed.
@@ -458,10 +434,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("renaming the extensions of only unknown") {
-      val (stdoutLong, stderr) = withSkryncGo(dedup1Args ++ Seq("--dryRun", "--unknownExt", "unknown"): _*)
-      val stdout =
-        stdoutLong.replace(Small.srcWithDuplicates.toString, "<SRC>").replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--unknownExt", "unknown")
       stdout shouldBe
         """Verbose is ON
           |Dry run. No commands will be executed.
@@ -487,14 +460,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("moving known files to a new directory") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--mvDir", Small.dst): _*)
-      val stdout =
-        stdoutLong
-          .replace(Small.srcWithDuplicates.toString, "<SRC>")
-          .replace(srcDigest.toString, "<SRCDIGEST>")
-          .replace(Small.dst.toString, "<DST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--mvDir", Small.dst)
       stdout shouldBe
         """Verbose is ON
           |Dry run. No commands will be executed.
@@ -520,14 +486,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("moving known files to a new directory and renaming") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--knownExt", "known", "--mvDir", Small.dst): _*)
-      val stdout =
-        stdoutLong
-          .replace(Small.srcWithDuplicates.toString, "<SRC>")
-          .replace(srcDigest.toString, "<SRCDIGEST>")
-          .replace(Small.dst.toString, "<DST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
       stdout shouldBe
         """Verbose is ON
           |Dry run. No commands will be executed.
@@ -553,13 +512,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("deleting known files") {
-      val (stdoutLong, stderr) =
-        withSkryncGo(dedup1Args ++ Seq("--dryRun", "--rmKnown"): _*)
-      val stdout =
-        stdoutLong
-          .replace(Small.srcWithDuplicates.toString, "<SRC>")
-          .replace(srcDigest.toString, "<SRCDIGEST>")
-      stderr shouldBe empty
+      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--rmKnown")
       stdout shouldBe
         """Verbose is ON
           |Dry run. No commands will be executed.
