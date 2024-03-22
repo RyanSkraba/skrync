@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.reflect.io.{Directory, Path}
+import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DeduplicateTask]] */
 class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
@@ -240,24 +240,50 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
   }
 
-  def withDedup1Go(baseArgs: Seq[Any])(testArgs: Seq[Any]): String = {
+  def withDedup1Go(
+      src: Directory = Small.srcWithDuplicates,
+      srcDigest: File = srcDigest,
+      dst: Directory = Small.dst,
+      baseArgs: Seq[Any]
+  )(testArgs: Seq[Any]): String = {
     val (stdout, stderr) = withSkryncGo(baseArgs ++ testArgs: _*)
     stderr shouldBe empty
     stdout
-      .replace(Small.srcWithDuplicates.toString, "<SRC>")
+      .replace(src.toString, "<SRC>")
       .replace(srcDigest.toString, "<SRCDIGEST>")
-      .replace(Small.dst.toString, "<DST>")
+      .replace(dst.toString, "<DST>")
   }
 
   def withDedup1DryRunGo(testArgs: Any*): String =
-    withDedup1Go(Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1"))(testArgs)
+    withDedup1Go(
+      baseArgs = Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1")
+    )(testArgs)
 
   def withDedup1DryRunVerboseGo(testArgs: Any*): String =
-    withDedup1Go(Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1", "--verbose"))(
-      testArgs
-    )
+    withDedup1Go(baseArgs =
+      Seq("dedup", "--srcDigest", srcDigest, "--dedupDir", Small.srcWithDuplicates / "dup1", "--verbose")
+    )(testArgs)
 
-  val dedup1Report = """DEDUPLICATION REPORT
+  def withDedup1NewScenarioGo(testArgs: Any*): (ScenarioSmallFiles, String) = {
+    val small = new ScenarioSmallFiles(
+      Directory.makeTemp(getClass.getSimpleName),
+      deleteRootOnCleanup = true
+    )
+    val (newSrcDigest, _) = withSkryncGoAnalysis(
+      small.srcWithDuplicates,
+      small.dst
+    )
+    val stdout =
+      withDedup1Go(
+        small.srcWithDuplicates,
+        newSrcDigest,
+        small.dst,
+        baseArgs = Seq("dedup", "--srcDigest", newSrcDigest, "--dedupDir", small.srcWithDuplicates / "dup1")
+      )(testArgs)
+    (small, stdout)
+  }
+
+  val dedup1Report: String = """DEDUPLICATION REPORT
       |===========
       |from: <SRCDIGEST>
       |src: <SRC>
@@ -460,6 +486,106 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
           |
           |# <SRC>/dup1/ids3.txt
           |""".stripMargin
+    }
+  }
+
+  describe("Executes verbose actions on known and unknown files in dup1/") {
+
+//    it("renaming the extensions of both known and unknown") {
+//      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
+//      stdout shouldBe
+//        s"""Verbose is ON
+//           |Dry run. No commands will be executed.
+//           |
+//           |$dedup1Report
+//           |Known files (duplicates)
+//           |==================================================
+//           |
+//           |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+//           |
+//           |Unknown files (unique)
+//           |==================================================
+//           |
+//           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+//           |""".stripMargin
+//    }
+//
+//    it("renaming the extensions of only unknown") {
+//      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--unknownExt", "unknown")
+//      stdout shouldBe
+//        s"""Verbose is ON
+//           |Dry run. No commands will be executed.
+//           |
+//           |$dedup1Report
+//           |Known files (duplicates)
+//           |==================================================
+//           |
+//           |# <SRC>/dup1/ids.txt
+//           |
+//           |Unknown files (unique)
+//           |==================================================
+//           |
+//           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+//           |""".stripMargin
+//    }
+//
+//    it("moving known files to a new directory") {
+//      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--mvDir", Small.dst)
+//      stdout shouldBe
+//        s"""Verbose is ON
+//           |Dry run. No commands will be executed.
+//           |
+//           |$dedup1Report
+//           |Known files (duplicates)
+//           |==================================================
+//           |
+//           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
+//           |
+//           |Unknown files (unique)
+//           |==================================================
+//           |
+//           |# <SRC>/dup1/ids3.txt
+//           |""".stripMargin
+//    }
+//
+//    it("moving known files to a new directory and renaming") {
+//      val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
+//      stdout shouldBe
+//        s"""Verbose is ON
+//           |Dry run. No commands will be executed.
+//           |
+//           |$dedup1Report
+//           |Known files (duplicates)
+//           |==================================================
+//           |
+//           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
+//           |
+//           |Unknown files (unique)
+//           |==================================================
+//           |
+//           |# <SRC>/dup1/ids3.txt
+//           |""".stripMargin
+//    }
+
+    it("deleting known files") {
+      val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--rmKnown")
+      stdout shouldBe
+        s"""Verbose is ON
+           |
+           |$dedup1Report
+           |Known files (duplicates)
+           |==================================================
+           |
+           |rm "<SRC>/dup1/ids.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids3.txt
+           |""".stripMargin
+      (small.srcWithDuplicates / "dup1" / "ids.txt").exists shouldBe false
+      (small.srcWithDuplicates / "dup1" / "ids3.txt").exists shouldBe true
+      small.cleanup()
     }
   }
 }

@@ -4,7 +4,7 @@ import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
 
-import java.nio.file.Files
+import java.nio.file.{Files, StandardCopyOption}
 import scala.reflect.io._
 
 /** This task reads a digest file, and makes a comparison with an external directory to find files that are known or
@@ -183,14 +183,12 @@ object DeduplicateTask {
       val dst = knownExtension.map(ext => movedDst.changeExtension(ext + "." + f.extension)).getOrElse(movedDst)
       if (rmKnown) {
         if (verbose || dryRun) println(s"""rm "$f"""")
-        if (!dryRun && f != dst) println(s"""REMOVE""")
-        // Files.delete(f.jfile.toPath)
+        if (!dryRun) Files.delete(f.jfile.toPath)
       } else if (f == dst) {
         if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-        if (!dryRun) println(s"""MOVE""")
-        // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+        // if (!dryRun) Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
       }
     }
 
@@ -207,8 +205,7 @@ object DeduplicateTask {
         if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-        if (!dryRun && f != dst) println(s"""RENAME""")
-        // Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+        // if (!dryRun && f != dst) Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
       }
     }
   }
