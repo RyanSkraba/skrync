@@ -130,10 +130,7 @@ object DeduplicateTask {
 
     // Setup the expected output.
     val verbose = Option(opts.get("--verbose")).contains(true)
-    if (verbose) println("Verbose is ON")
     val dryRun = Option(opts.get("--dryRun")).contains(true)
-    if (dryRun) println("Dry run. No commands will be executed.")
-    if (dryRun || verbose) println()
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
     val root = Option(opts.get("--root").asInstanceOf[String])
@@ -160,6 +157,8 @@ object DeduplicateTask {
     println("dedup: " + dedupDir)
     println(s"new files: ${r.unknown.size}")
     println(s"known files: ${r.known.size}")
+    if (verbose) println(s"verbose: true")
+    if (dryRun) println(s"dryRun: true (No files will be changed)")
     println()
 
     // Determine whether there will be console output for either known or unknown files.

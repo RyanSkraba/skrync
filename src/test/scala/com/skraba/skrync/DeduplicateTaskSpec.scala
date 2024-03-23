@@ -289,8 +289,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       |src: <SRC>
       |dedup: <SRC>/dup1
       |new files: 1
-      |known files: 1
-      |""".stripMargin
+      |known files: 1""".stripMargin
 
   describe("Executes dry run actions on known and unknown files in dup1/") {
 
@@ -298,78 +297,79 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       val stdout = withDedup1DryRunGo()
       stdout shouldBe
         s"""$dedup1Report
-          |Use --verbose to list the files.
-          |""".stripMargin
+           |
+           |Use --verbose to list the files.
+           |""".stripMargin
     }
 
     it("renaming the extensions of both known and unknown") {
       val stdout = withDedup1DryRunGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
       stdout shouldBe
-        s"""Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+           |""".stripMargin
     }
 
     it("renaming the extensions of only unknown") {
       val stdout = withDedup1DryRunGo("--dryRun", "--unknownExt", "unknown")
       stdout shouldBe
-        s"""Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Unknown files (unique)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |dryRun: true (No files will be changed)
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+           |""".stripMargin
     }
 
     it("moving known files to a new directory") {
       val stdout = withDedup1DryRunGo("--dryRun", "--mvDir", Small.dst)
       stdout shouldBe
-        s"""Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
+           |""".stripMargin
     }
 
     it("moving known files to a new directory and renaming") {
       val stdout = withDedup1DryRunGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
       stdout shouldBe
-        s"""Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
+           |""".stripMargin
     }
 
     it("deleting known files") {
       val stdout = withDedup1DryRunGo("--dryRun", "--rmKnown")
       stdout shouldBe
-        s"""Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |rm "<SRC>/dup1/ids.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |rm "<SRC>/dup1/ids.txt"
+           |""".stripMargin
     }
   }
 
@@ -378,114 +378,114 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("getting information only (without dry run)") {
       val stdout = withDedup1DryRunVerboseGo()
       stdout shouldBe
-        s"""Verbose is ON
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |# <SRC>/dup1/ids.txt
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |# <SRC>/dup1/ids3.txt
-          |""".stripMargin
+        s"""$dedup1Report
+           |verbose: true
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids.txt
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids3.txt
+           |""".stripMargin
     }
 
     it("renaming the extensions of both known and unknown") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--unknownExt", "unknown")
       stdout shouldBe
-        s"""Verbose is ON
-          |Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |verbose: true
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+           |""".stripMargin
     }
 
     it("renaming the extensions of only unknown") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--unknownExt", "unknown")
       stdout shouldBe
-        s"""Verbose is ON
-          |Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |# <SRC>/dup1/ids.txt
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
-          |""".stripMargin
+        s"""$dedup1Report
+           |verbose: true
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids.txt
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+           |""".stripMargin
     }
 
     it("moving known files to a new directory") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--mvDir", Small.dst)
       stdout shouldBe
-        s"""Verbose is ON
-          |Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |# <SRC>/dup1/ids3.txt
-          |""".stripMargin
+        s"""$dedup1Report
+           |verbose: true
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids3.txt
+           |""".stripMargin
     }
 
     it("moving known files to a new directory and renaming") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--knownExt", "known", "--mvDir", Small.dst)
       stdout shouldBe
-        s"""Verbose is ON
-          |Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |# <SRC>/dup1/ids3.txt
-          |""".stripMargin
+        s"""$dedup1Report
+           |verbose: true
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<DST>/ids.known.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids3.txt
+           |""".stripMargin
     }
 
     it("deleting known files") {
       val stdout = withDedup1DryRunVerboseGo("--dryRun", "--rmKnown")
       stdout shouldBe
-        s"""Verbose is ON
-          |Dry run. No commands will be executed.
-          |
-          |$dedup1Report
-          |Known files (duplicates)
-          |==================================================
-          |
-          |rm "<SRC>/dup1/ids.txt"
-          |
-          |Unknown files (unique)
-          |==================================================
-          |
-          |# <SRC>/dup1/ids3.txt
-          |""".stripMargin
+        s"""$dedup1Report
+           |verbose: true
+           |dryRun: true (No files will be changed)
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |rm "<SRC>/dup1/ids.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids3.txt
+           |""".stripMargin
     }
   }
 
@@ -570,9 +570,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     it("deleting known files") {
       val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--rmKnown")
       stdout shouldBe
-        s"""Verbose is ON
+        s"""$dedup1Report
+           |verbose: true
            |
-           |$dedup1Report
            |Known files (duplicates)
            |==================================================
            |
