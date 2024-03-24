@@ -182,12 +182,14 @@ object DeduplicateTask {
       val dst = knownExtension.map(ext => movedDst.changeExtension(ext + "." + f.extension)).getOrElse(movedDst)
       if (rmKnown) {
         if (verbose || dryRun) println(s"""rm "$f"""")
-        if (!dryRun) Files.delete(f.jfile.toPath)
+        if (!dryRun)
+          Files.delete(f.jfile.toPath)
       } else if (f == dst) {
         if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-        // if (!dryRun) Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+        if (!dryRun)
+          Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
       }
     }
 
@@ -204,7 +206,7 @@ object DeduplicateTask {
         if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-        // if (!dryRun && f != dst) Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+        // if (!dryRun) Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
       }
     }
   }
