@@ -499,45 +499,53 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
 
   describe("Executes verbose actions on known and unknown files in dup1/") {
 
-//    it("renaming the extensions of both known and unknown") {
-//      val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--knownExt", "known", "--unknownExt", "unknown")
-//      stdout shouldBe
-//        s"""Verbose is ON
-//           |Dry run. No commands will be executed.
-//           |
-//           |$dedup1Report
-//           |Known files (duplicates)
-//           |==================================================
-//           |
-//           |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
-//           |
-//           |Unknown files (unique)
-//           |==================================================
-//           |
-//           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
-//           |""".stripMargin
-//      small.cleanup()
-//    }
-//
-//    it("renaming the extensions of only unknown") {
-//      val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--unknownExt", "unknown")
-//      stdout shouldBe
-//        s"""Verbose is ON
-//           |Dry run. No commands will be executed.
-//           |
-//           |$dedup1Report
-//           |Known files (duplicates)
-//           |==================================================
-//           |
-//           |# <SRC>/dup1/ids.txt
-//           |
-//           |Unknown files (unique)
-//           |==================================================
-//           |
-//           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
-//           |""".stripMargin
-//      small.cleanup()
-//    }
+    it("renaming the extensions of both known and unknown") {
+      val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--knownExt", "known", "--unknownExt", "unknown")
+      stdout shouldBe
+        s"""$dedup1Report
+           |verbose: true
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids.txt" "<SRC>/dup1/ids.known.txt"
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+           |""".stripMargin
+      (small.srcWithDuplicates / "dup1").toDirectory.files should have size 2
+      (small.srcWithDuplicates / "dup1" / "ids.txt").exists shouldBe false
+      (small.srcWithDuplicates / "dup1" / "ids.known.txt").toFile.slurp() shouldBe Small.File1Contents
+      (small.srcWithDuplicates / "dup1" / "ids3.txt").exists shouldBe false
+      (small.srcWithDuplicates / "dup1" / "ids3.unknown.txt").toFile.slurp() shouldBe Small.File3Contents
+      small.dst.toDirectory.files should have size 1
+      small.cleanup()
+    }
+
+    it("renaming the extensions of only unknown") {
+      val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--unknownExt", "unknown")
+      stdout shouldBe
+        s"""$dedup1Report
+           |verbose: true
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids.txt
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |mv "<SRC>/dup1/ids3.txt" "<SRC>/dup1/ids3.unknown.txt"
+           |""".stripMargin
+      (small.srcWithDuplicates / "dup1").toDirectory.files should have size 2
+      (small.srcWithDuplicates / "dup1" / "ids.txt").toFile.slurp() shouldBe Small.File1Contents
+      (small.srcWithDuplicates / "dup1" / "ids3.unknown.txt").toFile.slurp() shouldBe Small.File3Contents
+      small.dst.toDirectory.files should have size 1
+      small.cleanup()
+    }
 
     it("moving known files to a new directory") {
       val (small, stdout) = withDedup1NewScenarioGo("--verbose", "--mvDir", "dst")
@@ -555,8 +563,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
            |
            |# <SRC>/dup1/ids3.txt
            |""".stripMargin
-      (small.srcWithDuplicates / "dup1" / "ids.txt").exists shouldBe false
-      (small.srcWithDuplicates / "dup1" / "ids3.txt").exists shouldBe true
+      (small.srcWithDuplicates / "dup1").toDirectory.files should have size 1
+      (small.srcWithDuplicates / "dup1" / "ids3.txt").toFile.slurp() shouldBe Small.File3Contents
+      small.dst.toDirectory.files should have size 2
       (small.dst / "ids.txt").toFile.slurp() shouldBe Small.File1Contents
       small.cleanup()
     }
@@ -577,8 +586,8 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
            |
            |# <SRC>/dup1/ids3.txt
            |""".stripMargin
-      (small.srcWithDuplicates / "dup1" / "ids.txt").exists shouldBe false
-      (small.srcWithDuplicates / "dup1" / "ids3.txt").exists shouldBe true
+      (small.srcWithDuplicates / "dup1").toDirectory.files should have size 1
+      small.dst.toDirectory.files should have size 2
       (small.dst / "ids.known.txt").toFile.slurp() shouldBe Small.File1Contents
       small.cleanup()
     }
@@ -599,8 +608,9 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
            |
            |# <SRC>/dup1/ids3.txt
            |""".stripMargin
-      (small.srcWithDuplicates / "dup1" / "ids.txt").exists shouldBe false
-      (small.srcWithDuplicates / "dup1" / "ids3.txt").exists shouldBe true
+      (small.srcWithDuplicates / "dup1").toDirectory.files should have size 1
+      (small.srcWithDuplicates / "dup1" / "ids3.txt").toFile.slurp() shouldBe Small.File3Contents
+      small.dst.toDirectory.files should have size 1
       small.cleanup()
     }
   }

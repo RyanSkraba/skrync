@@ -206,7 +206,8 @@ object DeduplicateTask {
         if (verbose) println(s"""# $f""")
       } else {
         if (verbose || dryRun) println(s"""mv "$f" "$dst"""")
-        // if (!dryRun) Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
+        if (!dryRun)
+          Files.move(f.jfile.toPath, dst.jfile.toPath, StandardCopyOption.ATOMIC_MOVE)
       }
     }
   }
