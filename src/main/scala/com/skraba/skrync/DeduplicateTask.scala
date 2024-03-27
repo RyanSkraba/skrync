@@ -37,9 +37,9 @@ object DeduplicateTask {
       |                        options. If not present, its value is taken from
       |                        the SKRYNC_SRC_ROOT environment variable or the
       |                        current working directory.
-      |  --srcDigest SRC       The file generated from the source directory.
+      |  --srcDigest SRC       The file generated from the source directory
       |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
-      |                        in DEDUP.
+      |                        in DEDUP
       |  --knownExt KN_EXT     If present, renames known files by augmenting with this
       |                        extension (for example a.jpg would become a.known.jpg)
       |  --unknownExt UKN_EXT  If present, renames unknown files by augmenting with
@@ -48,6 +48,7 @@ object DeduplicateTask {
       |  --mvDir KN_DIR        If present, moves known files to MV_DIR
       |  --rmKnown             If present, deletes known files from the DEDUP_DIR
       |  --verbose             Print detailed information to stdout
+      |  --timing              Print some timing information about the task
       |  --dryRun              If any actions are to be taken, describe them on
       |                        stdout instead of executing them
       |
@@ -131,6 +132,7 @@ object DeduplicateTask {
     // Setup the expected output.
     val verbose = Option(opts.get("--verbose")).contains(true)
     val dryRun = Option(opts.get("--dryRun")).contains(true)
+    val timing = Option(opts.get("--timing")).contains(true)
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
     val root = Option(opts.get("--root").asInstanceOf[String])
@@ -147,8 +149,11 @@ object DeduplicateTask {
       Option(opts.get("--mvDir")).map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
     // Read all of the information from the two digest files.
+    val start = System.currentTimeMillis()
     val src: SkryncGo.Analysis = Json.read(srcDigest)
+    val readTime = System.currentTimeMillis() - start
     val r = DedupPathReport(src, dedupDir)
+    val dedupTime = System.currentTimeMillis() - start
 
     println("DEDUPLICATION REPORT")
     println("===========")
@@ -157,6 +162,8 @@ object DeduplicateTask {
     println("dedup: " + dedupDir)
     println(s"new files: ${r.unknown.size}")
     println(s"known files: ${r.known.size}")
+    if (timing) println(s"read analysis: ${readTime}ms")
+    if (timing) println(s"dedup analysis: ${dedupTime}ms")
     if (verbose) println(s"verbose: true")
     if (dryRun) println(s"dryRun: true (No files will be changed)")
     println()

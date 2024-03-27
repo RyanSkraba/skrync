@@ -243,12 +243,18 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
   /** Helper utility to run the dedup command on the small scenario with the given digest. By default, it uses a single
     * Small scenario and should leave the contents unmodified.
     *
-    * @param src The directory that the analysis was created on
-    * @param srcDigest The digest file containing the analysis
-    * @param dst A destination directory
-    * @param baseArgs A list of base arguments that can be reused
-    * @param testArgs The test arguments to add
-    * @return The standard output from running the command
+    * @param src
+    *   The directory that the analysis was created on
+    * @param srcDigest
+    *   The digest file containing the analysis
+    * @param dst
+    *   A destination directory
+    * @param baseArgs
+    *   A list of base arguments that can be reused
+    * @param testArgs
+    *   The test arguments to add
+    * @return
+    *   The standard output from running the command
     */
   def withDedup1Go(
       src: Directory = Small.srcWithDuplicates,
