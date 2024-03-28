@@ -268,6 +268,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       .replace(src.toString, "<SRC>")
       .replace(srcDigest.toString, "<SRCDIGEST>")
       .replace(dst.toString, "<DST>")
+      .replaceFirst(raw"(read analysis: )\d+(ms\ndedup analysis: )\d+(ms\n)", "$1<###>$2<###>$3")
   }
 
   def withDedup1DryRunGo(testArgs: Any*): String =
@@ -321,6 +322,17 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       val stdout = withDedup1DryRunGo()
       stdout shouldBe
         s"""$dedup1Report
+           |
+           |Use --verbose to list the files.
+           |""".stripMargin
+    }
+
+    it("getting information only (with timing)") {
+      val stdout = withDedup1DryRunGo("--timing")
+      stdout shouldBe
+        s"""$dedup1Report
+           |read analysis: <###>ms
+           |dedup analysis: <###>ms
            |
            |Use --verbose to list the files.
            |""".stripMargin
@@ -403,6 +415,26 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       val stdout = withDedup1DryRunVerboseGo()
       stdout shouldBe
         s"""$dedup1Report
+           |verbose: true
+           |
+           |Known files (duplicates)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids.txt
+           |
+           |Unknown files (unique)
+           |==================================================
+           |
+           |# <SRC>/dup1/ids3.txt
+           |""".stripMargin
+    }
+
+    it("getting information only (with timing)") {
+      val stdout = withDedup1DryRunVerboseGo("--timing")
+      stdout shouldBe
+        s"""$dedup1Report
+           |read analysis: <###>ms
+           |dedup analysis: <###>ms
            |verbose: true
            |
            |Known files (duplicates)
