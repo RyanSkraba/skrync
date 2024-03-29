@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.validateFile
+import com.skraba.skrync.SkryncGo.{Line, validateFile}
 
 import scala.reflect.io._
 
@@ -71,7 +71,7 @@ object ReportTask {
 
     // TODO: implement
     println("REPORT")
-    println("===========")
+    println(Line)
     println("from: " + srcDigest)
     println("src: " + src.src)
     println(s"total files: ${src.info.deepFileCount}")

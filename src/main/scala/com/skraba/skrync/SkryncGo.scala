@@ -11,6 +11,8 @@ object SkryncGo {
 
   val Version: String = "0.0.1-SNAPSHOT"
 
+  val Line: String = "=" * 50
+
   /** The subcommands that this driver supports.
     * @param doc
     *   The [[Docopt]] for the subcommand.

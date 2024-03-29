@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile}
+import com.skraba.skrync.SkryncGo.{Line, validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
 
 import java.nio.file.{Files, StandardCopyOption}
@@ -13,6 +13,8 @@ import scala.reflect.io._
   * This can be useful for filing new files in the original directory from where the digest was made.
   */
 object DeduplicateTask {
+
+  // TODO: Add verbose scanning for the input dedup directory
 
   val Cmd = "dedup"
 
@@ -156,7 +158,7 @@ object DeduplicateTask {
     val dedupTime = System.currentTimeMillis() - start
 
     println("DEDUPLICATION REPORT")
-    println("===========")
+    println(Line)
     println("from: " + srcDigest)
     println("src: " + src.src)
     println("dedup: " + dedupDir)
@@ -181,7 +183,7 @@ object DeduplicateTask {
 
     if (outputForKnown)
       println(s"""Known files (duplicates)
-         |==================================================
+         |$Line
          |""".stripMargin)
 
     r.known.map(_._1).foreach { f =>
@@ -204,7 +206,7 @@ object DeduplicateTask {
 
     if (outputForUnknown)
       println(s"""Unknown files (unique)
-         |==================================================
+         |$Line
          |""".stripMargin)
 
     r.unknown.map(_._1).foreach { f =>

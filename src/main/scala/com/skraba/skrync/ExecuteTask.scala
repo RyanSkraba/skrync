@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.validateFile
+import com.skraba.skrync.SkryncGo.{Line, validateFile}
 
 import java.io.IOException
 import scala.reflect.io._
@@ -67,7 +67,7 @@ object ExecuteTask {
       backupDirString: Option[String]
   ): Unit = {
     println("EXECUTE")
-    println("===========")
+    println(Line)
     println("srcDigest:" + srcDigest)
     println("dstDigest:" + dstDigest)
     println("backupDir:" + backupDirString)
@@ -79,7 +79,7 @@ object ExecuteTask {
   ): Unit = {
     // TODO: implement
     println("EXECUTE")
-    println("===========")
+    println(Line)
     println("planJson:" + planJsonString)
     println("backupDir:" + backupDirString)
   }

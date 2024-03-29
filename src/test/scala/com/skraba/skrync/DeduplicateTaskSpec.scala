@@ -309,7 +309,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
   }
 
   val dedup1Report: String = """DEDUPLICATION REPORT
-      |===========
+      |==================================================
       |from: <SRCDIGEST>
       |src: <SRC>
       |dedup: <SRC>/dup1
