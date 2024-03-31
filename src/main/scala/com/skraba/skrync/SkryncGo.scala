@@ -101,7 +101,7 @@ object SkryncGo {
 
     // This is only here to rewrap any internal docopt exception with the current docopt
     if (cmd == "???")
-      throw new InternalDocoptException("Missing command")
+      throw new InternalDocoptException("Missing command", docopt = Doc)
 
     // Reparse with the specific command.
     val task = Tasks
@@ -115,9 +115,15 @@ object SkryncGo {
         .parse(args.toList.asJava)
       task.go(opts)
     } catch {
-      // Rewrap any internal exception with the current docopt
-      case ex @ (_: DocoptExitException | _: InternalDocoptException) =>
+      // This is only here to rewrap any internal docopt exception with the current docopt
+      case ex: InternalDocoptException =>
         throw new InternalDocoptException(ex.getMessage, ex, task.doc)
+      case ex: DocoptExitException if ex.getMessage == null =>
+        throw new InternalDocoptException(
+          null,
+          ex,
+          task.doc
+        )
     }
   }
 
@@ -131,6 +137,7 @@ object SkryncGo {
         Option(if (ex.getExitCode == 0) System.out else System.err)
           .foreach(ps => {
             if (ex.getMessage != null) ps.println(ex.getMessage)
+            else ps.println(Doc)
           })
         System.exit(ex.getExitCode)
       case ex: InternalDocoptException =>
