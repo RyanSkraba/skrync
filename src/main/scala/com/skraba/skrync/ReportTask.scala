@@ -17,22 +17,14 @@ object ReportTask {
       |
       |Usage:
       |  SkryncGo report --srcDigest SRC
-      |  SkryncGo report --srcDigest SRC --dedupDir DEDUP_DIR [--mvDir MV_DIR]
       |
       |Options:
       |  --srcDigest SRC       The file generated from the source directory.
-      |  --dedupDir DEDUP_DIR  Provide a deduplication report on all the files
-      |                        in DEDUP_DIR
-      |  --mvDir MV_DIR        If present, moves duplicates to MV_DIR
       |
       |Examples:
       |
       | # Provide a basic report on the files in the digest
       | SkryncGo report --srcDigest $HOME/skrync/backup1
-      |
-      | # Provide a deduplication report on the files in the given directory
-      | SkryncGo report --srcDigest $HOME/skrync/backup1 --dedupDir $HOME/dedup/
-      |
       |""".stripMargin
       .format(Description)
       .trim
@@ -57,8 +49,6 @@ object ReportTask {
   }
 
   def go(opts: java.util.Map[String, AnyRef]): Unit = {
-    val dedup = opts.get("--dedupDir").asInstanceOf[String]
-
     val srcDigest: File = validateFile(
       // TODO
       arg = opts.get("--srcDigest")

@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoIAEx}
+import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoDocoptExitEx, interceptSkryncGoIAEx}
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
@@ -27,27 +27,43 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
 
   describe("SkryncGo execute command line") {
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptEx("execute", "--help")
+      val t = interceptSkryncGoDocoptExitEx("execute", "--help")
       t.getMessage shouldBe ExecuteTask.Doc
-      t.docopt shouldBe ExecuteTask.Doc
+      // t.docopt shouldBe ExecuteTask.Doc
     }
 
-    it("throws an exception when arguments are missing") {
-      val invalid = List(
-        List("execute"),
-        List("execute", "--dstDigest"),
-        List("execute", "--dstDigest", "x"),
-        List("execute", "--dstDigest", "x", "--srcDigest"),
-        List("execute", "--srcDigest"),
-        List("execute", "--srcDigest", "x", "--dstDigest"),
-        List("execute", "--srcDigest", "x", "--dstDigest", "y", "--backup"),
-        List("execute", "--plan"),
-        List("execute", "--plan", "--backup", "x"),
-        List("execute", "--plan", "x", "--backup")
-      )
-      for (args <- invalid) {
-        val t = interceptSkryncGoDocoptEx(args: _*)
-        t.docopt shouldBe ExecuteTask.Doc
+    describe("when missing information") {
+      for (
+        args <- List(
+          List("execute"),
+          List("execute", "--srcDigest", "x"),
+          List("execute", "--dstDigest", "x"),
+          List("execute", "--backup", "x")
+        )
+      ) {
+        it("throws an exception on missing options: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptEx(args: _*)
+          t.docopt shouldBe ExecuteTask.Doc
+        }
+      }
+
+      for (
+        (opt, args) <- List(
+          "--dstDigest" -> List("execute", "--dstDigest"),
+          "--srcDigest" -> List("execute", "--dstDigest", "x", "--srcDigest"),
+          "--srcDigest" -> List("execute", "--srcDigest"),
+          "--dstDigest" -> List("execute", "--srcDigest", "x", "--dstDigest"),
+          "--backup" -> List("execute", "--srcDigest", "x", "--dstDigest", "x", "--backup"),
+          "--plan" -> List("execute", "--plan"),
+          "--backup" -> List("execute", "--plan", "x", "--backup"),
+          "--plan" -> List("execute", "--backup", "x", "--plan")
+        )
+      ) {
+        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          t.getExitCode shouldBe 1
+          t.getMessage shouldBe s"$opt requires argument"
+        }
       }
     }
 

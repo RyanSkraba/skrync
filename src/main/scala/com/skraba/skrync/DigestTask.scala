@@ -19,7 +19,7 @@ object DigestTask {
     """%s
       |
       |Usage:
-      |  skrync digest --srcDir=<SRC_DIR> [options]
+      |  skrync digest --srcDir <SRC_DIR> [options]
       |
       |Options:
       |  --root SRC_ROOT     Root directory to use as the parent for all file

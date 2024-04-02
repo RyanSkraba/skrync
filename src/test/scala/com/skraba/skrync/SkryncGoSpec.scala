@@ -175,6 +175,17 @@ object SkryncGoSpec {
     * @return
     *   The exception thrown when the arguments are run
     */
+  def interceptSkryncGoDocoptExitEx(args: Any*): DocoptExitException = {
+    interceptSkryncGo[DocoptExitException](args: _*)
+  }
+
+  /** A helper method used to capture an [[InternalDocoptException]] thrown by withSkryncGo
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
   def interceptSkryncGoDocoptEx(args: Any*): InternalDocoptException = {
     interceptSkryncGo[InternalDocoptException](args: _*)
   }

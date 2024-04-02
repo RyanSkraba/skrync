@@ -1,6 +1,11 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoIAEx, withSkryncGo}
+import com.skraba.skrync.SkryncGoSpec.{
+  interceptSkryncGoDocoptEx,
+  interceptSkryncGoDocoptExitEx,
+  interceptSkryncGoIAEx,
+  withSkryncGo
+}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
@@ -8,7 +13,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
-import scala.reflect.io.{Directory, File, Path, Streamable}
+import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DigestTask]] */
 class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
@@ -24,21 +29,31 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
   describe("SkryncGo digest command line") {
 
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptEx("digest", "--help")
+      val t = interceptSkryncGoDocoptExitEx("digest", "--help")
       t.getMessage shouldBe DigestTask.Doc
-      t.docopt shouldBe DigestTask.Doc
+      // t.docopt shouldBe DigestTask.Doc
     }
 
-    it("throws an exception when arguments are missing") {
-      val invalid = List(
-        List("digest"),
-        List("digest", "--srcDir"),
-        List("digest", "--srcDir", "x", "--root"),
-        List("digest", "--srcDir", "x", "--dstDir")
-      )
-      for (args <- invalid) {
-        val t = interceptSkryncGoDocoptEx(args: _*)
-        t.docopt shouldBe DigestTask.Doc
+    describe("when missing information") {
+      for (args <- List(List("digest"))) {
+        it("throws an exception on missing options: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptEx(args: _*)
+          t.docopt shouldBe DigestTask.Doc
+        }
+      }
+
+      for (
+        (opt, args) <- List(
+          "--srcDir" -> List("digest", "--srcDir"),
+          "--root" -> List("digest", "--srcDir", "x", "--root"),
+          "--dstDigest" -> List("digest", "--srcDir", "x", "--dstDigest")
+        )
+      ) {
+        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          t.getExitCode shouldBe 1
+          t.getMessage shouldBe s"$opt requires argument"
+        }
       }
     }
 

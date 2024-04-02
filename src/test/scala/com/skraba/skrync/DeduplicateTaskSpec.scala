@@ -28,24 +28,42 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
   describe("SkryncGo dedup command line") {
 
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptEx("dedup", "--help")
+      val t = interceptSkryncGoDocoptExitEx("dedup", "--help")
       t.getMessage shouldBe DeduplicateTask.Doc
-      t.docopt shouldBe DeduplicateTask.Doc
+      // t.docopt shouldBe DeduplicateTask.Doc
     }
 
-    it("throws an exception when arguments are missing") {
-      val invalid = List(
-        List("dedup"),
-        List("dedup", "--srcDigest"),
-        List("dedup", "--srcDigest", "x", "--dedupDir"),
-        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--root"),
-        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--mvDir"),
-        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--knownExt"),
-        List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--unknownExt")
-      )
-      for (args <- invalid) {
-        val t = interceptSkryncGoDocoptEx(args: _*)
-        t.docopt shouldBe DeduplicateTask.Doc
+    describe("when missing information") {
+      for (
+        args <- List(
+          List("dedup"),
+          List("dedup", "--srcDigest", "x"),
+          List("dedup", "--dedupDir", "x")
+        )
+      ) {
+        it("throws an exception on missing options: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptEx(args: _*)
+          t.docopt shouldBe DeduplicateTask.Doc
+        }
+      }
+
+      for (
+        (opt, args) <- List(
+          "--srcDigest" -> List("dedup", "--srcDigest"),
+          "--dedupDir" -> List("dedup", "--srcDigest", "x", "--dedupDir"),
+          "--dedupDir" -> List("dedup", "--dedupDir"),
+          "--srcDigest" -> List("dedup", "--dedupDir", "x", "--srcDigest"),
+          "--root" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--root"),
+          "--mvDir" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--mvDir"),
+          "--knownExt" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--knownExt"),
+          "--unknownExt" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--unknownExt")
+        )
+      ) {
+        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          t.getExitCode shouldBe 1
+          t.getMessage shouldBe s"$opt requires argument"
+        }
       }
     }
 

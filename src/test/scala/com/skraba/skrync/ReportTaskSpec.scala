@@ -2,6 +2,7 @@ package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGoSpec.{
   interceptSkryncGoDocoptEx,
+  interceptSkryncGoDocoptExitEx,
   interceptSkryncGoIAEx,
   withSkryncGo,
   withSkryncGoAnalysis
@@ -27,19 +28,33 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   describe("SkryncGo report command line") {
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptEx("report", "--help")
+      val t = interceptSkryncGoDocoptExitEx("report", "--help")
       t.getMessage shouldBe ReportTask.Doc
-      t.docopt shouldBe ReportTask.Doc
+      t.getExitCode shouldBe 0
     }
 
-    it("throws an exception when arguments are missing") {
-      val invalid = List(
-        List("report"),
-        List("report", "--srcDigest")
-      )
-      for (args <- invalid) {
-        val t = interceptSkryncGoDocoptEx(args: _*)
-        t.docopt shouldBe ReportTask.Doc
+    describe("when missing information") {
+      for (
+        args <- List(
+          List("report")
+        )
+      ) {
+        it("throws an exception on missing options: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptEx(args: _*)
+          t.docopt shouldBe ReportTask.Doc
+        }
+      }
+
+      for (
+        (opt, args) <- List(
+          "--srcDigest" -> List("report", "--srcDigest")
+        )
+      ) {
+        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          t.getExitCode shouldBe 1
+          t.getMessage shouldBe s"$opt requires argument"
+        }
       }
     }
 

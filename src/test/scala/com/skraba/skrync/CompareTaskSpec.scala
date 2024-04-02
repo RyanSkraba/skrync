@@ -23,24 +23,40 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
   Streamable.closing(ExistingFile.outputStream())(_.write(1))
 
   describe("SkryncGo compare command line") {
+
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptEx("compare", "--help")
+      val t = interceptSkryncGoDocoptExitEx("compare", "--help")
+      t.getExitCode shouldBe 0
       t.getMessage shouldBe CompareTask.Doc
-      t.docopt shouldBe CompareTask.Doc
     }
 
-    it("throws an exception when arguments are missing") {
-      val invalid = List(
-        List("compare"),
-        List("compare", "--dstDigest"),
-        List("compare", "--dstDigest", "x"),
-        List("compare", "--dstDigest", "x", "--srcDigest"),
-        List("compare", "--srcDigest"),
-        List("compare", "--srcDigest", "x", "--dstDigest")
-      )
-      for (args <- invalid) {
-        val t = interceptSkryncGoDocoptEx(args: _*)
-        t.docopt shouldBe CompareTask.Doc
+    describe("when missing information") {
+      for (
+        args <- List(
+          List("compare"),
+          List("compare", "--dstDigest", "x"),
+          List("compare", "--srcDigest", "x")
+        )
+      ) {
+        it("throws an exception on missing options: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptEx(args: _*)
+          t.docopt shouldBe CompareTask.Doc
+        }
+      }
+
+      for (
+        (opt, args) <- List(
+          "--dstDigest" -> List("compare", "--dstDigest"),
+          "--srcDigest" -> List("compare", "--dstDigest", "x", "--srcDigest"),
+          "--srcDigest" -> List("compare", "--srcDigest"),
+          "--dstDigest" -> List("compare", "--srcDigest", "x", "--dstDigest")
+        )
+      ) {
+        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
+          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          t.getExitCode shouldBe 1
+          t.getMessage shouldBe s"$opt requires argument"
+        }
       }
     }
 
