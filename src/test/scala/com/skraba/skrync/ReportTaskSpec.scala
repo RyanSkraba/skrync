@@ -1,20 +1,16 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{
-  interceptSkryncGoDocoptEx,
-  interceptSkryncGoDocoptExitEx,
-  interceptSkryncGoIAEx,
-  withSkryncGo,
-  withSkryncGoAnalysis
-}
+import com.skraba.skrync.SkryncGoSpec._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.reflect.io.{Directory, File, Path}
+import scala.reflect.io.{Directory, File}
 
 /** Unit tests for [[ReportTask]] */
 class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+
+  val Tsk: SkryncGo.Task = ReportTask.Task
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -26,28 +22,34 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   val DoesntExist: String = (Small.root / "doesnt-exist").toString()
 
-  describe("SkryncGo report command line") {
+  describe(s"SkryncGo ${Tsk.cmd} command line") {
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx("report", "--help")
-      t.getMessage shouldBe ReportTask.Doc
+      val t = interceptSkryncGoDocoptExitEx(Tsk.cmd, "--help")
+      t.getMessage shouldBe Tsk.doc
+      t.getExitCode shouldBe 0
+    }
+
+    it("throws an exception with --version") {
+      val t = interceptSkryncGoDocoptExitEx(Tsk.cmd, "--version")
+      t.getMessage shouldBe SkryncGo.Version
       t.getExitCode shouldBe 0
     }
 
     describe("when missing information") {
       for (
         args <- List(
-          List("report")
+          List(Tsk.cmd)
         )
       ) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
           val t = interceptSkryncGoDocoptEx(args: _*)
-          t.docopt shouldBe ReportTask.Doc
+          t.docopt shouldBe Tsk.doc
         }
       }
 
       for (
         (opt, args) <- List(
-          "--srcDigest" -> List("report", "--srcDigest")
+          "--srcDigest" -> List(Tsk.cmd, "--srcDigest")
         )
       ) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
@@ -59,23 +61,23 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx("report", "--garbage")
-      t.docopt shouldBe ReportTask.Doc
+      val t = interceptSkryncGoDocoptEx(Tsk.cmd, "--garbage")
+      t.docopt shouldBe Tsk.doc
     }
 
     it("throws an exception when the source digest doesn't exist") {
-      val tSrc = interceptSkryncGoIAEx("report", "--srcDigest", DoesntExist)
+      val tSrc = interceptSkryncGoIAEx(Tsk.cmd, "--srcDigest", DoesntExist)
       tSrc.getMessage shouldBe s"Source doesn't exist: $DoesntExist"
     }
 
     it("throws an exception when the source digest is a directory") {
-      val tSrc = interceptSkryncGoIAEx("report", "--srcDigest", Small.src)
+      val tSrc = interceptSkryncGoIAEx(Tsk.cmd, "--srcDigest", Small.src)
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
     }
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO
-      val tSrc = interceptSkryncGoIAEx("report", "--srcDigest", Small.src / "ids.txt")
+      val tSrc = interceptSkryncGoIAEx(Tsk.cmd, "--srcDigest", Small.src / "ids.txt")
       tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
     }
   }
@@ -106,7 +108,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       it("via the CLI") {
 
         // No exception should occur, and output is dumped to the console.
-        val (stdout, stderr) = withSkryncGo("report", "--srcDigest", dstFile)
+        val (stdout, stderr) = withSkryncGo(Tsk.cmd, "--srcDigest", dstFile)
 
         stdout should not have size(0)
         stdout should include(s"\nfrom: $dstFile\n")
