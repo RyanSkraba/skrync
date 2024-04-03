@@ -16,7 +16,7 @@ trait DocoptCliGo {
   val Tasks: Seq[Task]
 
   /** The full, main docopt that can be used for the script. */
-  val Doc: String = TaskDoc
+  lazy val Doc: String = TaskDoc
 
   /** A minimal docopt constructed from the subtasks. */
   lazy val TaskDoc: String =
