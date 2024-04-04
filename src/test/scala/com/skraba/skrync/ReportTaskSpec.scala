@@ -10,7 +10,7 @@ import scala.reflect.io.{Directory, File}
 /** Unit tests for [[ReportTask]] */
 class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
-  val Tsk: SkryncGo.Task = ReportTask.Task
+  lazy val Tsk: SkryncGo.Task = ReportTask.Task
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -22,48 +22,53 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
   val DoesntExist: String = (Small.root / "doesnt-exist").toString()
 
-  describe(s"SkryncGo ${Tsk.cmd} command line") {
+  def itShouldThrowNormalExceptions(
+      task: SkryncGo.Task,
+      missingOptions: List[List[String]] = List(),
+      missingOptionParameters: List[List[String]] = List()
+  ): Unit = {
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx(Tsk.cmd, "--help")
-      t.getMessage shouldBe Tsk.doc
+      val t = interceptSkryncGoDocoptExitEx(task.cmd, "--help")
+      t.getMessage shouldBe task.doc
       t.getExitCode shouldBe 0
     }
 
     it("throws an exception with --version") {
-      val t = interceptSkryncGoDocoptExitEx(Tsk.cmd, "--version")
+      val t = interceptSkryncGoDocoptExitEx(task.cmd, "--version")
       t.getMessage shouldBe SkryncGo.Version
       t.getExitCode shouldBe 0
     }
 
     describe("when missing information") {
-      for (
-        args <- List(
-          List(Tsk.cmd)
-        )
-      ) {
+      for (args <- missingOptions) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
           val t = interceptSkryncGoDocoptEx(args: _*)
-          t.docopt shouldBe Tsk.doc
+          t.docopt shouldBe task.doc
         }
       }
 
-      for (
-        (opt, args) <- List(
-          "--srcDigest" -> List(Tsk.cmd, "--srcDigest")
-        )
-      ) {
+      for (args: List[String] <- missingOptionParameters) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
           val t = interceptSkryncGoDocoptExitEx(args: _*)
           t.getExitCode shouldBe 1
-          t.getMessage shouldBe s"$opt requires argument"
+          t.getMessage shouldBe s"${args.last} requires argument"
         }
       }
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx(Tsk.cmd, "--garbage")
-      t.docopt shouldBe Tsk.doc
+      val t = interceptSkryncGoDocoptEx(task.cmd, "--garbage")
+      t.docopt shouldBe task.doc
     }
+  }
+
+  describe(s"SkryncGo ${Tsk.cmd} command line") {
+
+    itShouldThrowNormalExceptions(
+      Tsk,
+      missingOptions = List(List(Tsk.cmd)),
+      missingOptionParameters = List(List(Tsk.cmd, "--srcDigest"))
+    )
 
     it("throws an exception when the source digest doesn't exist") {
       val tSrc = interceptSkryncGoIAEx(Tsk.cmd, "--srcDigest", DoesntExist)
