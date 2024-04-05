@@ -1,5 +1,7 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGo
+import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.validateFile
 
@@ -8,7 +10,7 @@ import scala.reflect.io._
 /** This task compares two digest files, a source and destination, and calculates the changes that need to be made to
   * the destination in order for it to be identical to the source.
   */
-object CompareTask {
+object CompareTask extends DocoptCliGo.Task {
 
   val Cmd = "compare"
 
@@ -32,8 +34,6 @@ object CompareTask {
       |""".stripMargin
       .format(Description)
       .trim
-
-  val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
   case class Comparison(
       /** Files that exist only in the source directory without any corresponding destination. Should be copied over. */

@@ -1,5 +1,7 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGo
+import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{Line, validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
@@ -12,7 +14,7 @@ import scala.reflect.io._
   *
   * This can be useful for filing new files in the original directory from where the digest was made.
   */
-object DeduplicateTask {
+object DeduplicateTask extends DocoptCliGo.Task {
 
   // TODO: Add verbose scanning for the input dedup directory
 
@@ -62,8 +64,6 @@ object DeduplicateTask {
       |""".stripMargin
       .format(Description)
       .trim
-
-  val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
   /** Analysis of the contents of one specific directory to find known (exists in the source digest) and unknown files.
     *

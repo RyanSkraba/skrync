@@ -1,12 +1,14 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGo
+import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{Line, validateFile}
 
 import scala.reflect.io._
 
 /** This task reads a digest file and provides some basic information. */
-object ReportTask {
+object ReportTask extends DocoptCliGo.Task {
 
   val Cmd = "report"
 
@@ -28,8 +30,6 @@ object ReportTask {
       |""".stripMargin
       .format(Description)
       .trim
-
-  val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
   case class Report(duplicateFiles: Seq[Seq[(SkryncPath, Path)]])
 

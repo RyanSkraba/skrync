@@ -1,12 +1,14 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGo
+import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.SkryncGo.{Line, validateFile}
 
 import java.io.IOException
 import scala.reflect.io._
 
 /** This task copies or moves files according to a synchronisation plan. */
-object ExecuteTask {
+object ExecuteTask extends DocoptCliGo.Task {
 
   val Cmd = "execute"
 
@@ -37,8 +39,6 @@ object ExecuteTask {
       |""".stripMargin
       .format(Description)
       .trim
-
-  val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
   @throws[IOException]
   def go(opts: java.util.Map[String, AnyRef]): Unit = {

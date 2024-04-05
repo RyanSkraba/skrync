@@ -1,21 +1,21 @@
 package com.skraba.skrync
 
 import com.skraba.docoptcli.DocoptCliGo
-import org.docopt.{Docopt, DocoptExitException}
-
-import scala.jdk.CollectionConverters._
+import com.skraba.docoptcli.DocoptCliGo.Task
 import scala.reflect.io.{Directory, File, Path}
 import scala.util.Properties
 
 /** My synchronization tool. */
 object SkryncGo extends DocoptCliGo {
 
+  type Task = DocoptCliGo.Task
+
   override lazy val Cli: String = this.getClass.getSimpleName
 
   override lazy val Version: String = "0.0.1-SNAPSHOT"
 
   override lazy val Tasks: Seq[Task] =
-    Seq(DigestTask.Task, ReportTask.Task, DeduplicateTask.Task, CompareTask.Task, ExecuteTask.Task)
+    Seq(DigestTask, ReportTask, DeduplicateTask, CompareTask, ExecuteTask)
 
   override lazy val Doc: String = "My file synchronization and backup tool.\n\n" + TaskDoc +
     "\n\nAnalyzes and synchronizes changes between two directories."

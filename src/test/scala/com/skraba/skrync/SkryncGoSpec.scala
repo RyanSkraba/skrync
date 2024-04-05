@@ -26,9 +26,9 @@ class SkryncGoSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach 
       }
       for (
         task <- SkryncGo.Tasks;
-        line <- task.doc.split("\n")
+        line <- task.Doc.split("\n")
       ) {
-        withClue(task.cmd -> line) {
+        withClue(task.Cmd -> line) {
           line.length should be < 80
         }
       }

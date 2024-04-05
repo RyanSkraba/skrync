@@ -1,5 +1,7 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGo
+import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile, validateFileSystem}
 
 import java.io.IOException
@@ -8,7 +10,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 import scala.reflect.io._
 
 /** This task creates a file with digest information for all of the files in a given directory. */
-object DigestTask {
+object DigestTask extends DocoptCliGo.Task {
 
   val Cmd = "digest"
 
@@ -38,8 +40,6 @@ object DigestTask {
       | skrync digest --srcDir /run/media/BACKUP/backup --dstDigest $$HOME/skrync/
       |
       |""".stripMargin.trim
-
-  val Task: SkryncGo.Task = SkryncGo.Task(Doc, Cmd, Description, go)
 
   /** Creates a digest file from the input directory containing the file info and digests. */
   @throws[IOException]

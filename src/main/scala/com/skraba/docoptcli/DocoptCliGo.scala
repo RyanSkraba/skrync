@@ -1,6 +1,8 @@
 package com.skraba.docoptcli
 
+import com.skraba.docoptcli.DocoptCliGo.Task
 import org.docopt.{Docopt, DocoptExitException}
+
 import scala.jdk.CollectionConverters._
 
 /** A base class for a Docopt oriented command line script that can take multiple subcommands. */
@@ -33,28 +35,11 @@ trait DocoptCliGo {
        |
        |""".stripMargin.format {
       // Align the task subcommands and descriptions to the longest subcommand.
-      val col = (0 +: Tasks.map(_.cmd.length)).max
+      val col = (0 +: Tasks.map(_.Cmd.length)).max
       Tasks
-        .map(task => s"%${col + 2}s  %s".format(task.cmd, task.description))
+        .map(task => s"%${col + 2}s  %s".format(task.Cmd, task.Description))
         .mkString("\n")
     }.trim
-
-  /** The subcommands that this driver supports.
-    * @param doc
-    *   The [[Docopt]] for the subcommand.
-    * @param cmd
-    *   The subcommand token.
-    * @param description
-    *   The short description for the subcommand.
-    * @param go
-    *   The method to call with the argument map from the subcommand docopts.
-    */
-  case class Task(
-      doc: String,
-      cmd: String,
-      description: String,
-      go: java.util.Map[String, AnyRef] => Unit
-  )
 
   /** [[DocoptExitException]] constructors are protected. */
   class InternalDocoptException(
@@ -92,11 +77,11 @@ trait DocoptCliGo {
 
     // Reparse with the specific command.
     val task = Tasks
-      .find(_.cmd == cmd)
+      .find(_.Cmd == cmd)
       .getOrElse(throw new InternalDocoptException(s"Unknown command: $cmd"))
 
     try {
-      val opts = new Docopt(task.doc)
+      val opts = new Docopt(task.Doc)
         .withVersion(Version)
         .withExit(false)
         .parse(args.toList.asJava)
@@ -104,13 +89,9 @@ trait DocoptCliGo {
     } catch {
       // This is only here to rewrap any internal docopt exception with the current docopt
       case ex: InternalDocoptException =>
-        throw new InternalDocoptException(ex.getMessage, ex, task.doc)
+        throw new InternalDocoptException(ex.getMessage, ex, task.Doc)
       case ex: DocoptExitException if ex.getMessage == null =>
-        throw new InternalDocoptException(
-          null,
-          ex,
-          task.doc
-        )
+        throw new InternalDocoptException(null, ex, task.Doc)
     }
   }
 
@@ -141,4 +122,27 @@ trait DocoptCliGo {
         System.exit(1)
     }
   }
+}
+
+object DocoptCliGo {
+
+  /** A subcommand or task supported by this driver */
+  abstract class Task() {
+
+    /** The [[Docopt]] for the subcommand */
+    val Doc: String
+
+    /** The subcommand token, used to pick the task from the driver */
+    val Cmd: String
+
+    /** A short description for the subcommand */
+    val Description: String
+
+    /** Executes this subcommand
+      * @param opts
+      *   the docopts already parsed
+      */
+    def go(opts: java.util.Map[String, AnyRef]): Unit
+  }
+
 }
