@@ -1,14 +1,11 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{interceptSkryncGoDocoptEx, interceptSkryncGoDocoptExitEx, interceptSkryncGoIAEx}
-import org.scalatest.funspec.AnyFunSpecLike
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import com.skraba.docoptcli.DocoptCliGoSpec
 
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[ExecuteTask]] */
-class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+class ExecuteTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ExecuteTask)) {
 
   /** Temporary directory root for all tests. */
   val TempFolder: Path = Directory.makeTemp("skryncGo")
@@ -27,7 +24,7 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
 
   describe("SkryncGo execute command line") {
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx("execute", "--help")
+      val t = interceptGoDocoptExitEx("execute", "--help")
       t.getMessage shouldBe ExecuteTask.Doc
       // t.docopt shouldBe ExecuteTask.Doc
     }
@@ -42,7 +39,7 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
         )
       ) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptEx(args: _*)
+          val t = interceptGoDocoptEx(args: _*)
           t.docopt shouldBe ExecuteTask.Doc
         }
       }
@@ -60,7 +57,7 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
         )
       ) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          val t = interceptGoDocoptExitEx(args: _*)
           t.getExitCode shouldBe 1
           t.getMessage shouldBe s"$opt requires argument"
         }
@@ -68,23 +65,23 @@ class ExecuteTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEa
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx("execute", "--garbage")
+      val t = interceptGoDocoptEx("execute", "--garbage")
       t.docopt shouldBe ExecuteTask.Doc
     }
 
     it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = interceptSkryncGoIAEx("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
+      val tSrc = interceptGoIAEx("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
-      val tDst = interceptSkryncGoIAEx("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
+      val tDst = interceptGoIAEx("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
-      val tSrc = interceptSkryncGoIAEx("execute", "--srcDigest", TempFolder, "--dstDigest", ExistingFile)
+      val tSrc = interceptGoIAEx("execute", "--srcDigest", TempFolder, "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe s"Source is not a file: $TempFolder"
 
-      val tDst = interceptSkryncGoIAEx("execute", "--srcDigest", ExistingFile, "--dstDigest", TempFolder)
+      val tDst = interceptGoIAEx("execute", "--srcDigest", ExistingFile, "--dstDigest", TempFolder)
       tDst.getMessage shouldBe s"Destination is not a file: $TempFolder"
     }
   }

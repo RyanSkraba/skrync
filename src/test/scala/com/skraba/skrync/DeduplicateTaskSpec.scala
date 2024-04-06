@@ -1,15 +1,13 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGoSpec
 import com.skraba.skrync.DeduplicateTask.DedupPathReport
 import com.skraba.skrync.SkryncGoSpec._
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.funspec.AnyFunSpecLike
-import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DeduplicateTask]] */
-class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask)) {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -28,7 +26,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
   describe("SkryncGo dedup command line") {
 
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx("dedup", "--help")
+      val t = interceptGoDocoptExitEx("dedup", "--help")
       t.getMessage shouldBe DeduplicateTask.Doc
       // t.docopt shouldBe DeduplicateTask.Doc
     }
@@ -42,7 +40,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         )
       ) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptEx(args: _*)
+          val t = interceptGoDocoptEx(args: _*)
           t.docopt shouldBe DeduplicateTask.Doc
         }
       }
@@ -60,7 +58,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
         )
       ) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          val t = interceptGoDocoptExitEx(args: _*)
           t.getExitCode shouldBe 1
           t.getMessage shouldBe s"$opt requires argument"
         }
@@ -68,41 +66,41 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx("dedup", "--garbage")
+      val t = interceptGoDocoptEx("dedup", "--garbage")
       t.docopt shouldBe DeduplicateTask.Doc
     }
 
     describe("without --root") {
 
       it("throws an exception when the source digest doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
+        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source digest is a directory") {
-        val tSrc = interceptSkryncGoIAEx("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
+        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
       }
 
       ignore("throws an exception when the source digest is not a JSON file") {
         // TODO
-        val tSrc = interceptSkryncGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
+        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup directory doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.DoesntExist)
+        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.DoesntExist)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the dedup directory is not a directory") {
         val tSrc =
-          interceptSkryncGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
+          interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
         tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup move directory doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(
+        val tSrc = interceptGoIAEx(
           "dedup",
           "--srcDigest",
           Small.src / "ids.txt",
@@ -115,7 +113,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       }
 
       it("throws an exception when the dedup move directory is not a directory") {
-        val tSrc = interceptSkryncGoIAEx(
+        val tSrc = interceptGoIAEx(
           "dedup",
           "--srcDigest",
           Small.src / "ids.txt",
@@ -147,32 +145,32 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       )
 
       it("throws an exception when a relative --srcDigest doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(dedupExistingArgs.updated(4, "nox"): _*)
+        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(4, "nox"): _*)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --srcDigest doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(dedupExistingArgs.updated(4, Small.DoesntExist): _*)
+        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(4, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when a relative --dedupDir doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(dedupExistingArgs.updated(6, "nox"): _*)
+        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(6, "nox"): _*)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --dedupDir doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(dedupExistingArgs.updated(6, Small.DoesntExist): _*)
+        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(6, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when a relative --mvDir doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(dedupExistingArgs.updated(8, "nox"): _*)
+        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(8, "nox"): _*)
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --mvDir doesn't exist") {
-        val tSrc = interceptSkryncGoIAEx(dedupExistingArgs.updated(8, Small.DoesntExist): _*)
+        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(8, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
       }
     }
@@ -280,7 +278,7 @@ class DeduplicateTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAft
       dst: Directory = Small.dst,
       baseArgs: Seq[Any]
   )(testArgs: Seq[Any]): String = {
-    val (stdout, stderr) = withSkryncGo(baseArgs ++ testArgs: _*)
+    val (stdout, stderr) = withGo(baseArgs ++ testArgs: _*)
     stderr shouldBe empty
     stdout
       .replace(src.toString, "<SRC>")

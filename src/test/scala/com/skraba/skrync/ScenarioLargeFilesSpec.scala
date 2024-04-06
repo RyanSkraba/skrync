@@ -1,15 +1,12 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{withConsoleMatch, withSkryncGo, withSkryncGoMatch}
+import com.skraba.docoptcli.DocoptCliGoSpec
 import org.scalatest.OptionValues._
-import org.scalatest.funspec.AnyFunSpecLike
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncGo]] using a large generated source directory. */
-class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
 
   /** Temporary directory root for all tests. */
   val Large: ScenarioLargeFiles = new ScenarioLargeFiles(
@@ -119,7 +116,7 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
         // Run the application and check the output files.
         val dstDir: Directory = Large.root.resolve("dstDigest").toDirectory
         dstDir.createDirectory()
-        withSkryncGoMatch("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("output.gz")) {
+        withGoMatching("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("output.gz")) {
           case (stdout, stderr) =>
             stdout should have size 7396
             stderr shouldBe ""
@@ -148,7 +145,7 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
     dstDir.createDirectory()
 
     // Create a digests on the input.
-    withSkryncGoMatch("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare.gz")) {
+    withGoMatching("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare.gz")) {
       case (stdout, stderr) =>
         stdout should have size 7396
         stderr shouldBe ""
@@ -158,7 +155,7 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
       it(
         "finds no differences when run on digests created on the same directory."
       ) {
-        withSkryncGoMatch("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare2.gz")) {
+        withGoMatching("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare2.gz")) {
           case (stdout, stderr) =>
             stdout should have size 7396
             stderr shouldBe ""
@@ -171,7 +168,7 @@ class ScenarioLargeFilesSpec extends AnyFunSpecLike with Matchers with BeforeAnd
           Json.read(dstDir / File("compare2.gz")).copy(created = -1)
         root shouldBe root2
 
-        withSkryncGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))
+        withGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))
       }
     }
   }

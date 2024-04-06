@@ -1,14 +1,11 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec._
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.funspec.AnyFunSpecLike
-import org.scalatest.matchers.should.Matchers
+import com.skraba.docoptcli.DocoptCliGoSpec
 
 import scala.reflect.io.{Directory, File, Path, Streamable}
 
 /** Unit tests for [[CompareTask]] */
-class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -25,7 +22,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
   describe("SkryncGo compare command line") {
 
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx("compare", "--help")
+      val t = interceptGoDocoptExitEx("compare", "--help")
       t.getExitCode shouldBe 0
       t.getMessage shouldBe CompareTask.Doc
     }
@@ -39,7 +36,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
         )
       ) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptEx(args: _*)
+          val t = interceptGoDocoptEx(args: _*)
           t.docopt shouldBe CompareTask.Doc
         }
       }
@@ -53,7 +50,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
         )
       ) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          val t = interceptGoDocoptExitEx(args: _*)
           t.getExitCode shouldBe 1
           t.getMessage shouldBe s"$opt requires argument"
         }
@@ -61,23 +58,23 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx("compare", "--garbage")
+      val t = interceptGoDocoptEx("compare", "--garbage")
       t.docopt shouldBe CompareTask.Doc
     }
 
     it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = interceptSkryncGoIAEx("compare", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
+      val tSrc = interceptGoIAEx("compare", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
-      val tDst = interceptSkryncGoIAEx("compare", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
+      val tDst = interceptGoIAEx("compare", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
-      val tSrc = interceptSkryncGoIAEx("compare", "--srcDigest", Small.src, "--dstDigest", ExistingFile)
+      val tSrc = interceptGoIAEx("compare", "--srcDigest", Small.src, "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
 
-      val tDst = interceptSkryncGoIAEx("compare", "--srcDigest", ExistingFile, "--dstDigest", Small.src)
+      val tDst = interceptGoIAEx("compare", "--srcDigest", ExistingFile, "--dstDigest", Small.src)
       tDst.getMessage shouldBe s"Destination is not a file: ${Small.src}"
     }
   }
@@ -88,8 +85,8 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
     // folders, or the same unchanged folder at two different times.
     val dstDir: Directory = Small.root.resolve("dst").toDirectory
     dstDir.createDirectory()
-    withSkryncGo("digest", "--srcDir", Small.src, "--dstDigest", dstDir / File("compare.gz"))
-    withSkryncGo("digest", "--srcDir", Small.src, "--dstDigest", dstDir / File("compare2.gz"))
+    withGo("digest", "--srcDir", Small.src, "--dstDigest", dstDir / File("compare.gz"))
+    withGo("digest", "--srcDir", Small.src, "--dstDigest", dstDir / File("compare2.gz"))
 
     it("on the filesystem including digests") {
       val cmp = CompareTask.compare(
@@ -129,7 +126,7 @@ class CompareTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAl
     it("via the CLI") {
       // No exception should occur, and output is dumped to the console.
       val (stdout, stderr) =
-        withSkryncGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))
+        withGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))
 
       stdout should not have size(0)
       stdout should include("\nNo differences have been detected.\n")

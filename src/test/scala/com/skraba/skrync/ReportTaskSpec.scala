@@ -1,16 +1,12 @@
 package com.skraba.skrync
 
+import com.skraba.docoptcli.DocoptCliGoSpec
 import com.skraba.skrync.SkryncGoSpec._
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.funspec.AnyFunSpecLike
-import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.{Directory, File}
 
 /** Unit tests for [[ReportTask]] */
-class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
-
-  lazy val Task: SkryncGo.Task = ReportTask
+class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -28,13 +24,13 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       missingOptionParameters: List[List[String]] = List()
   ): Unit = {
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx(task.Cmd, "--help")
+      val t = interceptGoDocoptExitEx(task.Cmd, "--help")
       t.getMessage shouldBe task.Doc
       t.getExitCode shouldBe 0
     }
 
     it("throws an exception with --version") {
-      val t = interceptSkryncGoDocoptExitEx(task.Cmd, "--version")
+      val t = interceptGoDocoptExitEx(task.Cmd, "--version")
       t.getMessage shouldBe SkryncGo.Version
       t.getExitCode shouldBe 0
     }
@@ -42,14 +38,14 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     describe("when missing information") {
       for (args <- missingOptions) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptEx(args: _*)
+          val t = interceptGoDocoptEx(args: _*)
           t.docopt shouldBe task.Doc
         }
       }
 
       for (args: List[String] <- missingOptionParameters) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          val t = interceptGoDocoptExitEx(args: _*)
           t.getExitCode shouldBe 1
           t.getMessage shouldBe s"${args.last} requires argument"
         }
@@ -57,32 +53,32 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx(task.Cmd, "--garbage")
+      val t = interceptGoDocoptEx(task.Cmd, "--garbage")
       t.docopt shouldBe task.Doc
     }
   }
 
-  describe(s"SkryncGo ${Task.Cmd} command line") {
+  describe(s"SkryncGo ${TaskCmd} command line") {
 
     itShouldThrowNormalExceptions(
-      Task,
-      missingOptions = List(List(Task.Cmd)),
-      missingOptionParameters = List(List(Task.Cmd, "--srcDigest"))
+      ReportTask,
+      missingOptions = List(List(TaskCmd)),
+      missingOptionParameters = List(List(TaskCmd, "--srcDigest"))
     )
 
     it("throws an exception when the source digest doesn't exist") {
-      val tSrc = interceptSkryncGoIAEx(Task.Cmd, "--srcDigest", DoesntExist)
+      val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", DoesntExist)
       tSrc.getMessage shouldBe s"Source doesn't exist: $DoesntExist"
     }
 
     it("throws an exception when the source digest is a directory") {
-      val tSrc = interceptSkryncGoIAEx(Task.Cmd, "--srcDigest", Small.src)
+      val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", Small.src)
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
     }
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO
-      val tSrc = interceptSkryncGoIAEx(Task.Cmd, "--srcDigest", Small.src / "ids.txt")
+      val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", Small.src / "ids.txt")
       tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
     }
   }
@@ -113,7 +109,7 @@ class ReportTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       it("via the CLI") {
 
         // No exception should occur, and output is dumped to the console.
-        val (stdout, stderr) = withSkryncGo(Task.Cmd, "--srcDigest", dstFile)
+        val (stdout, stderr) = withGo(TaskCmd, "--srcDigest", dstFile)
 
         stdout should not have size(0)
         stdout should include(s"\nfrom: $dstFile\n")

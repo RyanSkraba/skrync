@@ -1,22 +1,14 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.{
-  interceptSkryncGoDocoptEx,
-  interceptSkryncGoDocoptExitEx,
-  interceptSkryncGoIAEx,
-  withSkryncGo
-}
-import org.scalatest.BeforeAndAfterAll
+import com.skraba.docoptcli.DocoptCliGoSpec
 import org.scalatest.OptionValues._
-import org.scalatest.funspec.AnyFunSpecLike
-import org.scalatest.matchers.should.Matchers
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DigestTask]] */
-class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+class DigestTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DigestTask)) {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
@@ -29,7 +21,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
   describe("SkryncGo digest command line") {
 
     it("throws an exception with --help") {
-      val t = interceptSkryncGoDocoptExitEx("digest", "--help")
+      val t = interceptGoDocoptExitEx("digest", "--help")
       t.getMessage shouldBe DigestTask.Doc
       // t.docopt shouldBe DigestTask.Doc
     }
@@ -37,7 +29,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     describe("when missing information") {
       for (args <- List(List("digest"))) {
         it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptEx(args: _*)
+          val t = interceptGoDocoptEx(args: _*)
           t.docopt shouldBe DigestTask.Doc
         }
       }
@@ -50,7 +42,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
         )
       ) {
         it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptSkryncGoDocoptExitEx(args: _*)
+          val t = interceptGoDocoptExitEx(args: _*)
           t.getExitCode shouldBe 1
           t.getMessage shouldBe s"$opt requires argument"
         }
@@ -58,37 +50,37 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     }
 
     it("throws an exception with unknown option") {
-      val t = interceptSkryncGoDocoptEx("digest", "--garbage")
+      val t = interceptGoDocoptEx("digest", "--garbage")
       t.docopt shouldBe DigestTask.Doc
     }
 
     describe("without --root") {
 
       it("throws an exception when the source doesn't exist") {
-        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.DoesntExist)
+        val t = interceptGoIAEx("digest", "--srcDir", Small.DoesntExist)
         t.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source is a file") {
-        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.ExistingFile.toString)
+        val t = interceptGoIAEx("digest", "--srcDir", Small.ExistingFile.toString)
         t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst exists") {
         val t =
-          interceptSkryncGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())
+          interceptGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())
         t.getMessage shouldBe s"Destination digest already exists: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dstDigest path is inside a file") {
         val fileExists = (Small.ExistingFile / "impossible").toString()
-        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
+        val t = interceptGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
         t.getMessage shouldBe s"Destination digest directory is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
         val fileExists = (Small.root / "does" / "not" / "exist").toString()
-        val t = interceptSkryncGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
+        val t = interceptGoIAEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
         t.getMessage shouldBe s"Destination digest directory doesn't exist: ${Small.root / "does" / "not"}"
       }
     }
@@ -96,22 +88,22 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
     describe("with --root") {
 
       it("throws an exception when the source doesn't exist (absolute + absolute)") {
-        val t = interceptSkryncGoIAEx("digest", "--root", "/ignored", "--srcDir", "/doesnt-exist")
+        val t = interceptGoIAEx("digest", "--root", "/ignored", "--srcDir", "/doesnt-exist")
         t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (relative + absolute)") {
-        val t = interceptSkryncGoIAEx("digest", "--root", "ignored", "--srcDir", "/doesnt-exist")
+        val t = interceptGoIAEx("digest", "--root", "ignored", "--srcDir", "/doesnt-exist")
         t.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (absolute + relative)") {
-        val t = interceptSkryncGoIAEx("digest", "--root", "/tmp", "--srcDir", "doesnt-exist")
+        val t = interceptGoIAEx("digest", "--root", "/tmp", "--srcDir", "doesnt-exist")
         t.getMessage shouldBe "Source doesn't exist: /tmp/doesnt-exist"
       }
 
       it("throws an exception when the source doesn't exist (relative + relative)") {
-        val t = interceptSkryncGoIAEx("digest", "--root", "tmp", "--srcDir", "doesnt-exist")
+        val t = interceptGoIAEx("digest", "--root", "tmp", "--srcDir", "doesnt-exist")
         // The entire message contains the current user dir.
         t.getMessage should startWith("Source doesn't exist: ")
         t.getMessage should endWith("/tmp/doesnt-exist")
@@ -119,13 +111,13 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
       it("throws an exception when the source is a file") {
         val t =
-          interceptSkryncGoIAEx("digest", "--root", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
+          interceptGoIAEx("digest", "--root", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
         t.getMessage shouldBe s"Source is not a directory: ${Small.ExistingFile}"
       }
 
       it("throws an exception when the dst exists") {
         val dstDigest = (Small.src / "ids.txt").toString()
-        val t = interceptSkryncGoIAEx(
+        val t = interceptGoIAEx(
           "digest",
           "--root",
           Small.src.toString,
@@ -138,7 +130,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       }
 
       it("throws an exception when the dstDigest path is inside a file") {
-        val t = interceptSkryncGoIAEx(
+        val t = interceptGoIAEx(
           "digest",
           "--root",
           Small.ExistingFile.parent.path,
@@ -151,7 +143,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
-        val t = interceptSkryncGoIAEx(
+        val t = interceptGoIAEx(
           "digest",
           "--root",
           Small.root.path,
@@ -167,7 +159,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
 
     it("prints to standard out when no destination") {
       // No exception should occur, and output is dumped to the console.
-      val (stdout, stderr) = withSkryncGo("digest", "--srcDir", Small.src.toString)
+      val (stdout, stderr) = withGo("digest", "--srcDir", Small.src.toString)
       stdout should not have size(0)
       stdout should include("ids.txt")
       stderr shouldBe ""
@@ -177,7 +169,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("autoDst").toDirectory
       dstDir.createDirectory()
-      val (stdout, stderr) = withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", dstDir.toString)
+      val (stdout, stderr) = withGo("digest", "--srcDir", Small.src.toString, "--dstDigest", dstDir.toString)
       stdout shouldBe "[![!]]{<.>{<.>}}"
       stderr shouldBe ""
 
@@ -213,7 +205,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       val dstDir: Directory = Small.root.resolve("dst").toDirectory
       dstDir.createDirectory()
       val (stdout, stderr) =
-        withSkryncGo("digest", "--srcDir", Small.src.toString, "--dstDigest", (dstDir / File("output.gz")).toString)
+        withGo("digest", "--srcDir", Small.src.toString, "--dstDigest", (dstDir / File("output.gz")).toString)
       stdout shouldBe "[![!]]{<.>{<.>}}"
       stderr shouldBe ""
 
@@ -235,7 +227,7 @@ class DigestTaskSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll
       // Run the application and check the system streams.
       val dstDir: Directory = Small.root.resolve("dstNoDigest").toDirectory
       dstDir.createDirectory()
-      val (stdout, stderr) = withSkryncGo(
+      val (stdout, stderr) = withGo(
         "digest",
         "--no-digest",
         "--srcDir",

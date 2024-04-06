@@ -1,0 +1,124 @@
+package com.skraba.docoptcli
+
+import com.skraba.skrync.SkryncGo
+import org.docopt.DocoptExitException
+import org.scalactic.source
+
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funspec.AnyFunSpecLike
+import org.scalatest.matchers.should.Matchers
+
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
+import scala.reflect.ClassTag
+import scala.reflect.io.Streamable
+
+/** Unit test specification base for an [[DocoptCliGo]] */
+abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Task: Option[DocoptCliGo.Task] = None)
+    extends AnyFunSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
+
+  /** The Docopt for the Task (if present) but defaulting to the Cli if not. */
+  lazy val Doc: String = Task.map(_.Doc).getOrElse(Cli.Doc)
+
+  /** The command used to specify the task (if present) or the empty string if not. */
+  lazy val TaskCmd: String = Task.map(_.Cmd).getOrElse("")
+
+  /** A helper method used to capture the console and apply it to a partial function.
+    * @param thunk
+    *   code to execute that may use Console.out and Console.err print streams
+    * @param pf
+    *   A partial function to apply matchers
+    * @tparam T
+    *   The return value type of the thunk code to execute
+    * @tparam U
+    *   The return value type of the partial function to return.
+    * @return
+    *   The return value of the partial function.
+    */
+  def withConsoleMatch[T, U](
+      thunk: => T
+  )(pf: scala.PartialFunction[(T, String, String), U]): U = {
+    Streamable.closing(new ByteArrayOutputStream()) { out =>
+      Streamable.closing(new ByteArrayOutputStream()) { err =>
+        Console.withOut(out) {
+          Console.withErr(err) {
+            val t = thunk
+            Console.out.flush()
+            Console.err.flush()
+            // The return value
+            pf(
+              t,
+              new String(out.toByteArray, StandardCharsets.UTF_8),
+              new String(err.toByteArray, StandardCharsets.UTF_8)
+            )
+          }
+        }
+      }
+    }
+  }
+
+  /** A helper method used to capture the console of a SkryncGo execution and apply it to a partial function.
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @param pf
+    *   A partial function to apply matchers
+    * @tparam T
+    *   The return value type of the thunk code to execute
+    * @tparam U
+    *   The return value type of the partial function to return.
+    * @return
+    *   The return value of the partial function.
+    */
+  def withGoMatching[T, U](args: Any*)(pf: scala.PartialFunction[(String, String), U]): U =
+    withConsoleMatch(Cli.go(args.map(_.toString): _*)) { case (_, stdout, stderr) =>
+      pf(stdout, stderr)
+    }
+
+  /** A helper method used to capture the console of a SkryncGo execution and return the output.
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   A tuple of the stdout and stderr
+    */
+  def withGo(args: Any*): (String, String) = withGoMatching(args: _*) { case any => any }
+
+  /** A helper method used to capture an exception thrown by [[withGo]]
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptGo[EX <: AnyRef](args: Any*)(implicit classTag: ClassTag[EX], pos: source.Position): EX =
+    intercept[EX] { withGo(args: _*) }(classTag, pos)
+
+  /** A helper method used to capture an [[DocoptExitException]] thrown by [[withGo]]
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptGoDocoptExitEx(args: Any*): DocoptExitException = interceptGo[DocoptExitException](args: _*)
+
+  /** A helper method used to capture an [[Cli.InternalDocoptException]] thrown by [[withGo]]
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptGoDocoptEx(args: Any*): Cli.InternalDocoptException = interceptGo[Cli.InternalDocoptException](args: _*)
+
+  /** A helper method used to capture an [[IllegalArgumentException]] thrown by [[withGo]]
+    *
+    * @param args
+    *   String arguments to pass to the SkryncGo.go method
+    * @return
+    *   The exception thrown when the arguments are run
+    */
+  def interceptGoIAEx(args: Any*): IllegalArgumentException = interceptGo[IllegalArgumentException](args: _*)
+}

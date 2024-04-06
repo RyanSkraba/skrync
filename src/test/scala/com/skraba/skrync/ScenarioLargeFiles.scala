@@ -14,11 +14,7 @@ import scala.util.Random
   * @param numFiles
   *   The number of files to include in the scenario.
   */
-class ScenarioLargeFiles(
-    val root: Directory,
-    val deleteRootOnCleanup: Boolean,
-    val numFiles: Int = 1000
-) {
+class ScenarioLargeFiles(val root: Directory, val deleteRootOnCleanup: Boolean, val numFiles: Int = 1000) {
 
   /** Remove the directory inside the root, including the root directory if requested. */
   def cleanup(): Unit =
