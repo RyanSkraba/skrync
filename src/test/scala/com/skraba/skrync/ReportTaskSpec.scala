@@ -18,52 +18,11 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
   val DoesntExist: String = (Small.root / "doesnt-exist").toString()
 
-  def itShouldThrowNormalExceptions(
-      task: SkryncGo.Task,
-      missingOptions: List[List[String]] = List(),
-      missingOptionParameters: List[List[String]] = List()
-  ): Unit = {
-    it("throws an exception with --help") {
-      val t = interceptGoDocoptExitEx(task.Cmd, "--help")
-      t.getMessage shouldBe task.Doc
-      t.getExitCode shouldBe 0
-    }
-
-    it("throws an exception with --version") {
-      val t = interceptGoDocoptExitEx(task.Cmd, "--version")
-      t.getMessage shouldBe SkryncGo.Version
-      t.getExitCode shouldBe 0
-    }
-
-    describe("when missing information") {
-      for (args <- missingOptions) {
-        it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptGoDocoptEx(args: _*)
-          t.docopt shouldBe task.Doc
-        }
-      }
-
-      for (args: List[String] <- missingOptionParameters) {
-        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptGoDocoptExitEx(args: _*)
-          t.getExitCode shouldBe 1
-          t.getMessage shouldBe s"${args.last} requires argument"
-        }
-      }
-    }
-
-    it("throws an exception with unknown option") {
-      val t = interceptGoDocoptEx(task.Cmd, "--garbage")
-      t.docopt shouldBe task.Doc
-    }
-  }
-
   describe(s"SkryncGo ${TaskCmd} command line") {
 
     itShouldThrowNormalExceptions(
-      ReportTask,
-      missingOptions = List(List(TaskCmd)),
-      missingOptionParameters = List(List(TaskCmd, "--srcDigest"))
+      missingOptions = List(List()),
+      missingOptionParameters = List(List("--srcDigest"))
     )
 
     it("throws an exception when the source digest doesn't exist") {
@@ -87,13 +46,7 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
     describe("in the original") {
       it(s"it doesn't have any duplicates") {
-        val cmp = ReportTask.report(
-          SkryncGo.Analysis(
-            Small.src,
-            0,
-            SkryncDir.scan(Small.src, digest = true)
-          )
-        )
+        val cmp = ReportTask.report(SkryncGo.Analysis(Small.src, 0, SkryncDir.scan(Small.src, digest = true)))
         cmp.duplicateFiles shouldBe List()
       }
     }

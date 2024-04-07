@@ -121,4 +121,58 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     *   The exception thrown when the arguments are run
     */
   def interceptGoIAEx(args: Any*): IllegalArgumentException = interceptGo[IllegalArgumentException](args: _*)
+
+  /** Runs some expected tests on a certain number of scenarios.
+    * @param missingOptions
+    *   A list of argument lists, each one missing a necessary option for the Cli to proceed.
+    * @param missingOptionParameters
+    *   A list of argument lists, where the last option is missing its argument
+    * @param unknownArg
+    *   An invalid option (by default --unknown).
+    */
+  protected def itShouldThrowNormalExceptions(
+      missingOptions: Seq[Seq[String]] = Seq.empty,
+      missingOptionParameters: Seq[Seq[String]] = Seq.empty,
+      unknownArg: String = "--unknown"
+  ): Unit = {
+
+    val prefixArgs = Task.map(_.Cmd).toSeq
+
+    it(s"throws an exception with ${prefixArgs.mkString(" ")} --help") {
+      val t = interceptGoDocoptExitEx(prefixArgs :+ "--help": _*)
+      t.getMessage shouldBe Doc
+      t.getExitCode shouldBe 0
+    }
+
+    it(s"throws an exception with ${prefixArgs.mkString(" ")} --version") {
+      val t = interceptGoDocoptExitEx(prefixArgs :+ "--version": _*)
+      t.getMessage shouldBe Cli.Version
+      t.getExitCode shouldBe 0
+    }
+
+    describe("when missing information") {
+      for (args <- missingOptions) {
+        val allArgs = prefixArgs ++ args
+        it("throws an exception on missing options: " + allArgs.mkString(" ")) {
+          val t = interceptGoDocoptEx(allArgs: _*)
+          t.docopt shouldBe Doc
+        }
+      }
+
+      for (args: Seq[String] <- missingOptionParameters) {
+        val allArgs = prefixArgs ++ args
+        it("throws an exception on missing option parameters: " + allArgs.mkString(" ")) {
+          val t = interceptGoDocoptExitEx(allArgs: _*)
+          t.getExitCode shouldBe 1
+          t.getMessage shouldBe s"${args.last} requires argument"
+        }
+      }
+    }
+
+    it("throws an exception with unknown option") {
+      val t = interceptGoDocoptEx(prefixArgs :+ unknownArg: _*)
+      t.docopt shouldBe Doc
+    }
+  }
+
 }
