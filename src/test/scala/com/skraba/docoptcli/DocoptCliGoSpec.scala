@@ -122,6 +122,24 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     */
   def interceptGoIAEx(args: Any*): IllegalArgumentException = interceptGo[IllegalArgumentException](args: _*)
 
+  /** Run tests on the --help and --version flags that cause a system exit. */
+  val itShouldThrowOnHelpAndVersion: () => Unit = () => {
+
+    val prefixArgs = Task.map(_.Cmd).toSeq
+
+    it(s"throws an exception with ${prefixArgs.mkString(" ")} --help") {
+      val t = interceptGoDocoptExitEx(prefixArgs :+ "--help": _*)
+      t.getMessage shouldBe Doc
+      t.getExitCode shouldBe 0
+    }
+
+    it(s"throws an exception with ${prefixArgs.mkString(" ")} --version") {
+      val t = interceptGoDocoptExitEx(prefixArgs :+ "--version": _*)
+      t.getMessage shouldBe Cli.Version
+      t.getExitCode shouldBe 0
+    }
+  }
+
   /** Runs some expected tests on a certain number of scenarios.
     * @param missingOptions
     *   A list of argument lists, each one missing a necessary option for the Cli to proceed.
@@ -137,18 +155,6 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   ): Unit = {
 
     val prefixArgs = Task.map(_.Cmd).toSeq
-
-    it(s"throws an exception with ${prefixArgs.mkString(" ")} --help") {
-      val t = interceptGoDocoptExitEx(prefixArgs :+ "--help": _*)
-      t.getMessage shouldBe Doc
-      t.getExitCode shouldBe 0
-    }
-
-    it(s"throws an exception with ${prefixArgs.mkString(" ")} --version") {
-      val t = interceptGoDocoptExitEx(prefixArgs :+ "--version": _*)
-      t.getMessage shouldBe Cli.Version
-      t.getExitCode shouldBe 0
-    }
 
     describe("when missing information") {
       for (args <- missingOptions) {

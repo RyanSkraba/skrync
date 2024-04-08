@@ -20,6 +20,8 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
   describe(s"SkryncGo ${TaskCmd} command line") {
 
+    itShouldThrowOnHelpAndVersion()
+
     itShouldThrowNormalExceptions(
       missingOptions = List(List()),
       missingOptionParameters = List(List("--srcDigest"))
