@@ -25,6 +25,9 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   /** The command used to specify the task (if present) or the empty string if not. */
   lazy val TaskCmd: String = Task.map(_.Cmd).getOrElse("")
 
+  /** A flag that doesn't exist in the Docopt. */
+  lazy val UnknownFlag: String = "--unknownDoesNotExistGarbage"
+
   /** A helper method used to capture the console and apply it to a partial function.
     * @param thunk
     *   code to execute that may use Console.out and Console.err print streams
@@ -123,7 +126,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   def interceptGoIAEx(args: Any*): IllegalArgumentException = interceptGo[IllegalArgumentException](args: _*)
 
   /** Run tests on the --help and --version flags that cause a system exit. */
-  val itShouldThrowOnHelpAndVersion: () => Unit = () => {
+  val itShouldThrowOnHelpAndVersionFlags: () => Unit = () => {
 
     val prefixArgs = Task.map(_.Cmd).toSeq
 
@@ -140,45 +143,33 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     }
   }
 
-  /** Runs some expected tests on a certain number of scenarios.
-    * @param missingOptions
-    *   A list of argument lists, each one missing a necessary option for the Cli to proceed.
-    * @param missingOptionParameters
-    *   A list of argument lists, where the last option is missing its argument
-    * @param unknownArg
-    *   An invalid option (by default --unknown).
-    */
-  protected def itShouldThrowNormalExceptions(
-      missingOptions: Seq[Seq[String]] = Seq.empty,
-      missingOptionParameters: Seq[Seq[String]] = Seq.empty,
-      unknownArg: String = "--unknown"
-  ): Unit = {
+  /** Run tests on an unrecognized flag. */
+  val itShouldThrowOnUnknownFlag: () => Unit = () => {
 
     val prefixArgs = Task.map(_.Cmd).toSeq
 
-    describe("when missing information") {
-      for (args <- missingOptions) {
-        val allArgs = prefixArgs ++ args
-        it("throws an exception on missing options: " + allArgs.mkString(" ")) {
-          val t = interceptGoDocoptEx(allArgs: _*)
-          t.docopt shouldBe Doc
-        }
-      }
-
-      for (args: Seq[String] <- missingOptionParameters) {
-        val allArgs = prefixArgs ++ args
-        it("throws an exception on missing option parameters: " + allArgs.mkString(" ")) {
-          val t = interceptGoDocoptExitEx(allArgs: _*)
-          t.getExitCode shouldBe 1
-          t.getMessage shouldBe s"${args.last} requires argument"
-        }
-      }
-    }
-
     it("throws an exception with unknown option") {
-      val t = interceptGoDocoptEx(prefixArgs :+ unknownArg: _*)
+      val t = interceptGoDocoptEx(prefixArgs :+ UnknownFlag: _*)
       t.docopt shouldBe Doc
     }
   }
 
+  /** Run tests on a command line that is missing necessary information for the Cli to proceed. */
+  val itShouldThrowOnMissingOpt: Seq[String] => Unit = args => {
+    val allArgs = Task.map(_.Cmd).toSeq ++ args
+    it("throws an exception on missing options: " + allArgs.mkString(" ")) {
+      val t = interceptGoDocoptEx(allArgs: _*)
+      t.docopt shouldBe Doc
+    }
+  }
+
+  /** Run tests on a command line where the last argument is an option missing its value. */
+  val itShouldThrowOnMissingOptValue: Seq[String] => Unit = args => {
+    val allArgs = Task.map(_.Cmd).toSeq ++ args
+    it("throws an exception on missing option parameters: " + allArgs.mkString(" ")) {
+      val t = interceptGoDocoptExitEx(allArgs: _*)
+      t.getExitCode shouldBe 1
+      t.getMessage shouldBe s"${args.last} requires argument"
+    }
+  }
 }

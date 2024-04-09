@@ -20,12 +20,13 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
   describe(s"SkryncGo ${TaskCmd} command line") {
 
-    itShouldThrowOnHelpAndVersion()
+    itShouldThrowOnHelpAndVersionFlags()
 
-    itShouldThrowNormalExceptions(
-      missingOptions = List(List()),
-      missingOptionParameters = List(List("--srcDigest"))
-    )
+    itShouldThrowOnUnknownFlag()
+
+    itShouldThrowOnMissingOpt(Seq.empty)
+
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest"))
 
     it("throws an exception when the source digest doesn't exist") {
       val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", DoesntExist)
