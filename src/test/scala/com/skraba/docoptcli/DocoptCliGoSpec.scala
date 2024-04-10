@@ -1,6 +1,5 @@
 package com.skraba.docoptcli
 
-import com.skraba.skrync.SkryncGo
 import org.docopt.DocoptExitException
 import org.scalactic.source
 
@@ -62,9 +61,9 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     }
   }
 
-  /** A helper method used to capture the console of a SkryncGo execution and apply it to a partial function.
+  /** A helper method used to capture the console of a Cli execution and apply it to a partial function.
     * @param args
-    *   String arguments to pass to the SkryncGo.go method
+    *   String arguments to pass to the [[DocoptCliGo.go()]] method
     * @param pf
     *   A partial function to apply matchers
     * @tparam T
@@ -79,10 +78,10 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
       pf(stdout, stderr)
     }
 
-  /** A helper method used to capture the console of a SkryncGo execution and return the output.
+  /** A helper method used to capture the console of a Cli execution and return the output.
     *
     * @param args
-    *   String arguments to pass to the SkryncGo.go method
+    *   String arguments to pass to the [[DocoptCliGo.go()]] method
     * @return
     *   A tuple of the stdout and stderr
     */
@@ -91,7 +90,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   /** A helper method used to capture an exception thrown by [[withGo]]
     *
     * @param args
-    *   String arguments to pass to the SkryncGo.go method
+    *   String arguments to pass to the [[DocoptCliGo.go()]] method
     * @return
     *   The exception thrown when the arguments are run
     */
@@ -101,7 +100,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   /** A helper method used to capture an [[DocoptExitException]] thrown by [[withGo]]
     *
     * @param args
-    *   String arguments to pass to the SkryncGo.go method
+    *   String arguments to pass to the [[DocoptCliGo.go()]] method
     * @return
     *   The exception thrown when the arguments are run
     */
@@ -110,7 +109,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   /** A helper method used to capture an [[Cli.InternalDocoptException]] thrown by [[withGo]]
     *
     * @param args
-    *   String arguments to pass to the SkryncGo.go method
+    *   String arguments to pass to the [[DocoptCliGo.go()]] method
     * @return
     *   The exception thrown when the arguments are run
     */
@@ -119,7 +118,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   /** A helper method used to capture an [[IllegalArgumentException]] thrown by [[withGo]]
     *
     * @param args
-    *   String arguments to pass to the SkryncGo.go method
+    *   String arguments to pass to the [[DocoptCliGo.go()]] method
     * @return
     *   The exception thrown when the arguments are run
     */
@@ -131,6 +130,12 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     val prefixArgs = Task.map(_.Cmd).toSeq
 
     it(s"throws an exception with ${prefixArgs.mkString(" ")} --help") {
+      val t = interceptGoDocoptExitEx(prefixArgs :+ "--help": _*)
+      t.getMessage shouldBe Doc
+      t.getExitCode shouldBe 0
+    }
+
+    it(s"throws an exception with a bare ${prefixArgs.mkString(" ")}") {
       val t = interceptGoDocoptExitEx(prefixArgs :+ "--help": _*)
       t.getMessage shouldBe Doc
       t.getExitCode shouldBe 0
@@ -151,6 +156,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     it("throws an exception with unknown option") {
       val t = interceptGoDocoptEx(prefixArgs :+ UnknownFlag: _*)
       t.docopt shouldBe Doc
+      t.getMessage shouldBe null
     }
   }
 
@@ -160,6 +166,7 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
     it("throws an exception on missing options: " + allArgs.mkString(" ")) {
       val t = interceptGoDocoptEx(allArgs: _*)
       t.docopt shouldBe Doc
+      t.getMessage shouldBe null
     }
   }
 

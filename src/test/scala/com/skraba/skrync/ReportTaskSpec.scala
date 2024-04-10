@@ -9,16 +9,14 @@ import scala.reflect.io.{Directory, File}
 class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
+  val Small: ScenarioSmallFiles =
+    new ScenarioSmallFiles(Directory.makeTemp(getClass.getSimpleName), deleteRootOnCleanup = true)
 
   override protected def afterAll(): Unit = Small.cleanup()
 
   val DoesntExist: String = (Small.root / "doesnt-exist").toString()
 
-  describe(s"SkryncGo ${TaskCmd} command line") {
+  describe(s"${Cli.Cli} ${TaskCmd} command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
@@ -57,10 +55,8 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
     describe("in scenario4") {
 
       // Generate an analysis of the scenario4 directory
-      val (dstFile, analysis) = withSkryncGoAnalysis(
-        Small.srcWithDuplicateFile,
-        Small.root / "dst" / File("scenario4.gz")
-      )
+      val (dstFile, analysis) =
+        withSkryncGoAnalysis(Small.srcWithDuplicateFile, Small.root / "dst" / File("scenario4.gz"))
 
       it("via the CLI") {
 
@@ -71,9 +67,7 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
         stdout should include(s"\nfrom: $dstFile\n")
         stdout should include("\ntotal files: 3\n")
         stdout should include(s"\n   ${Small.srcWithDuplicateFile}/ids.txt\n")
-        stdout should include(
-          s"\n   ${Small.srcWithDuplicateFile}/sub/ids.txt\n"
-        )
+        stdout should include(s"\n   ${Small.srcWithDuplicateFile}/sub/ids.txt\n")
         stderr shouldBe ""
       }
 

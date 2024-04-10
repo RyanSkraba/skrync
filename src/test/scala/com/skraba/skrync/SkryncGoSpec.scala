@@ -25,27 +25,10 @@ class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
     }
   }
 
-  describe("SkryncGo valid commands") {
-    it("throw an exception with --version") {
-      val t = interceptGo[DocoptExitException]("--version")
-      t.getExitCode shouldBe 0
-      t.getMessage shouldBe SkryncGo.Version
-    }
+  describe(s"${Cli.Cli} command line") {
 
-    it("throw an exception with --help") {
-      val t = interceptGo[DocoptExitException]("--help")
-      t.getExitCode shouldBe 0
-      t.getMessage shouldBe SkryncGo.Doc
-    }
+    itShouldThrowOnHelpAndVersionFlags()
 
-    it("throw an exception like --help when run bare") {
-      val t = interceptGo[DocoptExitException]()
-      t.getExitCode shouldBe 0
-      t.getMessage shouldBe SkryncGo.Doc
-    }
-  }
-
-  describe("SkryncGo command line options") {
     it("throw an exception like --help when run without a command") {
       val t = interceptGoDocoptEx("--debug")
       t.getMessage shouldBe "Missing command"
@@ -60,9 +43,7 @@ class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
         Seq("--garbage", "garbage")
       )
     ) it(s"throw an exception with unknown option $args") {
-      val t = intercept[DocoptExitException] {
-        withGo(args: _*)
-      }
+      val t = interceptGoDocoptExitEx(args: _*)
       t.getExitCode shouldBe 1
       t.getMessage shouldBe null
     }

@@ -10,7 +10,7 @@ object SkryncGo extends DocoptCliGo {
 
   type Task = DocoptCliGo.Task
 
-  override lazy val Cli: String = this.getClass.getSimpleName
+  override lazy val Cli: String = "SkryncGo"
 
   override lazy val Version: String = "0.0.1-SNAPSHOT"
 
