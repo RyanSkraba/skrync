@@ -23,52 +23,24 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
     Small.dst
   )
 
-  describe("SkryncGo dedup command line") {
+  describe(s"${Cli.Cli} ${TaskCmd} command line") {
 
-    it("throws an exception with --help") {
-      val t = interceptGoDocoptExitEx("dedup", "--help")
-      t.getMessage shouldBe DeduplicateTask.Doc
-      // t.docopt shouldBe DeduplicateTask.Doc
-    }
+    itShouldThrowOnHelpAndVersionFlags()
 
-    describe("when missing information") {
-      for (
-        args <- List(
-          List("dedup"),
-          List("dedup", "--srcDigest", "x"),
-          List("dedup", "--dedupDir", "x")
-        )
-      ) {
-        it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptGoDocoptEx(args: _*)
-          t.docopt shouldBe DeduplicateTask.Doc
-        }
-      }
+    itShouldThrowOnUnknownFlag()
 
-      for (
-        (opt, args) <- List(
-          "--srcDigest" -> List("dedup", "--srcDigest"),
-          "--dedupDir" -> List("dedup", "--srcDigest", "x", "--dedupDir"),
-          "--dedupDir" -> List("dedup", "--dedupDir"),
-          "--srcDigest" -> List("dedup", "--dedupDir", "x", "--srcDigest"),
-          "--root" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--root"),
-          "--mvDir" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--mvDir"),
-          "--knownExt" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--knownExt"),
-          "--unknownExt" -> List("dedup", "--srcDigest", "x", "--dedupDir", "x", "--unknownExt")
-        )
-      ) {
-        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptGoDocoptExitEx(args: _*)
-          t.getExitCode shouldBe 1
-          t.getMessage shouldBe s"$opt requires argument"
-        }
-      }
-    }
+    itShouldThrowOnMissingOpt(Seq.empty)
+    itShouldThrowOnMissingOpt(Seq("--srcDigest", "x"))
+    itShouldThrowOnMissingOpt(Seq("--dedupDir", "x"))
 
-    it("throws an exception with unknown option") {
-      val t = interceptGoDocoptEx("dedup", "--garbage")
-      t.docopt shouldBe DeduplicateTask.Doc
-    }
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir"))
+    itShouldThrowOnMissingOptValue(Seq("--dedupDir"))
+    itShouldThrowOnMissingOptValue(Seq("--dedupDir", "x", "--srcDigest"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--root"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--mvDir"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--knownExt"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--unknownExt"))
 
     describe("without --root") {
 
