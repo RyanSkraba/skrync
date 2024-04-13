@@ -18,41 +18,17 @@ class DigestTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DigestTask)) {
 
   override protected def afterAll(): Unit = Small.cleanup()
 
-  describe("SkryncGo digest command line") {
+  describe(s"${Cli.Cli} ${TaskCmd} command line") {
 
-    it("throws an exception with --help") {
-      val t = interceptGoDocoptExitEx("digest", "--help")
-      t.getMessage shouldBe DigestTask.Doc
-      // t.docopt shouldBe DigestTask.Doc
-    }
+    itShouldThrowOnHelpAndVersionFlags()
 
-    describe("when missing information") {
-      for (args <- List(List("digest"))) {
-        it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptGoDocoptEx(args: _*)
-          t.docopt shouldBe DigestTask.Doc
-        }
-      }
+    itShouldThrowOnUnknownFlag()
 
-      for (
-        (opt, args) <- List(
-          "--srcDir" -> List("digest", "--srcDir"),
-          "--root" -> List("digest", "--srcDir", "x", "--root"),
-          "--dstDigest" -> List("digest", "--srcDir", "x", "--dstDigest")
-        )
-      ) {
-        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptGoDocoptExitEx(args: _*)
-          t.getExitCode shouldBe 1
-          t.getMessage shouldBe s"$opt requires argument"
-        }
-      }
-    }
+    itShouldThrowOnMissingOpt(Seq.empty)
 
-    it("throws an exception with unknown option") {
-      val t = interceptGoDocoptEx("digest", "--garbage")
-      t.docopt shouldBe DigestTask.Doc
-    }
+    itShouldThrowOnMissingOptValue(Seq("--srcDir"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDir", "x", "--root"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDir", "x", "--dstDigest"))
 
     describe("without --root") {
 
