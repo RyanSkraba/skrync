@@ -22,52 +22,25 @@ class ExecuteTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ExecuteTask)) {
         ex.printStackTrace()
     }
 
-  describe("SkryncGo execute command line") {
-    it("throws an exception with --help") {
-      val t = interceptGoDocoptExitEx("execute", "--help")
-      t.getMessage shouldBe ExecuteTask.Doc
-      // t.docopt shouldBe ExecuteTask.Doc
-    }
+  describe(s"${Cli.Cli} ${TaskCmd} command line") {
 
-    describe("when missing information") {
-      for (
-        args <- List(
-          List("execute"),
-          List("execute", "--srcDigest", "x"),
-          List("execute", "--dstDigest", "x"),
-          List("execute", "--backup", "x")
-        )
-      ) {
-        it("throws an exception on missing options: " + args.mkString(" ")) {
-          val t = interceptGoDocoptEx(args: _*)
-          t.docopt shouldBe ExecuteTask.Doc
-        }
-      }
+    itShouldThrowOnHelpAndVersionFlags()
 
-      for (
-        (opt, args) <- List(
-          "--dstDigest" -> List("execute", "--dstDigest"),
-          "--srcDigest" -> List("execute", "--dstDigest", "x", "--srcDigest"),
-          "--srcDigest" -> List("execute", "--srcDigest"),
-          "--dstDigest" -> List("execute", "--srcDigest", "x", "--dstDigest"),
-          "--backup" -> List("execute", "--srcDigest", "x", "--dstDigest", "x", "--backup"),
-          "--plan" -> List("execute", "--plan"),
-          "--backup" -> List("execute", "--plan", "x", "--backup"),
-          "--plan" -> List("execute", "--backup", "x", "--plan")
-        )
-      ) {
-        it("throws an exception on missing option parameters: " + args.mkString(" ")) {
-          val t = interceptGoDocoptExitEx(args: _*)
-          t.getExitCode shouldBe 1
-          t.getMessage shouldBe s"$opt requires argument"
-        }
-      }
-    }
+    itShouldThrowOnUnknownFlag()
 
-    it("throws an exception with unknown option") {
-      val t = interceptGoDocoptEx("execute", "--garbage")
-      t.docopt shouldBe ExecuteTask.Doc
-    }
+    itShouldThrowOnMissingOpt(Seq.empty)
+    itShouldThrowOnMissingOpt(Seq("--dstDigest", "x"))
+    itShouldThrowOnMissingOpt(Seq("--srcDigest", "x"))
+    itShouldThrowOnMissingOpt(Seq("--backup", "x"))
+
+    itShouldThrowOnMissingOptValue(Seq("--dstDigest"))
+    itShouldThrowOnMissingOptValue(Seq("--dstDigest", "x", "--srcDigest"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dstDigest"))
+    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dstDigest", "x", "--backup"))
+    itShouldThrowOnMissingOptValue(Seq("--plan"))
+    itShouldThrowOnMissingOptValue(Seq("--plan", "x", "--backup"))
+    itShouldThrowOnMissingOptValue(Seq("--backup", "x", "--plan"))
 
     it("throws an exception when the source or destination doesn't exist") {
       val tSrc = interceptGoIAEx("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
