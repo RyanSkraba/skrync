@@ -20,11 +20,9 @@ class ScenarioLargeFiles(val root: Directory, val deleteRootOnCleanup: Boolean, 
   def cleanup(): Unit =
     try {
       src.deleteRecursively()
-      if (deleteRootOnCleanup)
-        root.deleteRecursively()
+      if (deleteRootOnCleanup) root.deleteRecursively()
     } catch {
-      case ex: Exception =>
-        ex.printStackTrace()
+      case ex: Exception => ex.printStackTrace()
     }
 
   /** Simple test directory with many files. */
@@ -38,8 +36,7 @@ class ScenarioLargeFiles(val root: Directory, val deleteRootOnCleanup: Boolean, 
     Digests.fromHex("FC91B79BF39FAB778E18BA2C63F0DFC897E27F77")
 
   /** The SHA1 digest of the directory. */
-  val dirDigest: Digest =
-    Digests.fromHex("9379B4430CB333B06F7480C586C0C1461004AC69")
+  val dirDigest: Digest = Digests.fromHex("9379B4430CB333B06F7480C586C0C1461004AC69")
 
   {
     src.createDirectory(force = false, failIfExists = true)

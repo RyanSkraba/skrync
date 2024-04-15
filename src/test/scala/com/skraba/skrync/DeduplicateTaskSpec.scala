@@ -23,7 +23,7 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
     Small.dst
   )
 
-  describe(s"${Cli.Cli} ${TaskCmd} command line") {
+  describe(s"${Cli.Cli} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
@@ -66,8 +66,7 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       }
 
       it("throws an exception when the dedup directory is not a directory") {
-        val tSrc =
-          interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
+        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
         tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
       }
 

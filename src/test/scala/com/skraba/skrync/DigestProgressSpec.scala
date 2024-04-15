@@ -45,15 +45,13 @@ class DigestProgressSpec extends AnyFunSpecLike with Matchers with BeforeAndAfte
       w.msgs.dequeue() shouldBe "Digesting dir... () : None"
       w.msgs.dequeue() shouldBe "Digesting... (ids.txt) : None"
       w.msgs.dequeue() shouldBe "Digesting... : 12"
-      w.msgs
-        .dequeue() shouldBe s"Digested (ids.txt) : ${Digests.toHex(Small.fileIdTxtDigest)}"
+      w.msgs.dequeue() shouldBe s"Digested (ids.txt) : ${Digests.toHex(Small.fileIdTxtDigest)}"
       w.msgs.dequeue() shouldBe "Digesting dir... (sub) : None"
       w.msgs.dequeue() shouldBe "Digesting... (sub/ids2.txt) : None"
       w.msgs.dequeue() shouldBe "Digesting... : 15"
       w.msgs.dequeue() shouldBe "Digested (sub/ids2.txt) : 70EEB052A7DE574CCCA9608D38D64382EDB00F78"
       w.msgs.dequeue() shouldBe "Digested dir (sub) : EA0AE70F1FBBDB58778290AFCCAE3907C2074A46"
-      w.msgs
-        .dequeue() shouldBe s"Digested dir () : ${Digests.toHex(Small.dirDigest)}"
+      w.msgs.dequeue() shouldBe s"Digested dir () : ${Digests.toHex(Small.dirDigest)}"
       w.msgs.dequeue() shouldBe s"Done () : ${Digests.toHex(Small.dirDigest)}"
       w.msgs should have size 0
     }
@@ -77,39 +75,27 @@ class MockDigestProgress(
     file
   }
   override def digestingDir(p: Path, dir: SkryncDir): SkryncDir = {
-    msgs.enqueue(
-      s"Digesting dir... (${root.relativize(p)}) : ${dir.path.digest}"
-    )
+    msgs.enqueue(s"Digesting dir... (${root.relativize(p)}) : ${dir.path.digest}")
     dir
   }
   override def digestedDir(p: Path, dir: SkryncDir): SkryncDir = {
-    msgs.enqueue(
-      s"Digested dir (${root.relativize(p)}) : ${Digests.toHex(dir.path.digest.value)}"
-    )
+    msgs.enqueue(s"Digested dir (${root.relativize(p)}) : ${Digests.toHex(dir.path.digest.value)}")
     dir
   }
   override def digestingFile(p: Path, file: SkryncPath): SkryncPath = {
-    msgs.enqueue(
-      s"Digesting... (${root.relativize(p)}) : ${file.digest}"
-    )
+    msgs.enqueue(s"Digesting... (${root.relativize(p)}) : ${file.digest}")
     file
   }
   override def digestingFileProgress(len: Long): Long = {
-    msgs.enqueue(
-      s"Digesting... : $len"
-    )
+    msgs.enqueue(s"Digesting... : $len")
     len
   }
   override def digestedFile(p: Path, file: SkryncPath): SkryncPath = {
-    msgs.enqueue(
-      s"Digested (${root.relativize(p)}) : ${Digests.toHex(file.digest.value)}"
-    )
+    msgs.enqueue(s"Digested (${root.relativize(p)}) : ${Digests.toHex(file.digest.value)}")
     file
   }
   override def done(p: Directory, dir: SkryncDir): SkryncDir = {
-    msgs.enqueue(
-      s"Done (${root.relativize(p)}) : ${Digests.toHex(dir.path.digest.value)}"
-    )
+    msgs.enqueue(s"Done (${root.relativize(p)}) : ${Digests.toHex(dir.path.digest.value)}")
     dir
   }
 }

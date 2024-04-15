@@ -1,7 +1,6 @@
 package com.skraba.skrync
 
 import com.skraba.docoptcli.DocoptCliGoSpec
-import org.docopt.DocoptExitException
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[SkryncGo]] */

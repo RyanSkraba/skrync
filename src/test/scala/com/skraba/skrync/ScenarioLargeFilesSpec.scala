@@ -22,13 +22,10 @@ class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
       // The large file.
       Digests.getSha1(Large.bigFile) shouldBe Large.bigFileDigest
 
-      Digests.getSha1(
-        Large.src / File("3Z0EP1uW/4SIebeyBk/Edna6/0n90T06rcb.bin")
-      ) shouldBe Digests.fromHex("ef7035c4aec006dc7d0c9655912b021c11d51a30")
+      Digests.getSha1(Large.src / File("3Z0EP1uW/4SIebeyBk/Edna6/0n90T06rcb.bin")) shouldBe
+        Digests.fromHex("ef7035c4aec006dc7d0c9655912b021c11d51a30")
 
-      Digests.getSha1(
-        Large.src / File("3Z0EP1uW/4SIebeyBk/Edna6/nvmVfF.txt")
-      ) shouldBe
+      Digests.getSha1(Large.src / File("3Z0EP1uW/4SIebeyBk/Edna6/nvmVfF.txt")) shouldBe
         Digests.fromHex("ff5cfa665f608d53024bdce9520d5abbe78ef27f")
 
     }
@@ -93,22 +90,15 @@ class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
 
       dirWithSha1.files should have size 1
       val fileWithSha1 = dirWithSha1.files.head
-      Digests.toHex(fileWithSha1.digest.get) shouldBe Digests.toHex(
-        Large.bigFileDigest
-      )
-      fileWithSha1 shouldBe
-        fileWithoutSha1.copy(digest = Some(Large.bigFileDigest))
+      Digests.toHex(fileWithSha1.digest.get) shouldBe Digests.toHex(Large.bigFileDigest)
+      fileWithSha1 shouldBe fileWithoutSha1.copy(digest = Some(Large.bigFileDigest))
 
-      Digests.toHex(dirWithSha1.path.digest.get) shouldBe Digests.toHex(
-        Large.dirDigest
-      )
+      Digests.toHex(dirWithSha1.path.digest.get) shouldBe Digests.toHex(Large.dirDigest)
 
       // Check flattening the directory.
       val paths = dirWithSha1.flattenPaths(Path("flatten"))
       paths should have size 1000
-      paths should contain(
-        Path(s"flatten/${Large.bigFile.name}") -> fileWithSha1
-      )
+      paths should contain(Path(s"flatten/${Large.bigFile.name}") -> fileWithSha1)
     }
 
     describe("running the digest command") {
@@ -132,8 +122,7 @@ class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
 
         // The contents of the file should be readable.
         val dstRoot = Json.read(dstDigestFile)
-        val expected =
-          SkryncDir.scan(Large.src, digest = true).copyWithoutTimes()
+        val expected = SkryncDir.scan(Large.src, digest = true).copyWithoutTimes()
         dstRoot.info.copy(path = dstRoot.info.path.copy(name = "large")) shouldBe expected
       }
     }
@@ -152,9 +141,7 @@ class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
     }
 
     describe("compare running the compare command") {
-      it(
-        "finds no differences when run on digests created on the same directory."
-      ) {
+      it("finds no differences when run on digests created on the same directory.") {
         withGoMatching("digest", "--srcDir", Large.src, "--dstDigest", dstDir / File("compare2.gz")) {
           case (stdout, stderr) =>
             stdout should have size 7396
@@ -162,10 +149,8 @@ class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
         }
 
         // Ignore the time the backup was created.
-        val root =
-          Json.read(dstDir / File("compare.gz")).copy(created = -1)
-        val root2 =
-          Json.read(dstDir / File("compare2.gz")).copy(created = -1)
+        val root = Json.read(dstDir / File("compare.gz")).copy(created = -1)
+        val root2 = Json.read(dstDir / File("compare2.gz")).copy(created = -1)
         root shouldBe root2
 
         withGo("compare", "--srcDigest", dstDir / File("compare.gz"), "--dstDigest", dstDir / File("compare2.gz"))

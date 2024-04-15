@@ -86,8 +86,7 @@ class SkryncPathSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEac
 
       // Only the digest is added by this method.  You have to respecify the location on disk.
       val withSha1 = withoutSha1.digest(Small.src / File("ids.txt"))
-      withSha1 shouldBe
-        withoutSha1.copy(digest = Some(Small.fileIdTxtDigest))
+      withSha1 shouldBe withoutSha1.copy(digest = Some(Small.fileIdTxtDigest))
     }
 
     it("can be stripped of time information.") {
@@ -109,18 +108,12 @@ class SkryncPathSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEac
     }
 
     it("fails when digesting on a path that doesn't exist.") {
-      val t = intercept[FileNotFoundException] {
-        Example.digest(Small.src / File(Example.name))
-      }
-      t.getMessage should include(
-        "tmp/original/small/file (No such file or directory)"
-      )
+      val t = intercept[FileNotFoundException] { Example.digest(Small.src / File(Example.name)) }
+      t.getMessage should include("tmp/original/small/file (No such file or directory)")
     }
 
     it("fails when creating from a path that doesn't exist.") {
-      val t = intercept[NoSuchFileException] {
-        SkryncPath(Small.src / File("file-does-not-exist"))
-      }
+      val t = intercept[NoSuchFileException] { SkryncPath(Small.src / File("file-does-not-exist")) }
       t.getMessage should include("tmp/original/small/file-does-not-exist")
     }
   }
@@ -129,7 +122,7 @@ class SkryncPathSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEac
 object SkryncPathSpec {
 
   /** An initialized instance to test with. */
-  val Example = SkryncPath(
+  val Example: SkryncPath = SkryncPath(
     name = "file",
     size = 12345,
     creation = 23456,

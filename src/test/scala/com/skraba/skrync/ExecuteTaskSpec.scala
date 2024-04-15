@@ -22,7 +22,7 @@ class ExecuteTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ExecuteTask)) {
         ex.printStackTrace()
     }
 
-  describe(s"${Cli.Cli} ${TaskCmd} command line") {
+  describe(s"${Cli.Cli} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 

@@ -75,7 +75,7 @@ object RandomFiles {
     *   Optional extension for the file
     */
   def getNewFile(rnd: Random, dir: Directory, extension: Option[String]): File =
-    Stream
+    LazyList
       .continually(nextString(rnd, 5, 10))
       .map(_ + extension.map("." + _).getOrElse(""))
       .map(dir / File(_))
@@ -95,15 +95,11 @@ object RandomFiles {
     * @return
     *   the path to the created file.
     */
-  def createTxtContents(
-      rnd: Random,
-      dir: Directory,
-      contents: String,
-      name: Option[String] = None
-  ): File = createTxtContents(
-    name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt"))),
-    contents
-  )
+  def createTxtContents(rnd: Random, dir: Directory, contents: String, name: Option[String] = None): File =
+    createTxtContents(
+      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt"))),
+      contents
+    )
 
   /** Create a named text file in the specified directory with the specified contents.
     *
@@ -149,8 +145,7 @@ object RandomFiles {
       maxLineLength: Int,
       name: Option[String] = None
   ): File = {
-    val file =
-      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
+    val file = name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("txt")))
     Streamable.closing(file.outputStream()) { fos =>
       (0 until numLines).foreach { _ =>
         fos.write(nextString(rnd, minLineLength, maxLineLength).getBytes)
@@ -181,22 +176,16 @@ object RandomFiles {
       maxSize: Int,
       name: Option[String] = None
   ): File = {
-    val file =
-      name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("bin")))
+    val file = name.map(dir / File(_)).getOrElse(getNewFile(rnd, dir, Option("bin")))
     val size = nextInt(rnd, minSize, maxSize)
     Streamable.closing(file.toFile.outputStream()) { fos =>
       val buffer = new Array[Byte](1024)
-      Stream
+      LazyList
         .from(0, buffer.length)
         .takeWhile(_ < size)
         .foreach { blockLen =>
           rnd.nextBytes(buffer)
-          fos.write(
-            buffer,
-            0,
-            if (blockLen + buffer.length > size) size % buffer.length
-            else buffer.length
-          )
+          fos.write(buffer, 0, if (blockLen + buffer.length > size) size % buffer.length else buffer.length)
         }
     }
     setTimeAttributes(file, 0)
@@ -241,8 +230,7 @@ object RandomFiles {
     val createFiles = Math.min(numFiles, nextInt(rnd, minFiles, maxFiles))
     for (_ <- 0 until createFiles) {
       val createdFile: Path =
-        if (rnd.nextDouble < 0.5)
-          createTxtFile(rnd, dir, rnd.nextInt(1000), 20, 80)
+        if (rnd.nextDouble < 0.5) createTxtFile(rnd, dir, rnd.nextInt(1000), 20, 80)
         else createBinaryFile(rnd, dir, rnd.nextInt(1000), 10 * 1024)
       pathTime = pathTime.map((t: Long) => {
         setTimeAttributes(createdFile, t)
@@ -251,8 +239,7 @@ object RandomFiles {
     }
 
     // Create subdirectories to place the remaining files.
-    var remainingFiles =
-      numFiles - createFiles - oneLarge.size
+    var remainingFiles = numFiles - createFiles - oneLarge.size
     if (remainingFiles > 0) {
       val createDirs = nextInt(rnd, 1, maxDirs)
       val filesPer = remainingFiles.toDouble / createDirs
@@ -263,16 +250,7 @@ object RandomFiles {
           else (filesPer * (i + 1) + 0.5).toInt - (filesPer * i + 0.5).toInt
         val newDir = getNewFile(rnd, dir, None).toDirectory
         newDir.createDirectory(force = false, failIfExists = true)
-        fillDirectory(
-          rnd,
-          newDir,
-          files,
-          minFiles,
-          maxFiles,
-          maxDirs,
-          None,
-          pathTime
-        )
+        fillDirectory(rnd, newDir, files, minFiles, maxFiles, maxDirs, None, pathTime)
         remainingFiles -= files
         pathTime = pathTime.map((t: Long) => {
           setTimeAttributes(newDir, t)
@@ -284,19 +262,9 @@ object RandomFiles {
     // If requested, create the one large binary file.
     oneLarge
       .map(nameAndSize =>
-        createBinaryFile(
-          rnd,
-          dir,
-          minSize = nameAndSize._2,
-          maxSize = nameAndSize._2,
-          name = Some(nameAndSize._1)
-        )
+        createBinaryFile(rnd, dir, minSize = nameAndSize._2, maxSize = nameAndSize._2, name = Some(nameAndSize._1))
       )
-      .foreach(largeFile =>
-        pathTime.map((t: Long) => {
-          setTimeAttributes(largeFile, t)
-        })
-      )
+      .foreach(largeFile => pathTime.map((t: Long) => { setTimeAttributes(largeFile, t) }))
   }
 
   /** Sets the time attributes on the path.
@@ -309,21 +277,13 @@ object RandomFiles {
     * @param recursive
     *   Whether to apply attributes recursively on the contents as well.
     */
-  def setTimeAttributes(
-      path: Path,
-      time: Long,
-      recursive: Boolean = false
-  ): Unit = {
+  def setTimeAttributes(path: Path, time: Long, recursive: Boolean = false): Unit = {
     // This has to be done as a depth-first search, since the
     if (recursive && path.isDirectory)
       for (p <- path.toDirectory.list)
         setTimeAttributes(p, time, recursive = true)
 
-    val attributes =
-      Files.getFileAttributeView(
-        path.jfile.toPath,
-        classOf[BasicFileAttributeView]
-      )
+    val attributes = Files.getFileAttributeView(path.jfile.toPath, classOf[BasicFileAttributeView])
     // last modified, last access, creation
     attributes.setTimes(
       FileTime.fromMillis((time + 2) * 1000),

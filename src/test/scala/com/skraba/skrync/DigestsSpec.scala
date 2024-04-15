@@ -42,9 +42,7 @@ class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
 
   describe("From files") {
     it("calculates digests.") {
-      Digests.getSha1(
-        Small.src / File("ids.txt")
-      ) shouldBe Small.fileIdTxtDigest
+      Digests.getSha1(Small.src / File("ids.txt")) shouldBe Small.fileIdTxtDigest
     }
   }
 }

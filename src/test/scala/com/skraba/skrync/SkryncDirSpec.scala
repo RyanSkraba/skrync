@@ -33,15 +33,12 @@ class SkryncDirSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll 
       withoutSha1.path.modification shouldBe 2000L
       withoutSha1.path.digest shouldBe None
       withoutSha1.deepFileCount shouldBe 2
-      withoutSha1.files should contain(
-        SkryncPath("ids.txt", 12, 2000, 1000, 2000, None)
-      )
+      withoutSha1.files should contain(SkryncPath("ids.txt", 12, 2000, 1000, 2000, None))
       withoutSha1.dirs should have size 1
 
       // Only the digest is added by this method.  You have to respecify the location on disk.
       val digestedDir = withoutSha1.path.copy(digest = Some(Small.dirDigest))
-      val digestedFile =
-        withoutSha1.files.head.copy(digest = Some(Small.fileIdTxtDigest))
+      val digestedFile = withoutSha1.files.head.copy(digest = Some(Small.fileIdTxtDigest))
 
       val withSha1 = withoutSha1.digest(Small.src)
       withSha1.path shouldBe digestedDir
@@ -59,35 +56,24 @@ class SkryncDirSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll 
       withoutTimes.path.modification shouldBe -1L
       withoutTimes.path.digest shouldBe Example.path.digest
       withoutTimes.deepFileCount shouldBe 1
-      withoutTimes.files shouldBe
-        List(
-          SkryncPath("file", 12345, -1, -1, -1, withoutTimes.files.head.digest)
-        )
+      withoutTimes.files shouldBe List(SkryncPath("file", 12345, -1, -1, -1, withoutTimes.files.head.digest))
       withoutTimes.dirs should have size 0
     }
 
     it("fails digesting from a existing file.") {
       // Only the digest is added by this method, and it uses the specified location even if it
       // doesn't match the name.
-      val t = intercept[FileNotFoundException] {
-        Example.digest(Small.src / File("ids.txt"))
-      }
+      val t = intercept[FileNotFoundException] { Example.digest(Small.src / File("ids.txt")) }
       t.getMessage should include("(Not a directory)")
     }
 
     it("fails when digesting on a path when the contents do not match.") {
-      val t = intercept[FileNotFoundException] {
-        Example.digest(Small.src)
-      }
-      t.getMessage should include(
-        "tmp/original/small/file (No such file or directory)"
-      )
+      val t = intercept[FileNotFoundException] { Example.digest(Small.src) }
+      t.getMessage should include("tmp/original/small/file (No such file or directory)")
     }
 
     it("fails when creating from a path that doesn't exist.") {
-      val t = intercept[NoSuchFileException] {
-        SkryncPath(Small.src / Directory("dir-does-not-exist"))
-      }
+      val t = intercept[NoSuchFileException] { SkryncPath(Small.src / Directory("dir-does-not-exist")) }
       t.getMessage should include("tmp/original/small/dir-does-not-exist")
     }
 
@@ -103,7 +89,7 @@ class SkryncDirSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll 
 object SkryncDirSpec {
 
   /** An initialized instance to test with. */
-  val Example = SkryncDir(
+  val Example: SkryncDir = SkryncDir(
     path = SkryncPath(
       name = "dir",
       size = 54321,

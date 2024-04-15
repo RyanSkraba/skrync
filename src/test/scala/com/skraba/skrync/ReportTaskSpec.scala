@@ -16,7 +16,7 @@ class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
 
   val DoesntExist: String = (Small.root / "doesnt-exist").toString()
 
-  describe(s"${Cli.Cli} ${TaskCmd} command line") {
+  describe(s"${Cli.Cli} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 

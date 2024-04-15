@@ -2,7 +2,7 @@ package com.skraba.skrync
 
 import com.skraba.docoptcli.DocoptCliGoSpec
 
-import scala.reflect.io.{Directory, File, Path, Streamable}
+import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[CompareTask]] */
 class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
@@ -15,7 +15,7 @@ class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
 
   override protected def afterAll(): Unit = Small.cleanup()
 
-  describe(s"${Cli.Cli} ${TaskCmd} command line") {
+  describe(s"${Cli.Cli} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
@@ -85,10 +85,7 @@ class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
       )
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set()
-      cmp.modified shouldBe Set(
-        Path("small/ids.txt"),
-        Path("small/sub/ids2.txt")
-      )
+      cmp.modified shouldBe Set(Path("small/ids.txt"), Path("small/sub/ids2.txt"))
     }
 
     it("via the CLI") {

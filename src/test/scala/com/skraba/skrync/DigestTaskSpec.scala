@@ -18,7 +18,7 @@ class DigestTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DigestTask)) {
 
   override protected def afterAll(): Unit = Small.cleanup()
 
-  describe(s"${Cli.Cli} ${TaskCmd} command line") {
+  describe(s"${Cli.Cli} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
