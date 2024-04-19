@@ -6,24 +6,6 @@ import scala.reflect.io.{Directory, File, Path}
 /** Unit tests for [[SkryncGo]] */
 class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
 
-  describe("SkryncGo docopt check") {
-    it("should have less than 80 characters per string for readability.") {
-      for (line <- SkryncGo.Doc.split("\n")) {
-        withClue("main" -> line) {
-          line.length should be < 80
-        }
-      }
-      for (
-        task <- SkryncGo.Tasks;
-        line <- task.Doc.split("\n")
-      ) {
-        withClue(task.Cmd -> line) {
-          line.length should be < 80
-        }
-      }
-    }
-  }
-
   describe(s"${Cli.Cli} command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
@@ -31,7 +13,7 @@ class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
     it("throw an exception like --help when run without a command") {
       val t = interceptGoDocoptEx("--debug")
       t.getMessage shouldBe "Missing command"
-      t.docopt shouldBe SkryncGo.Doc
+      t.docopt shouldBe Cli.Doc
     }
 
     for (

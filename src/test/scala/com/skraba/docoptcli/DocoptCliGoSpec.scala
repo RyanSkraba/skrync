@@ -27,6 +27,27 @@ abstract class DocoptCliGoSpec(protected val Cli: DocoptCliGo, protected val Tas
   /** A flag that doesn't exist in the Docopt. */
   lazy val UnknownFlag: String = "--unknownDoesNotExistGarbage"
 
+  describe(Cli.Cli + Task.map(" " + _.Cmd).getOrElse("") + " docopt check") {
+    it(s"should have less than 80 characters per string for readability.") {
+      for (line <- Doc.split("\n")) {
+        withClue(line) {
+          line.length should be < 80
+        }
+      }
+    }
+    if (Task.isEmpty) {
+      for (task <- Cli.Tasks) {
+        it(s"${task.Cmd} should have less than 80 characters per string for readability.") {
+          for (line <- task.Doc.split("\n")) {
+            withClue(line) {
+              line.length should be < 80
+            }
+          }
+        }
+      }
+    }
+  }
+
   /** A helper method used to capture the console and apply it to a partial function.
     * @param thunk
     *   code to execute that may use Console.out and Console.err print streams
