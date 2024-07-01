@@ -35,6 +35,14 @@ object CompareTask extends DocoptCliGo.Task {
       .format(Description)
       .trim
 
+  /** Files with the same digest that exist in multiple places
+    * @param srcs
+    *   All of the paths in the source digest that contain files with this digest
+    * @param dsts
+    *   All of the paths in the dst digest that contain files with this digest
+    */
+  case class DupFiles(srcs: Set[Path], dsts: Set[Path])
+
   case class Comparison(
       /** Files that exist only in the source directory without any corresponding destination. Should be copied over. */
       srcOnly: Set[Path],
@@ -43,9 +51,9 @@ object CompareTask extends DocoptCliGo.Task {
       /** Identical files that exist in the source AND destination but at different paths. Any file in the destination
         * set can be moved or copied to all of the paths in the source set.
         */
-      moved: Set[(Set[Path], Set[Path])],
+      moved: Set[DupFiles],
       /** Files that exist in both the source and destination at the same path, but have been changed. The destination
-        * needs to be overwritten fron the source.
+        * needs to be overwritten from the source.
         */
       modified: Set[Path]
   )
@@ -65,11 +73,11 @@ object CompareTask extends DocoptCliGo.Task {
       (srcOnly ++ bothButModified).groupMap(srcMap(_).digest)(identity).filter(_._1.nonEmpty).map(f => f._1.get -> f._2)
     val dstDigest: Map[Digest, Set[Path]] =
       (dstOnly ++ bothButModified).groupMap(dstMap(_).digest.getOrElse(Seq.empty))(identity).filter(_._1.nonEmpty)
-    val moved = srcDigest.keySet.intersect(dstDigest.keySet).map(mv => (srcDigest(mv), dstDigest(mv)))
+    val moved = srcDigest.keySet.intersect(dstDigest.keySet).map(mv => DupFiles(srcDigest(mv), dstDigest(mv)))
 
     Comparison(
-      srcOnly.diff(moved.flatMap(_._1)),
-      dstOnly.diff(moved.flatMap(_._2)),
+      srcOnly.diff(moved.flatMap(_.srcs)),
+      dstOnly.diff(moved.flatMap(_.dsts)),
       moved,
       bothButModified
     )
