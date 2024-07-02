@@ -1,6 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.docoptcli.DocoptCliGoSpec
+import com.skraba.skrync.CompareTask.DupFiles
 
 import scala.reflect.io.{Directory, File, Path}
 
@@ -141,7 +142,7 @@ class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
       )
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set()
-      cmp.moved shouldBe Set(Set(Path("small/sub/ids2.txt")) -> Set(Path("small/sub/ids2a.txt")))
+      cmp.moved shouldBe Set(DupFiles(Set(Path("small/sub/ids2.txt")), Set(Path("small/sub/ids2a.txt"))))
       cmp.modified shouldBe Set()
     }
 
@@ -152,7 +153,7 @@ class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
       )
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set()
-      cmp.moved shouldBe Set(Set(Path("small/sub/ids2.txt")) -> Set(Path("small/sub2/ids2.txt")))
+      cmp.moved shouldBe Set(DupFiles(Set(Path("small/sub/ids2.txt")), Set(Path("small/sub2/ids2.txt"))))
       cmp.modified shouldBe Set()
     }
 
@@ -162,9 +163,10 @@ class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
         SkryncDir.scan(Small.srcWithDuplicateFile, digest = true)
       )
       cmp.srcOnly shouldBe Set()
-      // TODO: This is a copy, not a new file
-      cmp.dstOnly shouldBe Set(Path("small/sub/ids.txt"))
-      cmp.moved shouldBe Set()
+      cmp.dstOnly shouldBe Set()
+      cmp.moved shouldBe Set(
+        DupFiles(Set(Path("small/ids.txt")), Set(Path("small/ids.txt"), Path("small/sub/ids.txt")))
+      )
       cmp.modified shouldBe Set()
     }
 
@@ -176,8 +178,8 @@ class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
       cmp.srcOnly shouldBe Set()
       cmp.dstOnly shouldBe Set()
       cmp.moved shouldBe Set(
-        Set(Path("small/ids.txt")) -> Set(Path("small/sub/ids2.txt")),
-        Set(Path("small/sub/ids2.txt")) -> Set(Path("small/ids.txt"))
+        DupFiles(Set(Path("small/ids.txt")), Set(Path("small/sub/ids2.txt"))),
+        DupFiles(Set(Path("small/sub/ids2.txt")), Set(Path("small/ids.txt")))
       )
       // TODO: This should be empty, but it's the same as moved.
       // cmp.modified shouldBe Set()

@@ -5,6 +5,7 @@ import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.validateFile
 
+import scala.collection.immutable
 import scala.reflect.io._
 
 /** This task compares two digest files, a source and destination, and calculates the changes that need to be made to
@@ -59,21 +60,35 @@ object CompareTask extends DocoptCliGo.Task {
   )
 
   def compare(src: SkryncDir, dst: SkryncDir): Comparison = {
-    val srcMap: Map[Path, SkryncPath] = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
-    val dstMap: Map[Path, SkryncPath] = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
 
+    // All of the the files found in the source directory, as a flat list of Paths relative to its root,
+    // and grouped by digest.
+    val srcMap: Map[Path, SkryncPath] = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
     val srcKeys: Set[Path] = srcMap.keySet
+    val srcDigest: Map[Digest, Set[Path]] = srcMap.groupMap(_._2.digest)(_._1).flatMap {
+      case (Some(digest), paths) => Some(digest -> paths.toSet)
+      case _                     => None
+    }
+
+    // All of the the files found in the dest directory, as a flat list of Paths relative to its root,
+    // and grouped by digest.
+    val dstMap: Map[Path, SkryncPath] = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
     val dstKeys: Set[Path] = dstMap.keySet
+    val dstDigest: Map[Digest, Set[Path]] = dstMap.groupMap(_._2.digest)(_._1).flatMap {
+      case (Some(digest), paths) => Some(digest -> paths.toSet)
+      case _                     => None
+    }
+
+    // All files that are moved exist in both the source and destination, but not at *exactly* the same
+    // locations.
+    val moved = srcDigest.keySet
+      .intersect(dstDigest.keySet)
+      .map(mv => DupFiles(srcDigest(mv), dstDigest(mv)))
+      .filterNot(dup => dup.dsts == dup.srcs)
 
     val srcOnly = srcKeys.diff(dstKeys)
     val dstOnly = dstKeys.diff(srcKeys)
     val bothButModified = srcKeys.intersect(dstKeys).filter { p => srcMap(p) != dstMap(p) }
-
-    val srcDigest: Map[Digest, Set[Path]] =
-      (srcOnly ++ bothButModified).groupMap(srcMap(_).digest)(identity).filter(_._1.nonEmpty).map(f => f._1.get -> f._2)
-    val dstDigest: Map[Digest, Set[Path]] =
-      (dstOnly ++ bothButModified).groupMap(dstMap(_).digest.getOrElse(Seq.empty))(identity).filter(_._1.nonEmpty)
-    val moved = srcDigest.keySet.intersect(dstDigest.keySet).map(mv => DupFiles(srcDigest(mv), dstDigest(mv)))
 
     Comparison(
       srcOnly.diff(moved.flatMap(_.srcs)),
