@@ -112,7 +112,7 @@ object CompareTask extends DocoptCliGo.Task {
     println(s"""COMPARE
       |srcDigest: $srcDigest
       |         : ${src.src}
-      |dstDigest:" $dstDigest
+      |dstDigest: $dstDigest
       |         : ${dst.src}
       |""".stripMargin)
 
@@ -127,14 +127,22 @@ object CompareTask extends DocoptCliGo.Task {
         |modified: ${compares.modified.size}
         |""".stripMargin)
 
+      println("""FILES""")
       val all: Seq[(Path, String)] =
         (compares.srcOnly.map((_, "<< SRC"))
           ++ compares.dstOnly.map((_, ">> DST"))
           ++ compares.modified.map((_, "!="))).toSeq.sortBy(_._1.toString())
-
       all.foreach(str => println(str._2 + " " + str._1))
+      println()
 
-      compares.moved.foreach(println)
+      println("""DUPS""")
+      compares.moved.foreach { dup =>
+        val (both, srcOnly) = dup.srcs.partition(dup.dsts)
+        val dstOnly = dup.dsts.filterNot(dup.srcs)
+        println(both.mkString(","))
+        srcOnly.map("  << SRC DUP " + _).foreach(println)
+        dstOnly.map("  >> DST DUP " + _).foreach(println)
+      }
     }
   }
 }
