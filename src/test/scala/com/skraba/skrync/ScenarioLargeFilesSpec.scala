@@ -1,6 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.docoptcli.DocoptCliGoSpec
+import com.skraba.docoptcli.DocoptCliGoSpec.withConsoleMatch
 import org.scalatest.OptionValues._
 
 import scala.reflect.io._

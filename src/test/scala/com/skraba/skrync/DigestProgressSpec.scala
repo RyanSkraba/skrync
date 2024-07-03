@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGoSpec.withConsoleMatch
+import com.skraba.docoptcli.DocoptCliGoSpec.withConsoleMatch
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
