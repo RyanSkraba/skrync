@@ -129,26 +129,26 @@ object DeduplicateTask extends DocoptCliGo.Task {
     }
   }
 
-  def go(opts: java.util.Map[String, AnyRef]): Unit = {
+  def go(opts: TaskOptions): Unit = {
 
     // Setup the expected output.
-    val verbose = Option(opts.get("--verbose")).contains(true)
-    val dryRun = Option(opts.get("--dryRun")).contains(true)
-    val timing = Option(opts.get("--timing")).contains(true)
+    val verbose = opts.getBoolean("--verbose")
+    val dryRun = opts.getBoolean("--dryRun")
+    val timing = opts.getBoolean("--timing")
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val root = Option(opts.get("--root").asInstanceOf[String])
+    val root = opts.getStringOption("--root")
 
     // The file resources used by this task
-    val srcDigest: File = validateFile(arg = opts.get("--srcDigest"), root)
+    val srcDigest: File = validateFile(arg = opts.getString("--srcDigest"), root)
     val dedupDir: Directory =
-      validateDirectory(opts.get("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
+      validateDirectory(opts.getString("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
 
-    val knownExtension: Option[String] = Option(opts.get("--knownExt")).map(_.toString)
-    val unknownExtension: Option[String] = Option(opts.get("--unknownExt")).map(_.toString)
-    val rmKnown = Option(opts.get("--rmKnown")).contains(true)
+    val knownExtension: Option[String] = opts.getStringOption("--knownExt")
+    val unknownExtension: Option[String] = opts.getStringOption("--unknownExt")
+    val rmKnown = opts.getBoolean("--rmKnown")
     val mvDir: Option[Directory] =
-      Option(opts.get("--mvDir")).map(validateDirectory(_, root, tag = "Duplicate destination directory"))
+      opts.getStringOption("--mvDir").map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
     // Read all of the information from the two digest files.
     val start = System.currentTimeMillis()

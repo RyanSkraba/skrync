@@ -51,7 +51,7 @@ object SkryncGo extends DocoptCliGo {
     *   The validated path that the argument represents on the filesystem.
     */
   def validateFileSystem(
-      arg: AnyRef,
+      arg: String,
       root: Option[AnyRef] = None,
       tag: String = "Source",
       isDir: Option[Boolean] = None,
@@ -89,7 +89,7 @@ object SkryncGo extends DocoptCliGo {
     *   The validated directory that the argument represents on the filesystem.
     */
   def validateDirectory(
-      arg: AnyRef,
+      arg: String,
       root: Option[AnyRef] = None,
       tag: String = "Source",
       exists: Option[Boolean] = Some(true)
@@ -109,7 +109,7 @@ object SkryncGo extends DocoptCliGo {
     *   The validated directory that the argument represents on the filesystem.
     */
   def validateFile(
-      arg: AnyRef,
+      arg: String,
       root: Option[AnyRef] = None,
       tag: String = "Source",
       exists: Option[Boolean] = Some(true)

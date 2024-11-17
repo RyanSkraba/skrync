@@ -48,10 +48,10 @@ object ReportTask extends DocoptCliGo.Task {
     Report(duplicates)
   }
 
-  def go(opts: java.util.Map[String, AnyRef]): Unit = {
+  def go(opts: TaskOptions): Unit = {
     val srcDigest: File = validateFile(
       // TODO
-      arg = opts.get("--srcDigest")
+      arg = opts.getString("--srcDigest")
     )
 
     // Check the two digests for differences.

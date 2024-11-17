@@ -98,9 +98,9 @@ object CompareTask extends DocoptCliGo.Task {
     )
   }
 
-  def go(opts: java.util.Map[String, AnyRef]): Unit = {
-    val srcDigest: File = validateFile(arg = opts.get("--srcDigest"))
-    val dstDigest: File = validateFile(arg = opts.get("--dstDigest"), tag = "Destination")
+  def go(opts: TaskOptions): Unit = {
+    val srcDigest: File = validateFile(arg = opts.getString("--srcDigest"))
+    val dstDigest: File = validateFile(arg = opts.getString("--dstDigest"), tag = "Destination")
 
     // Read all of the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)

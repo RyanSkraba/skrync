@@ -41,21 +41,16 @@ object ExecuteTask extends DocoptCliGo.Task {
       .trim
 
   @throws[IOException]
-  def go(opts: java.util.Map[String, AnyRef]): Unit = {
-    val backup = Option(opts.get("--backup").asInstanceOf[String])
-    Option(opts.get("--plan"))
-      .map(plan => goExecute(plan.asInstanceOf[String], backup))
+  def go(opts: TaskOptions): Unit = {
+    val backup = opts.getStringOption("--backup")
+    opts
+      .getStringOption("--plan")
+      .map(plan => goExecute(plan, backup))
       .getOrElse(
         goExecute(
-          validateFile(
-            // TODO
-            arg = opts.get("--srcDigest")
-          ),
-          validateFile(
-            // TODO
-            arg = opts.get("--dstDigest"),
-            tag = "Destination"
-          ),
+          // TODO
+          validateFile(arg = opts.getString("--srcDigest")),
+          validateFile(arg = opts.getString("--dstDigest"), tag = "Destination"),
           backup
         )
       )

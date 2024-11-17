@@ -43,22 +43,23 @@ object DigestTask extends DocoptCliGo.Task {
 
   /** Creates a digest file from the input directory containing the file info and digests. */
   @throws[IOException]
-  def go(opts: java.util.Map[String, AnyRef]): Unit = {
+  def go(opts: TaskOptions): Unit = {
 
     // The current date/time
     val now = LocalDateTime.now
 
-    val silent = opts.get("--silent").asInstanceOf[Boolean]
-    val digest = !opts.get("--no-digest").asInstanceOf[Boolean]
+    val silent = opts.getBoolean("--silent")
+    val digest = !opts.getBoolean("--no-digest")
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val root = Option(opts.get("--root").asInstanceOf[String])
+    val root = opts.getStringOption("--root")
 
     // The file resources used by this task
-    val srcDir = validateDirectory(opts.get("--srcDir"), root)
+    val srcDir = validateDirectory(opts.getString("--srcDir"), root)
     // The destination, if present.  If this is already a directory, a default file name will be generated,
     // including the date. If no destination is specified, this will be None and standard out will be used.
-    val dst: Option[File] = Option(opts.get("--dstDigest").asInstanceOf[String])
+    val dst: Option[File] = opts
+      .getStringOption("--dstDigest")
       .map(validateFileSystem(_, root, exists = None))
       .map(p => {
         // If the destination is a directory, auto-create the filename based on the time.
@@ -66,8 +67,9 @@ object DigestTask extends DocoptCliGo.Task {
           p / File(getDefaultDigestName(srcDir.toString, now))
         else p.toFile
       })
+      .map(_.toString)
       .map(validateFile(_, tag = "Destination digest", exists = Some(false)))
-    dst.map(_.parent).foreach(validateDirectory(_, tag = "Destination digest directory"))
+    dst.map(_.parent).map(_.toString).foreach(validateDirectory(_, tag = "Destination digest directory"))
     val dstInProgress = dst.map(f => f.parent / (f.name + ".running")).map(_.toFile)
 
     // Whether to write the output to the console as well.
