@@ -167,40 +167,56 @@ class AnsiConsoleSpec extends AnyFunSpecLike with BeforeAndAfterAll with Matcher
     describe("for some semantic colours") {
       it("by default is activated and non-bold") {
         val cfg = AnsiConsole()
+        cfg.msg("-") shouldBe s"$CYAN-$RESET"
+        cfg.msg1("-") shouldBe s"$CYAN-$RESET"
+        cfg.msg2("-") shouldBe s"$BLUE-$RESET"
+        cfg.msg3("-") shouldBe s"$MAGENTA-$RESET"
         cfg.ok("-") shouldBe s"$GREEN-$RESET"
         cfg.warn("-") shouldBe s"$YELLOW-$RESET"
         cfg.error("-") shouldBe s"$RED-$RESET"
         cfg.left("-") shouldBe s"$CYAN-$RESET"
         cfg.right("-") shouldBe s"$MAGENTA-$RESET"
-        cfg.kv("-", "x") shouldBe s"$MAGENTA-$RESET : x"
+        cfg.kv("-", "x") shouldBe s"$MAGENTA-$RESET: x"
       }
       it("can be activated and bold") {
         val cfg = AnsiConsole()
+        cfg.msg("-", bold = true) shouldBe s"$BOLD$CYAN-$RESET"
+        cfg.msg1("-", bold = true) shouldBe s"$BOLD$CYAN-$RESET"
+        cfg.msg2("-", bold = true) shouldBe s"$BOLD$BLUE-$RESET"
+        cfg.msg3("-", bold = true) shouldBe s"$BOLD$MAGENTA-$RESET"
         cfg.ok("-", bold = true) shouldBe s"$BOLD$GREEN-$RESET"
         cfg.warn("-", bold = true) shouldBe s"$BOLD$YELLOW-$RESET"
         cfg.error("-", bold = true) shouldBe s"$BOLD$RED-$RESET"
         cfg.left("-", bold = true) shouldBe s"$BOLD$CYAN-$RESET"
         cfg.right("-", bold = true) shouldBe s"$BOLD$MAGENTA-$RESET"
-        cfg.kv("-", "x", bold = true) shouldBe s"$BOLD$MAGENTA-$RESET : x"
+        cfg.kv("-", "x", bold = true) shouldBe s"$BOLD$MAGENTA-$RESET: x"
       }
       it("can turn off the reset") {
         val cfg = AnsiConsole()
+        cfg.msg("-", reset = false) shouldBe s"$CYAN-"
+        cfg.msg1("-", reset = false) shouldBe s"$CYAN-"
+        cfg.msg2("-", reset = false) shouldBe s"$BLUE-"
+        cfg.msg3("-", reset = false) shouldBe s"$MAGENTA-"
         cfg.ok("-", reset = false) shouldBe s"$GREEN-"
         cfg.warn("-", reset = false) shouldBe s"$YELLOW-"
         cfg.error("-", reset = false) shouldBe s"$RED-"
         cfg.left("-", reset = false) shouldBe s"$CYAN-"
         cfg.right("-", reset = false) shouldBe s"$MAGENTA-"
-        cfg.kv("-", "x", reset = false) shouldBe s"$MAGENTA- : x"
+        cfg.kv("-", "x", reset = false) shouldBe s"$MAGENTA-: x"
       }
       for (bold <- Seq(false, true); reset <- Seq(false, true)) {
         it(s"can be deactivated for non-ansi use (bold: $bold, reset $reset)") {
           val cfg = AnsiConsole(plain = true)
+          cfg.msg("-", bold = bold, reset = reset) shouldBe s"-"
+          cfg.msg1("-", bold = bold, reset = reset) shouldBe s"-"
+          cfg.msg2("-", bold = bold, reset = reset) shouldBe s"-"
+          cfg.msg3("-", bold = bold, reset = reset) shouldBe s"-"
           cfg.ok("-", bold = bold, reset = reset) shouldBe "-"
           cfg.warn("-", bold = bold, reset = reset) shouldBe "-"
           cfg.error("-", bold = bold, reset = reset) shouldBe "-"
           cfg.left("-", bold = bold, reset = reset) shouldBe "-"
           cfg.right("-", bold = bold, reset = reset) shouldBe "-"
-          cfg.kv("-", "x", bold = bold, reset = reset) shouldBe "- : x"
+          cfg.kv("-", "x", bold = bold, reset = reset) shouldBe "-: x"
         }
       }
     }
@@ -239,12 +255,12 @@ class AnsiConsoleSpec extends AnyFunSpecLike with BeforeAndAfterAll with Matcher
 
     def simpleAsk(
         userResponse: String,
-        cfg: AnsiConsole = AnsiConsole()
+        out: AnsiConsole = AnsiConsole()
     ): (String, Option[String]) = Streamable.closing(
       new ByteArrayInputStream(s"$userResponse\n".getBytes)
     ) { in =>
       Console.withIn(in) {
-        withConsoleMatch(cfg.ask("Password?") { "Open sesame" }) { case (result, out, err) =>
+        withConsoleMatch(out.ask("Password?") { "Open sesame" }) { case (result, out, err) =>
           err shouldBe empty
           (out, result)
         }

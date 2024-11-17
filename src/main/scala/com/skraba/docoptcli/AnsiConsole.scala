@@ -14,6 +14,9 @@ trait AnsiConsole {
   /** True if the script should assume the user would reply yes to prompts. By default, ask whether to proceed. */
   protected val _yes: Boolean
 
+  /** Optionally provide a printer to capture output. */
+  protected val _print: Option[Any => Any]
+
   lazy val Black: String = ifAnsi(AnsiColor.BLACK)
   lazy val Red: String = ifAnsi(AnsiColor.RED)
   lazy val Green: String = ifAnsi(AnsiColor.GREEN)
@@ -171,6 +174,34 @@ trait AnsiConsole {
   def bold(in: Any, in2: Any = "", reset: Boolean = true): String =
     style(in, in2, "", reset, bold = true)
 
+  def msg(
+      in: Any,
+      in2: Any = "",
+      reset: Boolean = true,
+      bold: Boolean = false
+  ): String =
+    cyan(in, in2, reset, bold)
+  def msg1(
+      in: Any,
+      in2: Any = "",
+      reset: Boolean = true,
+      bold: Boolean = false
+  ): String =
+    msg(in, in2, reset, bold)
+  def msg2(
+      in: Any,
+      in2: Any = "",
+      reset: Boolean = true,
+      bold: Boolean = false
+  ): String =
+    blue(in, in2, reset, bold)
+  def msg3(
+      in: Any,
+      in2: Any = "",
+      reset: Boolean = true,
+      bold: Boolean = false
+  ): String =
+    magenta(in, in2, reset, bold)
   def ok(
       in: Any,
       in2: Any = "",
@@ -212,7 +243,7 @@ trait AnsiConsole {
       reset: Boolean = true,
       bold: Boolean = false
   ): String =
-    magenta(key, "", reset, bold) + " : " + value
+    magenta(key, "", reset, bold) + ": " + value
 
   /** Print a standardized help for a script with subcommands
     * @param cli
@@ -259,13 +290,13 @@ trait AnsiConsole {
       .mkString(" ")
 
   /** Only if verbose is turned on, calls [[Console.print]] on the input. */
-  def vPrint(in: => Any): Unit = if (_verbose) Console.print(in)
+  def vPrint(in: => Any): Unit = if (_verbose) _print.getOrElse(Console.print _)(in)
 
   /** Only if verbose is turned on, calls [[Console.println]] on the input. */
-  def vPrintln(in: => Any): Unit = if (_verbose) Console.println(in)
+  def vPrintln(in: => Any): Unit = if (_verbose) _print.map(_(in + "\n")).getOrElse(Console.println(in))
 
   /** Only if verbose is turned on, calls [[Console.println]] on the input. */
-  def vPrintln(): Unit = if (_verbose) Console.println
+  def vPrintln(): Unit = if (_verbose) _print.map(_("\n")).getOrElse(Console.println())
 
   /** Prompt the user and execute a function based on the response.
     *
@@ -291,7 +322,7 @@ trait AnsiConsole {
       yFn: => T,
       nFn: => Option[T] = None,
       qFn: => Option[T] = sys.exit(1),
-      otherFn: Function[String, Option[Option[T]]] = (v1: String) => None
+      otherFn: Function[String, Option[Option[T]]] = (_: String) => None
   ): Option[T] = {
     if (!_yes) {
       LazyList
@@ -315,9 +346,15 @@ trait AnsiConsole {
 }
 
 object AnsiConsole {
-  def apply(verbose: Boolean = false, plain: Boolean = false, yes: Boolean = false): AnsiConsole = new AnsiConsole() {
+  def apply(
+      verbose: Boolean = false,
+      plain: Boolean = false,
+      yes: Boolean = false,
+      print: Option[Any => Any] = None
+  ): AnsiConsole = new AnsiConsole() {
     override protected val _verbose: Boolean = verbose
     override protected val _plain: Boolean = plain
     override protected val _yes: Boolean = yes
+    override protected val _print: Option[Any => Any] = print
   }
 }
