@@ -74,24 +74,12 @@ object Json {
   }
 
   def dirFromJson(ignoreTimes: Boolean)(json: JsonObject): SkryncDir = {
-    import collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     SkryncDir(
       path = pathFromJson(ignoreTimes)(json),
       deepFileCount = json.get(DeepFileCount).getAsInt,
-      files = json
-        .getAsJsonArray(Files)
-        .iterator
-        .asScala
-        .toList
-        .map(_.getAsJsonObject)
-        .map(pathFromJson(ignoreTimes)),
-      dirs = json
-        .getAsJsonArray(Dirs)
-        .iterator
-        .asScala
-        .toList
-        .map(_.getAsJsonObject)
-        .map(dirFromJson(ignoreTimes))
+      files = json.getAsJsonArray(Files).iterator.asScala.toList.map(_.getAsJsonObject).map(pathFromJson(ignoreTimes)),
+      dirs = json.getAsJsonArray(Dirs).iterator.asScala.toList.map(_.getAsJsonObject).map(dirFromJson(ignoreTimes))
     )
   }
 
@@ -107,9 +95,7 @@ object Json {
     in.addProperty(Name, ".")
     Analysis(
       src = srcDir,
-      created = Option(in.getAsJsonPrimitive(BackupCreated))
-        .map(_.getAsLong)
-        .getOrElse(-1),
+      created = Option(in.getAsJsonPrimitive(BackupCreated)).map(_.getAsLong).getOrElse(-1),
       info = dirFromJson(ignoreTimes)(in)
     )
   }
@@ -119,7 +105,7 @@ object Json {
       current: Path,
       json: JsonObject
   ): Seq[(Path, JsonObject)] = {
-    import collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     // Remember this object at the current path
     Seq(current -> json) ++
       // Add all of the files to the list, inside the current path.
@@ -142,16 +128,12 @@ object Json {
   def read(src: File, ignoreTimes: Boolean = true): Analysis = {
 
     // It's gzipped if the magic header matches these two bytes.
-    val gzipped = Streamable.closing(src.inputStream) { in =>
-      in.read == 0x1f && in.read == 0x8b
-    }
+    val gzipped = Streamable.closing(src.inputStream()) { in => in.read() == 0x1f && in.read() == 0x8b }
 
     // There can be multiple JSON objects in the reader, which Gson requires to be lenient
     val gson = new Gson()
     val r = new JsonReader(
-      new InputStreamReader(
-        if (gzipped) new GZIPInputStream(src.inputStream) else src.inputStream
-      )
+      new InputStreamReader(if (gzipped) new GZIPInputStream(src.inputStream()) else src.inputStream())
     )
     r.setLenient(true)
 
@@ -161,15 +143,13 @@ object Json {
       val analysisJson: JsonObject = gson.fromJson(r, classOf[JsonObject])
 
       // Create a map from all of the paths to the internal JSON objects in the main tree.
-      val paths: Map[Path, JsonObject] =
-        collectByPath(Path(""), analysisJson).toMap
+      val paths: Map[Path, JsonObject] = collectByPath(Path(""), analysisJson).toMap
 
       // All of the remaining JSON objects in the stream are digest info.
-      Stream
+      LazyList
         .continually {
           if (r.peek() == JsonToken.END_DOCUMENT) None
-          else
-            Some(gson.fromJson(r, classOf[JsonObject]).asInstanceOf[JsonObject])
+          else Some(gson.fromJson(r, classOf[JsonObject]).asInstanceOf[JsonObject])
         }
         .takeWhile(_.nonEmpty)
         .map(_.get)
@@ -234,15 +214,7 @@ object Json {
 
     override def scannedDir(p: Directory, dir: SkryncDir): SkryncDir = {
       if (root.contains(p)) {
-        appendJson(
-          analysisToJson(
-            Analysis(
-              src = src,
-              created = created,
-              info = dir
-            )
-          )
-        )
+        appendJson(analysisToJson(Analysis(src = src, created = created, info = dir)))
         w.flush()
       }
       wrapped.scannedDir(p, dir)

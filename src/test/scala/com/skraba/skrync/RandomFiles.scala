@@ -230,7 +230,7 @@ object RandomFiles {
     val createFiles = Math.min(numFiles, nextInt(rnd, minFiles, maxFiles))
     for (_ <- 0 until createFiles) {
       val createdFile: Path =
-        if (rnd.nextDouble < 0.5) createTxtFile(rnd, dir, rnd.nextInt(1000), 20, 80)
+        if (rnd.nextDouble() < 0.5) createTxtFile(rnd, dir, rnd.nextInt(1000), 20, 80)
         else createBinaryFile(rnd, dir, rnd.nextInt(1000), 10 * 1024)
       pathTime = pathTime.map((t: Long) => {
         setTimeAttributes(createdFile, t)

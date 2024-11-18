@@ -293,7 +293,7 @@ trait AnsiConsole {
   def vPrint(in: => Any): Unit = if (_verbose) _print.getOrElse(Console.print _)(in)
 
   /** Only if verbose is turned on, calls [[Console.println]] on the input. */
-  def vPrintln(in: => Any): Unit = if (_verbose) _print.map(_(in + "\n")).getOrElse(Console.println(in))
+  def vPrintln(in: => Any): Unit = if (_verbose) _print.map(_(in.toString + "\n")).getOrElse(Console.println(in))
 
   /** Only if verbose is turned on, calls [[Console.println]] on the input. */
   def vPrintln(): Unit = if (_verbose) _print.map(_("\n")).getOrElse(Console.println())

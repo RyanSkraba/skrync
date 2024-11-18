@@ -44,12 +44,7 @@ object Digests {
   ): Array[Byte] = {
     Streamable.closing(new DigestInputStream(in, digest)) { din =>
       val buffer = new Array[Byte](1 << 20)
-      Stream
-        .continually(din.read(buffer))
-        .takeWhile { len =>
-          len != -1
-        }
-        .foreach(len => w.digestingFileProgress(len))
+      LazyList.continually(din.read(buffer)).takeWhile { len => len != -1 }.foreach(len => w.digestingFileProgress(len))
     }
     digest.digest
   }

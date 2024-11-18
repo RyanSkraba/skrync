@@ -36,24 +36,20 @@ case class SkryncDir(
       dirs.map(d => d.digest(location / Directory(d.path.name), w))
 
     // For a directory, use the stream of its children digests *and* their names.
-    val fileNamesAndSha1: Seq[Stream[Byte]] =
+    val fileNamesAndSha1: Seq[LazyList[Byte]] =
       for (
         file <- filesWithDigest;
         name: String <- Some(file.name);
         digest: Digest <- file.digest
       )
-        yield name
-          .getBytes(StandardCharsets.UTF_8)
-          .toStream append digest.toStream
-    val dirNamesAndSha1: Seq[Stream[Byte]] =
+        yield LazyList.from(name.getBytes(StandardCharsets.UTF_8)) ++ LazyList.from(digest)
+    val dirNamesAndSha1: Seq[LazyList[Byte]] =
       for (
         dir <- dirsWithDigest;
         name: String <- Some(dir.path.name);
         digest: Digest <- dir.path.digest
       )
-        yield name
-          .getBytes(StandardCharsets.UTF_8)
-          .toStream append digest.toStream
+        yield LazyList.from(name.getBytes(StandardCharsets.UTF_8)) ++ LazyList.from(digest)
 
     val rootWithDigest = path.copy(digest = Some(Digests.getSha1(fileNamesAndSha1 ++ dirNamesAndSha1)))
 
