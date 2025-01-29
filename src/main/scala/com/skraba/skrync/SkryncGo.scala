@@ -17,7 +17,7 @@ object SkryncGo extends DocoptCliGo {
   override lazy val Tasks: Seq[Task] =
     Seq(DigestTask, ReportTask, DeduplicateTask, CompareTask, ExecuteTask)
 
-  override lazy val Doc: String = "My file synchronization and backup tool.\n\n" + TaskDoc +
+  override lazy val Doc: String = "My file synchronization and backup tool.\n\n" + SimpleDoc +
     "\n\nAnalyzes and synchronizes changes between two directories."
 
   val Line: String = "=" * 50

@@ -3,7 +3,6 @@ package com.skraba.docoptcli
 import com.skraba.docoptcli.DocoptCliGo.Task
 import org.docopt.{Docopt, DocoptExitException}
 
-import java.util
 import scala.jdk.CollectionConverters._
 
 /** A base class for a Docopt oriented command line script that can take multiple subcommands. */
@@ -19,22 +18,27 @@ trait DocoptCliGo {
   val Tasks: Seq[Task]
 
   /** The full, main docopt that can be used for the script. */
-  lazy val Doc: String = TaskDoc
+  lazy val Doc: String = SimpleDoc
 
-  /** A minimal docopt constructed from the subtasks. */
-  lazy val TaskDoc: String =
+  /** The simple docopt without any description or additional text. */
+   val SimpleDoc: String = UsageDoc + "\n\n" + OptionsDoc + "\n\n" + CommandsDoc
+
+  /** A suggested usage section for the basic docopt. */
+  lazy val UsageDoc: String =
     s"""Usage:
-       |  $Cli [--debug] <command> [args...]
-       |
-       |Options:
+       |  $Cli [--debug] <command> [args...]""".stripMargin
+
+  /** A suggested options section for the docopt. */
+  lazy val OptionsDoc: String =
+    s"""Options:
        |  -h --help  Show this screen.
        |  --version  Show version.
-       |  --debug    Log extra information to the console while executing.
-       |
-       |Commands:
-       |%s
-       |
-       |""".stripMargin.format {
+       |  --debug    Log extra information to the console while executing.""".stripMargin
+
+  /** A suggested commands section for the docopt. */
+  lazy val CommandsDoc: String =
+    """Commands:
+      |%s""".stripMargin.format {
       // Align the task subcommands and descriptions to the longest subcommand.
       val col = (0 +: Tasks.map(_.Cmd.length)).max
       Tasks
