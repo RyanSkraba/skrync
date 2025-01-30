@@ -21,7 +21,7 @@ trait DocoptCliGo {
   lazy val Doc: String = SimpleDoc
 
   /** The simple docopt without any description or additional text. */
-   val SimpleDoc: String = UsageDoc + "\n\n" + OptionsDoc + "\n\n" + CommandsDoc
+  val SimpleDoc: String = UsageDoc + "\n\n" + OptionsDoc + "\n\n" + CommandsDoc
 
   /** A suggested usage section for the basic docopt. */
   lazy val UsageDoc: String =
