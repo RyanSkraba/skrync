@@ -11,9 +11,9 @@
   <description>A synchonization tool for me.</description>
 
   <properties>
-    <!-- specifies that the system uses Java 11 by default -->
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <!-- specifies that the system uses Java 17 by default -->
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Launcher class -->
