@@ -1,14 +1,13 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGo
-import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.SkryncGo.{Line, validateFile}
+import com.tinfoiled.docopt4s.{Docopt, Task}
 
 import java.io.IOException
 import scala.reflect.io._
 
 /** This task copies or moves files according to a synchronisation plan. */
-object ExecuteTask extends DocoptCliGo.Task {
+object ExecuteTask extends Task {
 
   val Cmd = "execute"
 
@@ -41,16 +40,16 @@ object ExecuteTask extends DocoptCliGo.Task {
       .trim
 
   @throws[IOException]
-  def go(opts: TaskOptions): Unit = {
-    val backup = opts.getStringOption("--backup")
-    opts
-      .getStringOption("--plan")
+  def go(opt: Docopt): Unit = {
+    val backup = opt.string.getOption("--backup")
+    opt.string
+      .getOption("--plan")
       .map(plan => goExecute(plan, backup))
       .getOrElse(
         goExecute(
           // TODO
-          validateFile(arg = opts.getString("--srcDigest")),
-          validateFile(arg = opts.getString("--dstDigest"), tag = "Destination"),
+          validateFile(arg = opt.string.get("--srcDigest")),
+          validateFile(arg = opt.string.get("--dstDigest"), tag = "Destination"),
           backup
         )
       )

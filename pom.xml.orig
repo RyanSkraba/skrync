@@ -31,21 +31,27 @@
   </scm>
 
   <properties>
-    <!-- From this file to the root directory of the repo. -->
-    <project.relBaseDir>.</project.relBaseDir>
-
+<<<<<<< HEAD
     <!-- specifies that the system uses Java 17 by default -->
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+=======
+    <!-- From this file to the root directory of the repo. -->
+    <project.relBaseDir>.</project.relBaseDir>
+
+    <!-- specifies that the system uses Java 11 by default -->
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
 
     <!-- Shared properties by all sub-projects -->
+>>>>>>> d42325b (refactor: Use published docopt4s library)
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Launcher class -->
     <exec.mainClass>com.skraba.skrync.SkryncGo</exec.mainClass>
 
     <!-- Dependencies -->
-    <docopt4s.version>0.0.4</docopt4s.version>
+    <docopt4s.version>0.0.2</docopt4s.version>
     <gson.version>2.8.7</gson.version>
     <scala.binary.version>2.13</scala.binary.version>
     <scala.version>2.13.16</scala.version>

@@ -1,16 +1,14 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGo
-import com.skraba.docoptcli.DocoptCliGo.Task
+import com.tinfoiled.docopt4s.{MultiTaskMain, Task}
+
 import scala.reflect.io.{Directory, File, Path}
 import scala.util.Properties
 
 /** My synchronization tool. */
-object SkryncGo extends DocoptCliGo {
+object SkryncGo extends MultiTaskMain {
 
-  type Task = DocoptCliGo.Task
-
-  override lazy val Cli: String = "SkryncGo"
+  override lazy val Name: String = "SkryncGo"
 
   override lazy val Version: String = "0.0.1-SNAPSHOT"
 
@@ -42,7 +40,7 @@ object SkryncGo extends DocoptCliGo {
     * @param root
     *   An absolute directory to use in constructing the path
     * @param tag
-    *   A human readable description for the expected argument
+    *   A human-readable description for the expected argument
     * @param isDir
     *   Whether to test to ensure the argument must be a Directory or must be a File (or None if it doesn't matter).
     * @param exists
@@ -63,7 +61,7 @@ object SkryncGo extends DocoptCliGo {
         .orElse(sys.env.get("SKRYNC_ROOT_DIR"))
         .orElse(Option(Properties.userDir))
         .getOrElse("/")
-    ).resolve(Path(arg.toString)).toAbsolute
+    ).resolve(Path(arg)).toAbsolute
     if (exists.contains(true) && !path.exists)
       throw new IllegalArgumentException(s"$tag doesn't exist: $path")
     if (exists.contains(false) && path.exists)

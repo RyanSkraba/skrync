@@ -1,14 +1,13 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGo
-import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{Line, validateFile}
+import com.tinfoiled.docopt4s.{Docopt, Task}
 
 import scala.reflect.io._
 
 /** This task reads a digest file and provides some basic information. */
-object ReportTask extends DocoptCliGo.Task {
+object ReportTask extends Task {
 
   val Cmd = "report"
 
@@ -48,10 +47,10 @@ object ReportTask extends DocoptCliGo.Task {
     Report(duplicates)
   }
 
-  def go(opts: TaskOptions): Unit = {
+  def go(opt: Docopt): Unit = {
     val srcDigest: File = validateFile(
       // TODO
-      arg = opts.getString("--srcDigest")
+      arg = opt.string.get("--srcDigest")
     )
 
     // Check the two digests for differences.

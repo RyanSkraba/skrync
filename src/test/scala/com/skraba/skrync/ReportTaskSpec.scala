@@ -1,44 +1,39 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGoSpec
 import com.skraba.skrync.SkryncGoSpec._
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
 
-import scala.reflect.io.{Directory, File}
+import scala.reflect.io.File
 
 /** Unit tests for [[ReportTask]] */
-class ReportTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(ReportTask)) {
+class ReportTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ReportTask)) with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles =
-    new ScenarioSmallFiles(Directory.makeTemp(getClass.getSimpleName), deleteRootOnCleanup = true)
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
-  override protected def afterAll(): Unit = Small.cleanup()
-
-  val DoesntExist: String = (Small.root / "doesnt-exist").toString()
-
-  describe(s"${Cli.Cli} $TaskCmd command line") {
+  describe(s"${Main.Name} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
     itShouldThrowOnUnknownFlag()
 
-    itShouldThrowOnMissingOpt(Seq.empty)
+    itShouldThrowOnIncompleteArgs(Seq.empty)
 
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
 
     it("throws an exception when the source digest doesn't exist") {
-      val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", DoesntExist)
-      tSrc.getMessage shouldBe s"Source doesn't exist: $DoesntExist"
+      val tSrc = interceptGo[IllegalArgumentException](TaskCmd, "--srcDigest", NonExistingPath)
+      tSrc.getMessage shouldBe s"Source doesn't exist: $NonExistingPath"
     }
 
     it("throws an exception when the source digest is a directory") {
-      val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", Small.src)
+      val tSrc = interceptGo[IllegalArgumentException](TaskCmd, "--srcDigest", Small.src)
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
     }
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO
-      val tSrc = interceptGoIAEx(TaskCmd, "--srcDigest", Small.src / "ids.txt")
+      val tSrc = interceptGo[IllegalArgumentException](TaskCmd, "--srcDigest", Small.src / "ids.txt")
       tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
     }
   }

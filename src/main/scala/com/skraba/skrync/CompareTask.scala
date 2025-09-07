@@ -1,9 +1,8 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGo
-import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.validateFile
+import com.tinfoiled.docopt4s.{Docopt, Task}
 
 import scala.collection.immutable
 import scala.reflect.io._
@@ -11,7 +10,7 @@ import scala.reflect.io._
 /** This task compares two digest files, a source and destination, and calculates the changes that need to be made to
   * the destination in order for it to be identical to the source.
   */
-object CompareTask extends DocoptCliGo.Task {
+object CompareTask extends Task {
 
   val Cmd = "compare"
 
@@ -98,9 +97,9 @@ object CompareTask extends DocoptCliGo.Task {
     )
   }
 
-  def go(opts: TaskOptions): Unit = {
-    val srcDigest: File = validateFile(arg = opts.getString("--srcDigest"))
-    val dstDigest: File = validateFile(arg = opts.getString("--dstDigest"), tag = "Destination")
+  def go(opt: Docopt): Unit = {
+    val srcDigest: File = validateFile(arg = opt.string.get("--srcDigest"))
+    val dstDigest: File = validateFile(arg = opt.string.get("--dstDigest"), tag = "Destination")
 
     // Read all of the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)

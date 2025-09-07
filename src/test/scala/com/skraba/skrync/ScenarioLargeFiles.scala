@@ -5,25 +5,14 @@ import com.skraba.skrync.Digests.Digest
 import scala.reflect.io._
 import scala.util.Random
 
-/** Create a directory with many files inside, including at least one really big file..
+/** Create a directory with many files inside, including at least one really big file.
   *
   * @param root
-  *   An existing directory. The "large" directory will be created inside and deleted on [[cleanup]].
-  * @param deleteRootOnCleanup
-  *   Whether the root directory should also be deleted on cleanup.
+  *   An existing directory that will be populated with random and large files.
   * @param numFiles
   *   The number of files to include in the scenario.
   */
-class ScenarioLargeFiles(val root: Directory, val deleteRootOnCleanup: Boolean, val numFiles: Int = 1000) {
-
-  /** Remove the directory inside the root, including the root directory if requested. */
-  def cleanup(): Unit =
-    try {
-      src.deleteRecursively()
-      if (deleteRootOnCleanup) root.deleteRecursively()
-    } catch {
-      case ex: Exception => ex.printStackTrace()
-    }
+class ScenarioLargeFiles(val root: Directory, val numFiles: Int = 1000) {
 
   /** Simple test directory with many files. */
   val src: Directory = root / Directory("large")

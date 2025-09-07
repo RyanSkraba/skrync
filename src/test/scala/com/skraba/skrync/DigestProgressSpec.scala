@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGoSpec.withConsoleMatch
-import org.scalatest.BeforeAndAfterAll
+import com.tinfoiled.docopt4s.AnsiConsole.withConsoleMatch
+import com.tinfoiled.docopt4s.testkit.TmpDir
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -10,15 +10,10 @@ import scala.collection.mutable
 import scala.reflect.io._
 
 /** Unit tests for [[DigestProgress]] using a small generated source directory. */
-class DigestProgressSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+class DigestProgressSpec extends AnyFunSpecLike with Matchers with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
-
-  override protected def afterAll(): Unit = Small.cleanup()
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe("Reporting progress while scanning and digesting") {
 

@@ -1,21 +1,16 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGoSpec
-import com.skraba.docoptcli.DocoptCliGoSpec.withConsoleMatch
+import com.tinfoiled.docopt4s.AnsiConsole.withConsoleMatch
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
 import org.scalatest.OptionValues._
 
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncGo]] using a large generated source directory. */
-class ScenarioLargeFilesSpec extends DocoptCliGoSpec(SkryncGo) {
+class ScenarioLargeFilesSpec extends MultiTaskMainSpec(SkryncGo) with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Large: ScenarioLargeFiles = new ScenarioLargeFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
-
-  override protected def afterAll(): Unit = Large.cleanup()
+  val Large: ScenarioLargeFiles = new ScenarioLargeFiles(Directory.makeTemp(getClass.getSimpleName))
 
   describe("Working with digests and files") {
 

@@ -2,24 +2,19 @@ package com.skraba.skrync
 
 import com.skraba.skrync.SkryncPath.isIn
 import com.skraba.skrync.SkryncPathSpec.Example
+import com.tinfoiled.docopt4s.testkit.TmpDir
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import java.io.FileNotFoundException
 import java.nio.file.NoSuchFileException
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncPath]] using a small generated source directory. */
-class SkryncPathSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+class SkryncPathSpec extends AnyFunSpecLike with Matchers with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
-
-  override protected def afterAll(): Unit = Small.cleanup()
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe("SkryncPath.isIn") {
 

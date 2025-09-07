@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncDirSpec.Example
-import org.scalatest.BeforeAndAfterAll
+import com.tinfoiled.docopt4s.testkit.TmpDir
 import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -11,15 +11,10 @@ import java.nio.file.NoSuchFileException
 import scala.reflect.io._
 
 /** Unit tests for [[SkryncDir]] using a small generated source directory. */
-class SkryncDirSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+class SkryncDirSpec extends AnyFunSpecLike with Matchers with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
-
-  override protected def afterAll(): Unit = Small.cleanup()
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe("SkryncDir") {
 

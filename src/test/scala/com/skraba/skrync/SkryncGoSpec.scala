@@ -1,19 +1,20 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGoSpec
+import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
+
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[SkryncGo]] */
-class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
+class SkryncGoSpec extends MultiTaskMainSpec(SkryncGo) {
 
-  describe(s"${Cli.Cli} command line") {
+  describe(s"${Main.Name} command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
     it("throw an exception like --help when run without a command") {
       val t = interceptGoDocoptEx("--debug")
       t.getMessage shouldBe "Missing command"
-      t.docopt shouldBe Cli.Doc
+      t.docopt shouldBe Main.Doc
     }
 
     for (
@@ -24,8 +25,8 @@ class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
         Seq("--garbage", "garbage")
       )
     ) it(s"throw an exception with unknown option $args") {
-      val t = interceptGoDocoptExitEx(args: _*)
-      t.getExitCode shouldBe 1
+      val t = interceptGoDocoptEx(args: _*)
+      t.exitCode shouldBe 1
       t.getMessage shouldBe null
     }
 
@@ -42,7 +43,7 @@ class SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
   }
 }
 
-object SkryncGoSpec extends DocoptCliGoSpec(SkryncGo) {
+object SkryncGoSpec extends MultiTaskMainSpec(SkryncGo) {
 
   /** A helper method used to create an analysis file and read it into memory.
     *

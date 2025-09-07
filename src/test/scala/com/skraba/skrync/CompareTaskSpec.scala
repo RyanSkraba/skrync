@@ -1,49 +1,58 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGoSpec
 import com.skraba.skrync.CompareTask.DupFiles
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[CompareTask]] */
-class CompareTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(CompareTask)) {
+class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
-  override protected def afterAll(): Unit = Small.cleanup()
-
-  describe(s"${Cli.Cli} $TaskCmd command line") {
+  describe(s"${Main.Name} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
     itShouldThrowOnUnknownFlag()
 
-    itShouldThrowOnMissingOpt(Seq.empty)
-    itShouldThrowOnMissingOpt(Seq("--dstDigest", "x"))
-    itShouldThrowOnMissingOpt(Seq("--srcDigest", "x"))
+    itShouldThrowOnIncompleteArgs(Seq.empty)
+    itShouldThrowOnIncompleteArgs(Seq("--dstDigest", "x"))
+    itShouldThrowOnIncompleteArgs(Seq("--srcDigest", "x"))
 
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest"))
-    itShouldThrowOnMissingOptValue(Seq("--dstDigest", "x", "--srcDigest"))
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dstDigest"))
-    itShouldThrowOnMissingOptValue(Seq("--dstDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--dstDigest", "x", "--srcDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dstDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--dstDigest"))
 
     it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = interceptGoIAEx("compare", "--srcDigest", "/doesnt-exist", "--dstDigest", Small.ExistingFile)
+      val tSrc = interceptGo[IllegalArgumentException](
+        "compare",
+        "--srcDigest",
+        "/doesnt-exist",
+        "--dstDigest",
+        Small.ExistingFile
+      )
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
-      val tDst = interceptGoIAEx("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", "/doesnt-exist")
+      val tDst = interceptGo[IllegalArgumentException](
+        "compare",
+        "--srcDigest",
+        Small.ExistingFile,
+        "--dstDigest",
+        "/doesnt-exist"
+      )
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
-      val tSrc = interceptGoIAEx("compare", "--srcDigest", Small.src, "--dstDigest", Small.ExistingFile)
+      val tSrc =
+        interceptGo[IllegalArgumentException]("compare", "--srcDigest", Small.src, "--dstDigest", Small.ExistingFile)
       tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
 
-      val tDst = interceptGoIAEx("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", Small.src)
+      val tDst =
+        interceptGo[IllegalArgumentException]("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", Small.src)
       tDst.getMessage shouldBe s"Destination is not a file: ${Small.src}"
     }
   }

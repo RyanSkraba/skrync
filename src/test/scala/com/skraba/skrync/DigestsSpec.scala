@@ -1,21 +1,16 @@
 package com.skraba.skrync
 
-import org.scalatest.BeforeAndAfterAll
+import com.tinfoiled.docopt4s.testkit.TmpDir
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.reflect.io.{Directory, File}
+import scala.reflect.io.File
 
 /** Unit tests for [[Digests]] */
-class DigestsSpec extends AnyFunSpecLike with Matchers with BeforeAndAfterAll {
+class DigestsSpec extends AnyFunSpecLike with Matchers with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
-
-  override protected def afterAll(): Unit = Small.cleanup()
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe("Hex conversion") {
     it("should convert to and from strings") {

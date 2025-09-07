@@ -1,21 +1,16 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGoSpec
 import com.skraba.skrync.DeduplicateTask.DedupPathReport
 import com.skraba.skrync.SkryncGoSpec._
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DeduplicateTask]] */
-class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask)) {
+class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTask)) with TmpDir {
 
   /** Temporary directory root for all tests. */
-  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(
-    Directory.makeTemp(getClass.getSimpleName),
-    deleteRootOnCleanup = true
-  )
-
-  override protected def afterAll(): Unit = Small.cleanup()
+  val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   // Generate an analysis of the scenario6 directory
   val (srcDigest, analysis) = withSkryncGoAnalysis(
@@ -23,55 +18,70 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
     Small.dst
   )
 
-  describe(s"${Cli.Cli} $TaskCmd command line") {
+  describe(s"${Main.Name} $TaskCmd command line") {
 
     itShouldThrowOnHelpAndVersionFlags()
 
     itShouldThrowOnUnknownFlag()
 
-    itShouldThrowOnMissingOpt(Seq.empty)
-    itShouldThrowOnMissingOpt(Seq("--srcDigest", "x"))
-    itShouldThrowOnMissingOpt(Seq("--dedupDir", "x"))
+    itShouldThrowOnIncompleteArgs(Seq.empty)
+    itShouldThrowOnIncompleteArgs(Seq("--srcDigest", "x"))
+    itShouldThrowOnIncompleteArgs(Seq("--dedupDir", "x"))
 
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest"))
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir"))
-    itShouldThrowOnMissingOptValue(Seq("--dedupDir"))
-    itShouldThrowOnMissingOptValue(Seq("--dedupDir", "x", "--srcDigest"))
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--root"))
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--mvDir"))
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--knownExt"))
-    itShouldThrowOnMissingOptValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--unknownExt"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir"))
+    itShouldThrowOnMissingFlagValue(Seq("--dedupDir"))
+    itShouldThrowOnMissingFlagValue(Seq("--dedupDir", "x", "--srcDigest"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--root"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--mvDir"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--knownExt"))
+    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--unknownExt"))
 
     describe("without --root") {
 
       it("throws an exception when the source digest doesn't exist") {
-        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
+        val tSrc =
+          interceptGo[IllegalArgumentException]("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source digest is a directory") {
-        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
+        val tSrc = interceptGo[IllegalArgumentException]("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
       }
 
       ignore("throws an exception when the source digest is not a JSON file") {
         // TODO
-        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
+        val tSrc =
+          interceptGo[IllegalArgumentException]("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup directory doesn't exist") {
-        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.DoesntExist)
+        val tSrc = interceptGo[IllegalArgumentException](
+          "dedup",
+          "--srcDigest",
+          Small.src / "ids.txt",
+          "--dedupDir",
+          Small.DoesntExist
+        )
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the dedup directory is not a directory") {
-        val tSrc = interceptGoIAEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
+        val tSrc =
+          interceptGo[IllegalArgumentException](
+            "dedup",
+            "--srcDigest",
+            Small.src / "ids.txt",
+            "--dedupDir",
+            Small.src / "ids.txt"
+          )
         tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup move directory doesn't exist") {
-        val tSrc = interceptGoIAEx(
+        val tSrc = interceptGo[IllegalArgumentException](
           "dedup",
           "--srcDigest",
           Small.src / "ids.txt",
@@ -84,7 +94,7 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       }
 
       it("throws an exception when the dedup move directory is not a directory") {
-        val tSrc = interceptGoIAEx(
+        val tSrc = interceptGo[IllegalArgumentException](
           "dedup",
           "--srcDigest",
           Small.src / "ids.txt",
@@ -116,32 +126,32 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       )
 
       it("throws an exception when a relative --srcDigest doesn't exist") {
-        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(4, "nox"): _*)
+        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(4, "nox"): _*)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --srcDigest doesn't exist") {
-        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(4, Small.DoesntExist): _*)
+        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(4, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when a relative --dedupDir doesn't exist") {
-        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(6, "nox"): _*)
+        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(6, "nox"): _*)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --dedupDir doesn't exist") {
-        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(6, Small.DoesntExist): _*)
+        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(6, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when a relative --mvDir doesn't exist") {
-        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(8, "nox"): _*)
+        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(8, "nox"): _*)
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --mvDir doesn't exist") {
-        val tSrc = interceptGoIAEx(dedupExistingArgs.updated(8, Small.DoesntExist): _*)
+        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(8, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
       }
     }
@@ -269,14 +279,8 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
     )(testArgs)
 
   def withDedup1NewScenarioGo(testArgs: Any*): (ScenarioSmallFiles, String) = {
-    val small = new ScenarioSmallFiles(
-      Directory.makeTemp(getClass.getSimpleName),
-      deleteRootOnCleanup = true
-    )
-    val (newSrcDigest, _) = withSkryncGoAnalysis(
-      small.srcWithDuplicates,
-      small.dst
-    )
+    val small = new ScenarioSmallFiles(nonExisting(Tmp).createDirectory(failIfExists = true))
+    val (newSrcDigest, _) = withSkryncGoAnalysis(small.srcWithDuplicates, small.dst)
     val stdout =
       withDedup1Go(
         small.srcWithDuplicates,
@@ -556,7 +560,6 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       (small.srcWithDuplicates / "dup1" / "ids3.txt").exists shouldBe false
       (small.srcWithDuplicates / "dup1" / "ids3.unknown.txt").toFile.slurp() shouldBe Small.File3Contents
       small.dst.toDirectory.files should have size 1
-      small.cleanup()
     }
 
     it("renaming the extensions of only unknown") {
@@ -579,7 +582,6 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       (small.srcWithDuplicates / "dup1" / "ids.txt").toFile.slurp() shouldBe Small.File1Contents
       (small.srcWithDuplicates / "dup1" / "ids3.unknown.txt").toFile.slurp() shouldBe Small.File3Contents
       small.dst.toDirectory.files should have size 1
-      small.cleanup()
     }
 
     it("moving known files to a new directory") {
@@ -602,7 +604,6 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       (small.srcWithDuplicates / "dup1" / "ids3.txt").toFile.slurp() shouldBe Small.File3Contents
       small.dst.toDirectory.files should have size 2
       (small.dst / "ids.txt").toFile.slurp() shouldBe Small.File1Contents
-      small.cleanup()
     }
 
     it("moving known files to a new directory and renaming") {
@@ -624,7 +625,6 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       (small.srcWithDuplicates / "dup1").toDirectory.files should have size 1
       small.dst.toDirectory.files should have size 2
       (small.dst / "ids.known.txt").toFile.slurp() shouldBe Small.File1Contents
-      small.cleanup()
     }
 
     it("deleting known files") {
@@ -646,7 +646,6 @@ class DeduplicateTaskSpec extends DocoptCliGoSpec(SkryncGo, Some(DeduplicateTask
       (small.srcWithDuplicates / "dup1").toDirectory.files should have size 1
       (small.srcWithDuplicates / "dup1" / "ids3.txt").toFile.slurp() shouldBe Small.File3Contents
       small.dst.toDirectory.files should have size 1
-      small.cleanup()
     }
   }
 }

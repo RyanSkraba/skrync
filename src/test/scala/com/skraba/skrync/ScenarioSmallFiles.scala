@@ -39,25 +39,10 @@ import scala.reflect.io._
   *      - `root/scenario6/small/dup3/sub/ids5.txt`
   *
   * @param root
-  *   An existing directory. The small and scenario directories will be created inside and deleted on [[cleanup]].
-  * @param deleteRootOnCleanup
-  *   Whether the root directory should also be deleted on cleanup.
+  *   An existing directory that will be populated with the above files. This class doesn't clean up the filesystem
+  *   after use.
   */
-class ScenarioSmallFiles(
-    val root: Directory,
-    val deleteRootOnCleanup: Boolean
-) {
-
-  /** Remove the directory inside the root, including the root directory if requested. */
-  def cleanup(): Unit =
-    try {
-      src.deleteRecursively()
-      if (deleteRootOnCleanup)
-        root.deleteRecursively()
-    } catch {
-      case ex: Exception =>
-        ex.printStackTrace()
-    }
+class ScenarioSmallFiles(val root: Directory) {
 
   /** A pre-existing file outside the small scenario. */
   val ExistingFile: File = root / File("exists")

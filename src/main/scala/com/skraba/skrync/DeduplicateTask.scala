@@ -1,10 +1,9 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGo
-import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.{Line, validateDirectory, validateFile}
 import com.skraba.skrync.SkryncPath.isIn
+import com.tinfoiled.docopt4s.{Docopt, Task}
 
 import java.nio.file.{Files, StandardCopyOption}
 import scala.reflect.io._
@@ -14,7 +13,7 @@ import scala.reflect.io._
   *
   * This can be useful for filing new files in the original directory from where the digest was made.
   */
-object DeduplicateTask extends DocoptCliGo.Task {
+object DeduplicateTask extends Task {
 
   // TODO: Add verbose scanning for the input dedup directory
 
@@ -129,26 +128,26 @@ object DeduplicateTask extends DocoptCliGo.Task {
     }
   }
 
-  def go(opts: TaskOptions): Unit = {
+  def go(opt: Docopt): Unit = {
 
     // Setup the expected output.
-    val verbose = opts.getBoolean("--verbose")
-    val dryRun = opts.getBoolean("--dryRun")
-    val timing = opts.getBoolean("--timing")
+    val verbose = opt.boolean.get("--verbose")
+    val dryRun = opt.boolean.get("--dryRun")
+    val timing = opt.boolean.get("--timing")
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val root = opts.getStringOption("--root")
+    val root = opt.string.getOption("--root")
 
     // The file resources used by this task
-    val srcDigest: File = validateFile(arg = opts.getString("--srcDigest"), root)
+    val srcDigest: File = validateFile(arg = opt.string.get("--srcDigest"), root)
     val dedupDir: Directory =
-      validateDirectory(opts.getString("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
+      validateDirectory(opt.string.get("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
 
-    val knownExtension: Option[String] = opts.getStringOption("--knownExt")
-    val unknownExtension: Option[String] = opts.getStringOption("--unknownExt")
-    val rmKnown = opts.getBoolean("--rmKnown")
+    val knownExtension: Option[String] = opt.string.getOption("--knownExt")
+    val unknownExtension: Option[String] = opt.string.getOption("--unknownExt")
+    val rmKnown = opt.boolean.get("--rmKnown")
     val mvDir: Option[Directory] =
-      opts.getStringOption("--mvDir").map(validateDirectory(_, root, tag = "Duplicate destination directory"))
+      opt.string.getOption("--mvDir").map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
     // Read all of the information from the two digest files.
     val start = System.currentTimeMillis()

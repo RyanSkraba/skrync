@@ -1,16 +1,15 @@
 package com.skraba.skrync
 
-import com.skraba.docoptcli.DocoptCliGo
-import com.skraba.docoptcli.DocoptCliGo.Task
 import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile, validateFileSystem}
+import com.tinfoiled.docopt4s.{Docopt, Task}
 
 import java.io.IOException
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import scala.reflect.io._
 
-/** This task creates a file with digest information for all of the files in a given directory. */
-object DigestTask extends DocoptCliGo.Task {
+/** This task creates a file with digest information for all the files in a given directory. */
+object DigestTask extends Task {
 
   val Cmd = "digest"
 
@@ -43,23 +42,23 @@ object DigestTask extends DocoptCliGo.Task {
 
   /** Creates a digest file from the input directory containing the file info and digests. */
   @throws[IOException]
-  def go(opts: TaskOptions): Unit = {
+  def go(opt: Docopt): Unit = {
 
     // The current date/time
     val now = LocalDateTime.now
 
-    val silent = opts.getBoolean("--silent")
-    val digest = !opts.getBoolean("--no-digest")
+    val silent = opt.flag("--silent")
+    val digest = !opt.flag("--no-digest")
 
     // A root directory taken from the command line, or from the environment, or from the current working directory.
-    val root = opts.getStringOption("--root")
+    val root = opt.string.getOption("--root")
 
     // The file resources used by this task
-    val srcDir = validateDirectory(opts.getString("--srcDir"), root)
+    val srcDir = validateDirectory(opt.string.get("--srcDir"), root)
     // The destination, if present.  If this is already a directory, a default file name will be generated,
     // including the date. If no destination is specified, this will be None and standard out will be used.
-    val dst: Option[File] = opts
-      .getStringOption("--dstDigest")
+    val dst: Option[File] = opt.string
+      .getOption("--dstDigest")
       .map(validateFileSystem(_, root, exists = None))
       .map(p => {
         // If the destination is a directory, auto-create the filename based on the time.
