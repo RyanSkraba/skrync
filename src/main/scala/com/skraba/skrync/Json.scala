@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.google.gson.{Gson, JsonArray, JsonObject}
+import com.google.gson.{Gson, JsonArray, JsonObject, Strictness}
 import com.google.gson.stream.{JsonReader, JsonToken, JsonWriter}
 import com.skraba.skrync.SkryncGo.Analysis
 
@@ -124,7 +124,7 @@ object Json {
         .flatMap(json => collectByPath(current.resolve(json.get(Name).getAsString), json))
   }
 
-  /** @param src The source file generated from [[write()]] */
+  /** @param src The source file generated from [[writeProgress]] */
   def read(src: File, ignoreTimes: Boolean = true): Analysis = {
 
     // It's gzipped if the magic header matches these two bytes.
@@ -135,9 +135,9 @@ object Json {
     val r = new JsonReader(
       new InputStreamReader(if (gzipped) new GZIPInputStream(src.inputStream()) else src.inputStream())
     )
-    r.setLenient(true)
+    r.setStrictness(Strictness.LENIENT)
 
-    // Read all of the json objects from the stream and me
+    // Read all the json objects from the stream
     Streamable.closing(r) { r =>
       // The main tree is the first JSON object in the stream.
       val analysisJson: JsonObject = gson.fromJson(r, classOf[JsonObject])
