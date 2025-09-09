@@ -20,7 +20,7 @@ object SkryncGo extends MultiTaskMain {
 
   val Line: String = "=" * 50
 
-  /** An analysis contains all of the information discovered while reading a directory.
+  /** An analysis contains all the information discovered while reading a directory.
     *
     * This can be persisted to disk and used to communicate between the tasks.
     *
@@ -29,7 +29,7 @@ object SkryncGo extends MultiTaskMain {
     * @param created
     *   The time that the the analysis was performed.
     * @param info
-    *   All of the information information discovered at that location.
+    *   All the information information discovered at that location.
     */
   case class Analysis(src: Directory, created: Long, info: SkryncDir)
 

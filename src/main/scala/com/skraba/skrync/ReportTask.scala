@@ -54,7 +54,7 @@ object ReportTask extends Task {
     )
 
     // Check the two digests for differences.
-    // Read all of the information from the two digest files.
+    // Read all the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)
     val r = report(src)
 

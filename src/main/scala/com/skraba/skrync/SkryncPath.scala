@@ -74,8 +74,7 @@ object SkryncPath {
     */
   def isIn(parent: Directory, child: Path): Boolean = {
     val canonicalParent = parent.toCanonical
-    val canonicalChild = (if (child.isAbsolute) child
-                          else canonicalParent.resolve(child)).toCanonical
+    val canonicalChild = (if (child.isAbsolute) child else canonicalParent.resolve(child)).toCanonical
     canonicalChild.jfile.toPath.startsWith(canonicalParent.jfile.toPath)
   }
 }

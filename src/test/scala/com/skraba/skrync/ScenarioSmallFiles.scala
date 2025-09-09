@@ -158,7 +158,7 @@ class ScenarioSmallFiles(val root: Directory) {
       createTxtContents(scenario / "dup3" / "sub" / "ids5.txt", File5Contents)
     }
 
-    // Set all of the time attributes on the scenario.
+    // Set all the time attributes on the scenario.
     RandomFiles.setTimeAttributes(root, 0L, recursive = true)
   }
 }

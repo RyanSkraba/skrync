@@ -110,7 +110,7 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
     describe("with --root") {
 
       /** We'll test that the root is taken into account by using a nonsense command line. We want to provoke a "doesn't
-        * exist: FILENAME" CLI error. Outside of the root, all of the file resources exist, so we'll replace them one by
+        * exist: FILENAME" CLI error. Outside of the root, all the file resources exist, so we'll replace them one by
         * one with resources that don't exist, and examine the errors that result.
         */
       val dedupExistingArgs = Seq(

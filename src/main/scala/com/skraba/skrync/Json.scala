@@ -108,14 +108,14 @@ object Json {
     import scala.jdk.CollectionConverters._
     // Remember this object at the current path
     Seq(current -> json) ++
-      // Add all of the files to the list, inside the current path.
+      // Add all the files to the list, inside the current path.
       json
         .getAsJsonArray(Files)
         .iterator
         .asScala
         .map(_.getAsJsonObject)
         .map(json => current.resolve(json.get(Name).getAsString) -> json) ++
-      // Add all of the files to the list, inside the current path.
+      // Add all the files to the list, inside the current path.
       json
         .getAsJsonArray(Dirs)
         .iterator
@@ -142,10 +142,10 @@ object Json {
       // The main tree is the first JSON object in the stream.
       val analysisJson: JsonObject = gson.fromJson(r, classOf[JsonObject])
 
-      // Create a map from all of the paths to the internal JSON objects in the main tree.
+      // Create a map from all the paths to the internal JSON objects in the main tree.
       val paths: Map[Path, JsonObject] = collectByPath(Path(""), analysisJson).toMap
 
-      // All of the remaining JSON objects in the stream are digest info.
+      // All the remaining JSON objects in the stream are digest info.
       LazyList
         .continually {
           if (r.peek() == JsonToken.END_DOCUMENT) None

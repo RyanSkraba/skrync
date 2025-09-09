@@ -24,7 +24,7 @@ object DeduplicateTask extends Task {
   val Doc: String =
     """%s
       |
-      |All of the files in the deduplication directory are categorized as known
+      |All the files in the deduplication directory are categorized as known
       |or unknown.  Known files exist elsewhere, either in the source digest outside
       |of the deduplication directory OR have a duplicate inside the directory.  An
       |unknown file has information that can't be found elsewhere.
@@ -98,19 +98,19 @@ object DeduplicateTask extends Task {
       */
     def apply(src: SkryncGo.Analysis, dedupPath: Directory): DedupPathReport = {
 
-      // All of the files in the analysis, sorted into whether they are in the dedupPath
+      // All the files in the analysis, sorted into whether they are in the dedupPath
       val (srcInDedup: Seq[(Path, SkryncPath)], srcOutDedup: Seq[(Path, SkryncPath)]) =
         src.info.flattenPaths(src.src).filter(_._2.digest.nonEmpty).partition(p => isIn(dedupPath, p._1))
 
-      // All of the files in the dedupPath, taken from the analysis or the filesystem
+      // All the files in the dedupPath, taken from the analysis or the filesystem
       val dedupContents =
         if (isIn(src.src, dedupPath)) srcInDedup
         else SkryncDir.scan(dedupPath, digest = true).flattenPaths(dedupPath)
 
-      // All of the files in the analysis keyed on digest.  This is the set that determines whether the file in the dedupPath is known or unknown.
+      // All the files in the analysis keyed on digest.  This is the set that determines whether the file in the dedupPath is known or unknown.
       val srcOutDedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] = srcOutDedup.groupBy(_._2.digest.get)
 
-      // All of the files that we're testing
+      // All the files that we're testing
       val dedupDigests: Map[Digest, Seq[(Path, SkryncPath)]] = dedupContents.groupBy(_._2.digest.get)
 
       // Partition by whether the file is known or not
@@ -149,7 +149,7 @@ object DeduplicateTask extends Task {
     val mvDir: Option[Directory] =
       opt.string.getOption("--mvDir").map(validateDirectory(_, root, tag = "Duplicate destination directory"))
 
-    // Read all of the information from the two digest files.
+    // Read all the information from the two digest files.
     val start = System.currentTimeMillis()
     val src: SkryncGo.Analysis = Json.read(srcDigest)
     val readTime = System.currentTimeMillis() - start

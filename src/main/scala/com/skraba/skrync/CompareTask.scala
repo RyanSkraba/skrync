@@ -37,9 +37,9 @@ object CompareTask extends Task {
 
   /** Files with the same digest that exist in multiple places
     * @param srcs
-    *   All of the paths in the source digest that contain files with this digest
+    *   All the paths in the source digest that contain files with this digest
     * @param dsts
-    *   All of the paths in the dst digest that contain files with this digest
+    *   All the paths in the dst digest that contain files with this digest
     */
   case class DupFiles(srcs: Set[Path], dsts: Set[Path])
 
@@ -49,7 +49,7 @@ object CompareTask extends Task {
       /** Files that exist only in the destination directory without any corresponding source. Should be removed. */
       dstOnly: Set[Path],
       /** Identical files that exist in the source AND destination but at different paths. Any file in the destination
-        * set can be moved or copied to all of the paths in the source set.
+        * set can be moved or copied to all the paths in the source set.
         */
       moved: Set[DupFiles],
       /** Files that exist in both the source and destination at the same path, but have been changed. The destination
@@ -60,7 +60,7 @@ object CompareTask extends Task {
 
   def compare(src: SkryncDir, dst: SkryncDir): Comparison = {
 
-    // All of the the files found in the source directory, as a flat list of Paths relative to its root,
+    // All the files found in the source directory, as a flat list of Paths relative to its root,
     // and grouped by digest.
     val srcMap: Map[Path, SkryncPath] = src.copyWithoutTimes().flattenPaths(Path(src.path.name)).toMap
     val srcKeys: Set[Path] = srcMap.keySet
@@ -69,7 +69,7 @@ object CompareTask extends Task {
       case _                     => None
     }
 
-    // All of the the files found in the dest directory, as a flat list of Paths relative to its root,
+    // All the files found in the dest directory, as a flat list of Paths relative to its root,
     // and grouped by digest.
     val dstMap: Map[Path, SkryncPath] = dst.copyWithoutTimes().flattenPaths(Path(dst.path.name)).toMap
     val dstKeys: Set[Path] = dstMap.keySet
@@ -101,7 +101,7 @@ object CompareTask extends Task {
     val srcDigest: File = validateFile(arg = opt.string.get("--srcDigest"))
     val dstDigest: File = validateFile(arg = opt.string.get("--dstDigest"), tag = "Destination")
 
-    // Read all of the information from the two digest files.
+    // Read all the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)
     val dst: SkryncGo.Analysis = Json.read(dstDigest)
 

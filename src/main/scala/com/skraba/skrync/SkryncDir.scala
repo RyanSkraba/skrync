@@ -10,12 +10,7 @@ import scala.reflect.io.{Directory, File, Path}
   * This includes file system information and information about its contents. The size is the deep size of all the files
   * it contains, and the digest includes file and directory names information.
   */
-case class SkryncDir(
-    path: SkryncPath,
-    deepFileCount: Int,
-    files: List[SkryncPath],
-    dirs: List[SkryncDir]
-) {
+case class SkryncDir(path: SkryncPath, deepFileCount: Int, files: List[SkryncPath], dirs: List[SkryncDir]) {
 
   /** @return a copy of this instance without any time information. */
   def copyWithoutTimes(): SkryncDir = {
@@ -32,23 +27,14 @@ case class SkryncDir(
     w.digestingDir(location, this)
 
     val filesWithDigest = files.map(f => f.digest(location / File(f.name), w))
-    val dirsWithDigest =
-      dirs.map(d => d.digest(location / Directory(d.path.name), w))
+    val dirsWithDigest = dirs.map(d => d.digest(location / Directory(d.path.name), w))
 
     // For a directory, use the stream of its children digests *and* their names.
     val fileNamesAndSha1: Seq[LazyList[Byte]] =
-      for (
-        file <- filesWithDigest;
-        name: String <- Some(file.name);
-        digest: Digest <- file.digest
-      )
+      for (file <- filesWithDigest; name: String <- Some(file.name); digest: Digest <- file.digest)
         yield LazyList.from(name.getBytes(StandardCharsets.UTF_8)) ++ LazyList.from(digest)
     val dirNamesAndSha1: Seq[LazyList[Byte]] =
-      for (
-        dir <- dirsWithDigest;
-        name: String <- Some(dir.path.name);
-        digest: Digest <- dir.path.digest
-      )
+      for (dir <- dirsWithDigest; name: String <- Some(dir.path.name); digest: Digest <- dir.path.digest)
         yield LazyList.from(name.getBytes(StandardCharsets.UTF_8)) ++ LazyList.from(digest)
 
     val rootWithDigest = path.copy(digest = Some(Digests.getSha1(fileNamesAndSha1 ++ dirNamesAndSha1)))
@@ -66,17 +52,15 @@ case class SkryncDir(
   /** Flattens the contents of this directory recursively so that all of its contents are in the sequence.
     *
     * @param path
-    *   The path at which this directory is considered to exist. All of the contents are resolved relative to this path.
+    *   The path at which this directory is considered to exist. All the contents are resolved relative to this path.
     * @return
-    *   A sequence of Path -> SkryncPath of all of the file contents inside his directory.
+    *   A sequence of Path -> SkryncPath of all the file contents inside his directory.
     */
   def flattenPaths(path: Path): Seq[(Path, SkryncPath)] = {
     // The files directly in this source directory.
-    val fs: Seq[(Path, SkryncPath)] =
-      files.map(file => path.resolve(file.name) -> file)
+    val fs: Seq[(Path, SkryncPath)] = files.map(file => path.resolve(file.name) -> file)
     // And then recursively do the children.
-    val ds: Seq[(Path, SkryncPath)] =
-      dirs.flatMap(dir => dir.flattenPaths(path.resolve(dir.path.name)))
+    val ds: Seq[(Path, SkryncPath)] = dirs.flatMap(dir => dir.flattenPaths(path.resolve(dir.path.name)))
     // Return the two lists concatenated.
     fs ++ ds
   }
@@ -92,14 +76,11 @@ object SkryncDir {
     * @param w
     *   A class that is notified as the file system is being traversed.
     */
-  private def scanInternal(
-      d: Directory,
-      w: DigestProgress = IgnoreProgress
-  ): SkryncDir = {
+  private def scanInternal(d: Directory, w: DigestProgress = IgnoreProgress): SkryncDir = {
     val root = SkryncPath(d)
     w.scanningDir(d)
 
-    // Get all of the files and subdirectories.
+    // Get all the files and subdirectories.
     val files = (for (f <- d.list.toList if f.isFile)
       yield w.scannedFile(f, SkryncPath(f.toFile))).sortWith(_.name < _.name)
     val dirs = (for (sub <- d.list.toList if sub.isDirectory)
@@ -130,11 +111,7 @@ object SkryncDir {
     * @param digest
     *   Get the digests after scanning the file system.
     */
-  def scan(
-      d: Directory,
-      digest: Boolean,
-      w: DigestProgress = IgnoreProgress
-  ): SkryncDir = {
+  def scan(d: Directory, digest: Boolean, w: DigestProgress = IgnoreProgress): SkryncDir = {
     // Do the scan
     val dir = scanInternal(d, w)
     w.done(d, if (digest) dir.digest(d, w) else dir)

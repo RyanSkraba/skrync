@@ -33,7 +33,7 @@ class ScenarioLargeFilesSpec extends MultiTaskMainSpec(SkryncGo) with TmpDir {
         val w = new PrintDigestProgress(Console.out)
         SkryncDir.scan(Large.src, digest = false, w)
       } { case (dir: SkryncDir, stdout, stderr) =>
-        // Ensure that all of the directories and files have been counted.
+        // Ensure that all the directories and files have been counted.
         stdout.groupBy(c => c).view.mapValues(c => c.length).toMap shouldBe Map(
           '[' -> 798,
           '!' -> 1000,
@@ -69,8 +69,7 @@ class ScenarioLargeFilesSpec extends MultiTaskMainSpec(SkryncGo) with TmpDir {
         val w = new PrintDigestProgress(Console.out)
         dirWithoutSha1.digest(Large.src, w)
       } { case (dir: SkryncDir, stdout, stderr) =>
-        // Ensure that all of the directories and files have been counted.
-        // Ensure that all of the directories and files have been counted.
+        // Ensure that all the directories and files have been counted.
         stdout.groupBy(c => c).view.mapValues(c => c.length).toMap shouldBe Map(
           '{' -> 798,
           '<' -> 1000,
