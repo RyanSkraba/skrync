@@ -1,5 +1,7 @@
-Skrync ![Java CI](https://github.com/RyanSkraba/skrync/workflows/Java%20CI/badge.svg)
+Skrync
 ==============================================================================
+
+[![Java CI with Maven](https://github.com/RyanSkraba/skrync/actions/workflows/maven.yml/badge.svg)](https://github.com/RyanSkraba/skrync/actions/workflows/maven.yml)
 
 (This is a project in progress)
 
