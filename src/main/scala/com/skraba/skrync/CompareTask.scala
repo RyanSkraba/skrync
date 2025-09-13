@@ -2,7 +2,7 @@ package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
 import com.skraba.skrync.SkryncGo.validateFile
-import com.tinfoiled.docopt4s.{Docopt, Task}
+import com.tinfoiled.docopt4s.{Docopt, PathValidator, Task}
 
 import scala.collection.immutable
 import scala.reflect.io._
@@ -98,8 +98,8 @@ object CompareTask extends Task {
   }
 
   def go(opt: Docopt): Unit = {
-    val srcDigest: File = validateFile(arg = opt.string.get("--srcDigest"))
-    val dstDigest: File = validateFile(arg = opt.string.get("--dstDigest"), tag = "Destination")
+    val srcDigest: File = opt.file.get("--srcDigest", PathValidator().withTag("Source"))
+    val dstDigest: File = opt.file.get("--dstDigest", PathValidator().withTag("Destination"))
 
     // Read all the information from the two digest files.
     val src: SkryncGo.Analysis = Json.read(srcDigest)

@@ -27,33 +27,19 @@ class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) wit
     itShouldThrowOnMissingFlagValue(Seq("--dstDigest"))
 
     it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = interceptGo[IllegalArgumentException](
-        "compare",
-        "--srcDigest",
-        "/doesnt-exist",
-        "--dstDigest",
-        Small.ExistingFile
-      )
+      val tSrc = interceptGoDocoptEx("compare", "--srcDigest", "/doesnt-exist", "--dstDigest", Small.ExistingFile)
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
-      val tDst = interceptGo[IllegalArgumentException](
-        "compare",
-        "--srcDigest",
-        Small.ExistingFile,
-        "--dstDigest",
-        "/doesnt-exist"
-      )
+      val tDst = interceptGoDocoptEx("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", "/doesnt-exist")
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
-      val tSrc =
-        interceptGo[IllegalArgumentException]("compare", "--srcDigest", Small.src, "--dstDigest", Small.ExistingFile)
-      tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
+      val tSrc = interceptGoDocoptEx("compare", "--srcDigest", Small.src, "--dstDigest", Small.ExistingFile)
+      tSrc.getMessage shouldBe s"Source expected a file, found directory: ${Small.src}"
 
-      val tDst =
-        interceptGo[IllegalArgumentException]("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", Small.src)
-      tDst.getMessage shouldBe s"Destination is not a file: ${Small.src}"
+      val tDst = interceptGoDocoptEx("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", Small.src)
+      tDst.getMessage shouldBe s"Destination expected a file, found directory: ${Small.src}"
     }
   }
 
