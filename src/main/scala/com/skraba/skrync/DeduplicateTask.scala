@@ -1,9 +1,9 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.{Line, validateDirectory, validateFile}
+import com.skraba.skrync.SkryncGo.Line
 import com.skraba.skrync.SkryncPath.isIn
-import com.tinfoiled.docopt4s.{Docopt, Task}
+import com.tinfoiled.docopt4s.{Docopt, PathValidator, Task}
 
 import java.nio.file.{Files, StandardCopyOption}
 import scala.reflect.io._
@@ -139,15 +139,14 @@ object DeduplicateTask extends Task {
     val root = opt.string.getOption("--root")
 
     // The file resources used by this task
-    val srcDigest: File = validateFile(arg = opt.string.get("--srcDigest"), root)
-    val dedupDir: Directory =
-      validateDirectory(opt.string.get("--dedupDir"), root, tag = "Deduplication directory").toAbsolute
+    val srcDigest: File = opt.file.get("--srcDigest", PathValidator(root).withTag("Source"))
+    val dedupDir: Directory = opt.dir.get("--dedupDir", PathValidator(root).withTag("Deduplication directory"))
 
     val knownExtension: Option[String] = opt.string.getOption("--knownExt")
     val unknownExtension: Option[String] = opt.string.getOption("--unknownExt")
     val rmKnown = opt.boolean.get("--rmKnown")
     val mvDir: Option[Directory] =
-      opt.string.getOption("--mvDir").map(validateDirectory(_, root, tag = "Duplicate destination directory"))
+      opt.dir.getOption("--mvDir", PathValidator(root).withTag("Duplicate destination directory"))
 
     // Read all the information from the two digest files.
     val start = System.currentTimeMillis()
@@ -174,11 +173,8 @@ object DeduplicateTask extends Task {
       r.known.nonEmpty && (verbose || dryRun && (mvDir.nonEmpty || knownExtension.nonEmpty || rmKnown))
     val outputForUnknown = r.unknown.nonEmpty && (verbose || dryRun && unknownExtension.nonEmpty)
 
-    // If there's no output expected to be printed to the screen, then indicate how to get
-    // output.
-    if (!outputForKnown && !outputForUnknown) {
-      println("Use --verbose to list the files.")
-    }
+    // If there's no output expected to be printed to the screen, then indicate how to get output.
+    if (!outputForKnown && !outputForUnknown) println("Use --verbose to list the files.")
 
     if (outputForKnown)
       println(s"""Known files (duplicates)

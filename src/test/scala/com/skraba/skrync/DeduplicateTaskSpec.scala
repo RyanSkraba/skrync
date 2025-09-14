@@ -40,48 +40,34 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
     describe("without --root") {
 
       it("throws an exception when the source digest doesn't exist") {
-        val tSrc =
-          interceptGo[IllegalArgumentException]("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
+        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when the source digest is a directory") {
-        val tSrc = interceptGo[IllegalArgumentException]("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
-        tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
+        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
+        tSrc.getMessage shouldBe s"Source expected a file, found directory: ${Small.src}"
       }
 
       ignore("throws an exception when the source digest is not a JSON file") {
         // TODO
-        val tSrc =
-          interceptGo[IllegalArgumentException]("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
+        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup directory doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](
-          "dedup",
-          "--srcDigest",
-          Small.src / "ids.txt",
-          "--dedupDir",
-          Small.DoesntExist
-        )
+        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.DoesntExist)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
-      it("throws an exception when the dedup directory is not a directory") {
+      it("throws an exception when the dedup directory expected a directory, found file") {
         val tSrc =
-          interceptGo[IllegalArgumentException](
-            "dedup",
-            "--srcDigest",
-            Small.src / "ids.txt",
-            "--dedupDir",
-            Small.src / "ids.txt"
-          )
-        tSrc.getMessage shouldBe s"Deduplication directory is not a directory: ${Small.src / "ids.txt"}"
+          interceptGoDocoptEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
+        tSrc.getMessage shouldBe s"Deduplication directory expected a directory, found file: ${Small.src / "ids.txt"}"
       }
 
       it("throws an exception when the dedup move directory doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](
+        val tSrc = interceptGoDocoptEx(
           "dedup",
           "--srcDigest",
           Small.src / "ids.txt",
@@ -93,8 +79,8 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
       }
 
-      it("throws an exception when the dedup move directory is not a directory") {
-        val tSrc = interceptGo[IllegalArgumentException](
+      it("throws an exception when the dedup move directory expected a directory, found file") {
+        val tSrc = interceptGoDocoptEx(
           "dedup",
           "--srcDigest",
           Small.src / "ids.txt",
@@ -103,7 +89,7 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
           "--mvDir",
           Small.src / "ids.txt"
         )
-        tSrc.getMessage shouldBe s"Duplicate destination directory is not a directory: ${Small.src / "ids.txt"}"
+        tSrc.getMessage shouldBe s"Duplicate destination directory expected a directory, found file: ${Small.src / "ids.txt"}"
       }
     }
 
@@ -126,32 +112,32 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
       )
 
       it("throws an exception when a relative --srcDigest doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(4, "nox"): _*)
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(4, "nox"): _*)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --srcDigest doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(4, Small.DoesntExist): _*)
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(4, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when a relative --dedupDir doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(6, "nox"): _*)
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(6, "nox"): _*)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --dedupDir doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(6, Small.DoesntExist): _*)
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(6, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
       }
 
       it("throws an exception when a relative --mvDir doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(8, "nox"): _*)
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(8, "nox"): _*)
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}/nox"
       }
 
       it("throws an exception when an absolute --mvDir doesn't exist") {
-        val tSrc = interceptGo[IllegalArgumentException](dedupExistingArgs.updated(8, Small.DoesntExist): _*)
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(8, Small.DoesntExist): _*)
         tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
       }
     }
@@ -166,10 +152,7 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
     val extract = extractNameForTests(Small.srcWithDuplicates) _
 
     it("has one duplicate in dup1/") {
-      val dupReport = DedupPathReport(
-        analysis,
-        Small.srcWithDuplicates / Directory("dup1")
-      )
+      val dupReport = DedupPathReport(analysis, Small.srcWithDuplicates / Directory("dup1"))
 
       dupReport.unknown should have size 1
       dupReport.unknown.map(extract) shouldBe List("dup1/ids3.txt")
@@ -178,62 +161,38 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
     }
 
     it("has one duplicate in dup2/") {
-      val dupReport = DedupPathReport(
-        analysis,
-        Small.srcWithDuplicates / Directory("dup2")
-      )
+      val dupReport = DedupPathReport(analysis, Small.srcWithDuplicates / Directory("dup2"))
 
       dupReport.unknown should have size 1
-      dupReport.unknown.map(extract) shouldBe List(
-        "dup2/ids4.txt"
-      )
+      dupReport.unknown.map(extract) shouldBe List("dup2/ids4.txt")
       dupReport.known should have size 1
       dupReport.known.map(extract) shouldBe List("dup2/ids4a.txt")
     }
 
     it("has two duplicates in dup3/") {
-      val dupReport = DedupPathReport(
-        analysis,
-        Small.srcWithDuplicates / Directory("dup3")
-      )
+      val dupReport = DedupPathReport(analysis, Small.srcWithDuplicates / Directory("dup3"))
 
       dupReport.unknown should have size 1
       dupReport.unknown.map(extract) shouldBe List("dup3/ids5.txt")
       dupReport.known should have size 2
-      dupReport.known.map(extract) shouldBe List(
-        "dup3/ids2a.txt",
-        "dup3/sub/ids5.txt"
-      )
+      dupReport.known.map(extract) shouldBe List("dup3/ids2a.txt", "dup3/sub/ids5.txt")
     }
 
     it("outside original scenario is entirely duplicated in this scenario") {
-      val dupReport = DedupPathReport(
-        analysis,
-        Small.src
-      )
+      val dupReport = DedupPathReport(analysis, Small.src)
 
       dupReport.unknown shouldBe empty
       dupReport.known should have size 2
-      dupReport.known.map(extract) shouldBe List(
-        "../../original/small/ids.txt",
-        "../../original/small/sub/ids2.txt"
-      )
+      dupReport.known.map(extract) shouldBe List("../../original/small/ids.txt", "../../original/small/sub/ids2.txt")
     }
 
     it("outside scenario2/ has some duplicated files in this scenario") {
-      val dupReport = DedupPathReport(
-        analysis,
-        Small.srcModifiedFile
-      )
+      val dupReport = DedupPathReport(analysis, Small.srcModifiedFile)
 
       dupReport.unknown should have size 1
-      dupReport.unknown.map(extract) shouldBe List(
-        "../../srcModifiedFile/small/sub/ids2.txt"
-      )
+      dupReport.unknown.map(extract) shouldBe List("../../srcModifiedFile/small/sub/ids2.txt")
       dupReport.known should have size 1
-      dupReport.known.map(extract) shouldBe List(
-        "../../srcModifiedFile/small/ids.txt"
-      )
+      dupReport.known.map(extract) shouldBe List("../../srcModifiedFile/small/ids.txt")
     }
   }
 
