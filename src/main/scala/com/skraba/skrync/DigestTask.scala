@@ -1,7 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.{validateDirectory, validateFile, validateFileSystem}
-import com.tinfoiled.docopt4s.{Docopt, Task}
+import com.tinfoiled.docopt4s.{Docopt, DocoptException, PathValidator, Task}
 
 import java.io.IOException
 import java.time.format.DateTimeFormatter
@@ -54,21 +53,31 @@ object DigestTask extends Task {
     val root = opt.string.getOption("--root")
 
     // The file resources used by this task
-    val srcDir = validateDirectory(opt.string.get("--srcDir"), root)
-    // The destination, if present.  If this is already a directory, a default file name will be generated,
-    // including the date. If no destination is specified, this will be None and standard out will be used.
-    val dst: Option[File] = opt.string
-      .getOption("--dstDigest")
-      .map(validateFileSystem(_, root, exists = None))
-      .map(p => {
-        // If the destination is a directory, auto-create the filename based on the time.
-        if (p.exists && p.isDirectory)
-          p / File(getDefaultDigestName(srcDir.toString, now))
-        else p.toFile
-      })
-      .map(_.toString)
-      .map(validateFile(_, tag = "Destination digest", exists = Some(false)))
-    dst.map(_.parent).map(_.toString).foreach(validateDirectory(_, tag = "Destination digest directory"))
+    val srcDir = opt.dir.get("--srcDir", PathValidator(root).withTag("Source"))
+
+    // The destination can either not be present, or be a file that doesn't exist, or be an existing directory where
+    // a default file can be created.
+
+    val dstVld = PathValidator(root).doesntExist().withTag("Destination digest")
+    val dst: Option[File] = opt.path.getOption("--dstDigest", dstVld.optionallyExists()) match {
+      case Some(p) if p.isFile => opt.file.getOption("--dstDigest", dstVld)
+      case Some(p) if p.exists =>
+        opt.dir
+          .getOption("--dstDigest", dstVld.withTag("Destination digest directory").exists())
+          .map(_ / File(getDefaultDigestName(srcDir.toString, now)))
+      case Some(_) => opt.file.getOption("--dstDigest", dstVld)
+      case _       => None
+    }
+
+    // TODO: This should really be part of docopts4s
+    dst.foreach { path =>
+      val existingParent = LazyList.iterate(path.parent)(_.parent).dropWhile(!_.exists).headOption
+      if (existingParent.exists(_.jfile.isFile))
+        throw new DocoptException(s"Destination digest is uncreatable, ${existingParent.get} exists: $path")
+      if (!path.parent.exists)
+        throw new DocoptException(s"Destination digest parent directory doesn't exist: $path")
+    }
+
     val dstInProgress = dst.map(f => f.parent / (f.name + ".running")).map(_.toFile)
 
     // Whether to write the output to the console as well.
@@ -101,14 +110,9 @@ object DigestTask extends Task {
     * @return
     *   The filename for the digest file.
     */
-  def getDefaultDigestName(
-      srcDirString: String,
-      time: LocalDateTime
-  ): String = {
+  def getDefaultDigestName(srcDirString: String, time: LocalDateTime): String = {
     var defaultName = srcDirString.replaceAll("""[/\\]""", " ").trim
-    defaultName += "__" + time.format(
-      DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-    )
+    defaultName += "__" + time.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
     defaultName = defaultName.replace(" ", "_")
     defaultName
   }

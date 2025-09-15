@@ -1,10 +1,8 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.validateFile
 import com.tinfoiled.docopt4s.{Docopt, PathValidator, Task}
 
-import scala.collection.immutable
 import scala.reflect.io._
 
 /** This task compares two digest files, a source and destination, and calculates the changes that need to be made to
