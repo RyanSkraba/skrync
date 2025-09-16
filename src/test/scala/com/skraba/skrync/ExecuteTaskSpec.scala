@@ -28,21 +28,19 @@ class ExecuteTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ExecuteTask)) wit
     itShouldThrowOnMissingFlagValue(Seq("--backup", "x", "--plan"))
 
     it("throws an exception when the source or destination doesn't exist") {
-      val tSrc =
-        interceptGo[IllegalArgumentException]("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
+      val tSrc = interceptGoDocoptEx("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
       tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
 
-      val tDst =
-        interceptGo[IllegalArgumentException]("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
+      val tDst = interceptGoDocoptEx("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
       tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
     }
 
     it("throws an exception when the source or destination is a directory") {
-      val tSrc = interceptGo[IllegalArgumentException]("execute", "--srcDigest", Tmp, "--dstDigest", ExistingFile)
-      tSrc.getMessage shouldBe s"Source is not a file: $Tmp"
+      val tSrc = interceptGoDocoptEx("execute", "--srcDigest", Tmp, "--dstDigest", ExistingFile)
+      tSrc.getMessage shouldBe s"Source expected a file, found directory: $Tmp"
 
-      val tDst = interceptGo[IllegalArgumentException]("execute", "--srcDigest", ExistingFile, "--dstDigest", Tmp)
-      tDst.getMessage shouldBe s"Destination is not a file: $Tmp"
+      val tDst = interceptGoDocoptEx("execute", "--srcDigest", ExistingFile, "--dstDigest", Tmp)
+      tDst.getMessage shouldBe s"Destination expected a file, found directory: $Tmp"
     }
   }
 }

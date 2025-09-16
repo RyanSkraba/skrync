@@ -1,7 +1,7 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGo.{Line, validateFile}
-import com.tinfoiled.docopt4s.{Docopt, Task}
+import com.tinfoiled.docopt4s.{Docopt, PathValidator, Task}
 
 import java.io.IOException
 import scala.reflect.io._
@@ -30,7 +30,7 @@ object ExecuteTask extends Task {
       |                        from the destination.
       |  --plan PLAN_JSON      A plan describing the changes to make between two
       |                        directories.
-      |      |
+      |
       |Examples:
       |
       |TODO
@@ -48,18 +48,14 @@ object ExecuteTask extends Task {
       .getOrElse(
         goExecute(
           // TODO
-          validateFile(arg = opt.string.get("--srcDigest")),
-          validateFile(arg = opt.string.get("--dstDigest"), tag = "Destination"),
+          opt.file.get("--srcDigest", PathValidator().withTag("Source")),
+          opt.file.get("--dstDigest", PathValidator().withTag("Destination")),
           backup
         )
       )
   }
 
-  def goExecute(
-      srcDigest: File,
-      dstDigest: File,
-      backupDirString: Option[String]
-  ): Unit = {
+  def goExecute(srcDigest: File, dstDigest: File, backupDirString: Option[String]): Unit = {
     println("EXECUTE")
     println(Line)
     println("srcDigest:" + srcDigest)
@@ -67,10 +63,7 @@ object ExecuteTask extends Task {
     println("backupDir:" + backupDirString)
   }
 
-  def goExecute(
-      planJsonString: String,
-      backupDirString: Option[String]
-  ): Unit = {
+  def goExecute(planJsonString: String, backupDirString: Option[String]): Unit = {
     // TODO: implement
     println("EXECUTE")
     println(Line)
