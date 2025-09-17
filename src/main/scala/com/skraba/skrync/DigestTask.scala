@@ -71,9 +71,6 @@ object DigestTask extends Task {
 
     // TODO: This should really be part of docopts4s
     dst.foreach { path =>
-      val existingParent = LazyList.iterate(path.parent)(_.parent).dropWhile(!_.exists).headOption
-      if (existingParent.exists(_.jfile.isFile))
-        throw new DocoptException(s"Destination digest is uncreatable, ${existingParent.get} exists: $path")
       if (!path.parent.exists)
         throw new DocoptException(s"Destination digest parent directory doesn't exist: $path")
     }
