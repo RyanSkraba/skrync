@@ -1,8 +1,8 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.Digests.Digest
-import com.skraba.skrync.SkryncGo.{Line, validateFile}
-import com.tinfoiled.docopt4s.{Docopt, Task}
+import com.skraba.skrync.SkryncGo.Line
+import com.tinfoiled.docopt4s.{Docopt, PathValidator, Task}
 
 import scala.reflect.io._
 
@@ -48,10 +48,7 @@ object ReportTask extends Task {
   }
 
   def go(opt: Docopt): Unit = {
-    val srcDigest: File = validateFile(
-      // TODO
-      arg = opt.string.get("--srcDigest")
-    )
+    val srcDigest: File = opt.file.get("--srcDigest", PathValidator().withTag("Source"))
 
     // Check the two digests for differences.
     // Read all the information from the two digest files.

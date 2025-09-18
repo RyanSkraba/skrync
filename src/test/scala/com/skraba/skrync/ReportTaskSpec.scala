@@ -22,18 +22,18 @@ class ReportTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ReportTask)) with 
     itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
 
     it("throws an exception when the source digest doesn't exist") {
-      val tSrc = interceptGo[IllegalArgumentException](TaskCmd, "--srcDigest", NonExistingPath)
+      val tSrc = interceptGoDocoptEx(TaskCmd, "--srcDigest", NonExistingPath)
       tSrc.getMessage shouldBe s"Source doesn't exist: $NonExistingPath"
     }
 
     it("throws an exception when the source digest is a directory") {
-      val tSrc = interceptGo[IllegalArgumentException](TaskCmd, "--srcDigest", Small.src)
-      tSrc.getMessage shouldBe s"Source is not a file: ${Small.src}"
+      val tSrc = interceptGoDocoptEx(TaskCmd, "--srcDigest", Small.src)
+      tSrc.getMessage shouldBe s"Source expected a file, found directory: ${Small.src}"
     }
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO
-      val tSrc = interceptGo[IllegalArgumentException](TaskCmd, "--srcDigest", Small.src / "ids.txt")
+      val tSrc = interceptGoDocoptEx(TaskCmd, "--srcDigest", Small.src / "ids.txt")
       tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
     }
   }

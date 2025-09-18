@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.skraba.skrync.SkryncGo.{Line, validateFile}
+import com.skraba.skrync.SkryncGo.Line
 import com.tinfoiled.docopt4s.{Docopt, PathValidator, Task}
 
 import java.io.IOException
