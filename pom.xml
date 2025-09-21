@@ -54,29 +54,51 @@
 
     <!-- Plugins -->
     <plugin.clean.maven.version>3.5.0</plugin.clean.maven.version>
-    <plugin.compiler.maven.version>3.14.0</plugin.compiler.maven.version>
+    <plugin.compiler.maven.version>3.14.1</plugin.compiler.maven.version>
     <plugin.deploy.maven.version>3.1.4</plugin.deploy.maven.version>
     <plugin.enforcer.maven.version>3.6.1</plugin.enforcer.maven.version>
     <plugin.enforcer.required.maven.version>3.8.1</plugin.enforcer.required.maven.version>
-    <plugin.failsafe.maven.version>3.5.3</plugin.failsafe.maven.version>
+    <plugin.failsafe.maven.version>3.5.4</plugin.failsafe.maven.version>
     <plugin.gpg.maven.version>3.2.8</plugin.gpg.maven.version>
     <plugin.install.maven.version>3.1.4</plugin.install.maven.version>
     <plugin.jar.maven.version>3.4.2</plugin.jar.maven.version>
-    <plugin.javadoc.maven.version>3.11.2</plugin.javadoc.maven.version>
+    <plugin.javadoc.maven.version>3.12.0</plugin.javadoc.maven.version>
     <plugin.maven.docker.version>0.45.1</plugin.maven.docker.version>
     <plugin.maven.publishing.central.version>0.8.0</plugin.maven.publishing.central.version>
-    <plugin.maven.scala.version>4.9.5</plugin.maven.scala.version>
+    <plugin.maven.scala.version>4.9.6</plugin.maven.scala.version>
     <plugin.maven.scalatest.exclude>org.scalatest.tags.Slow</plugin.maven.scalatest.exclude>
     <plugin.maven.scalatest.version>2.2.0</plugin.maven.scalatest.version>
     <plugin.maven.spotless.version>2.46.1</plugin.maven.spotless.version>
     <plugin.report.surefire.maven.version>3.5.0</plugin.report.surefire.maven.version>
     <plugin.resources.maven.version>3.3.1</plugin.resources.maven.version>
-    <plugin.shade.maven.version>3.6.0</plugin.shade.maven.version>
+    <plugin.shade.maven.version>3.6.1</plugin.shade.maven.version>
     <plugin.site.maven.version>4.0.0-M16</plugin.site.maven.version>
     <plugin.source.maven.version>3.3.1</plugin.source.maven.version>
     <plugin.surefire.maven.version>3.2.5</plugin.surefire.maven.version>
     <plugin.war.maven.version>3.4.0</plugin.war.maven.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-library</artifactId>
+        <version>${scala.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-reflect</artifactId>
+        <version>${scala.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest_${scala.binary.version}</artifactId>
+        <version>${scalatest.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -89,28 +111,12 @@
       <artifactId>docopt4s_${scala.binary.version}</artifactId>
       <version>${docopt4s.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-reflect</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
 
     <!-- Tests -->
     <dependency>
       <groupId>com.tinfoiled</groupId>
       <artifactId>docopt4s-testkit_${scala.binary.version}</artifactId>
       <version>${docopt4s.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala.binary.version}</artifactId>
-      <version>${scalatest.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
