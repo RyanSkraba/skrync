@@ -37,33 +37,43 @@ Goals
 ```bash
 # Create with default name (media_username_MYDISK__20210101120000).
 # Unlikely that it exists already due to the timestamp.
-skrync digest --srcDir /media/username/MYDISK/backup \
+skrync_go digest --srcDir /media/username/MYDISK/backup \
     --dstDigest /media/username/MYDISK/.skrync/
-skrync digest --srcDir /media/username/MYDISK2/backup \
+skrync_go digest --srcDir /media/username/MYDISK2/backup \
     --dstDigest /media/username/MYDISK2/.skrync/
 
 # Dry run it (produces a plan)
-skrync compare \
+skrync_go compare \
     --srcDigest \
     /media/username/MYDISK/backup/.skrync/media_username_MYDISK__20210101120000 \
     --dstDigest \
     /media/username/MYDISK2/backup/.skrync/media_username_MYDISK2__20210101120010
 
 # Do it.
-skrync execute --srcDigest \
+skrync_go execute --srcDigest \
     /media/username/MYDISK/backup/.skrync/media_username_MYDISK__20210101120000 \
     --dstDigest \
     /media/username/MYDISK2/backup/.skrync/media_username_MYDISK2__20210101120010 \
     --backup /tmp/skrync_changed/
-skrync execute --plan /tmp/todo/plan.json --backup /tmp/changed/
+skrync_go execute --plan /tmp/todo/plan.json --backup /tmp/changed/
 ```
 
-Running the launcher
+Building
 ------------------------------------------------------------------------------
+
+```sh
+# Build, format and run all tests
+mvn spotless:apply clean verify
+```
+
+Running the command line
+------------------------------------------------------------------------------
+
+This project includes an [executable](src/main/java/com/skraba/skrync/SkryncGo.java)
 
 ```bash
 mvn package
-# Using the fat jar
-alias skrync='java -jar '$(pwd)'/target/skrync*-SNAPSHOT.jar'
-skrync --help
+# Using the uber jar from the command line
+alias skrync_go="java -jar $(find ~+ -name skrync-*.jar | sort | head -n1)"
+skrync_go --help
 ```
