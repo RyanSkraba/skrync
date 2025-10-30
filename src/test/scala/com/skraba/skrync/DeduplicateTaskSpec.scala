@@ -2,12 +2,12 @@ package com.skraba.skrync
 
 import com.skraba.skrync.DeduplicateTask.DedupPathReport
 import com.skraba.skrync.SkryncGoSpec._
-import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
+import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DeduplicateTask]] */
-class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTask)) with TmpDir {
+class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTask)) with FileValidator {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
@@ -18,78 +18,36 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
     Small.dst
   )
 
-  describe(s"${Main.Name} $TaskCmd command line") {
-
-    itShouldThrowOnHelpAndVersionFlags()
-
-    itShouldThrowOnUnknownFlag()
-
-    itShouldThrowOnIncompleteArgs(Seq.empty)
-    itShouldThrowOnIncompleteArgs(Seq("--srcDigest", "x"))
-    itShouldThrowOnIncompleteArgs(Seq("--dedupDir", "x"))
-
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir"))
-    itShouldThrowOnMissingFlagValue(Seq("--dedupDir"))
-    itShouldThrowOnMissingFlagValue(Seq("--dedupDir", "x", "--srcDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--root"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--mvDir"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--knownExt"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dedupDir", "x", "--unknownExt"))
+  describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
+    itShouldHandleHelpAndVersionFlags()
+    itShouldThrowOnUnknownOptKey()
+    itShouldThrowOnIncompleteArgs()
+    itShouldThrowOnIncompleteArgs("--srcDigest", "x")
+    itShouldThrowOnIncompleteArgs("--dedupDir", "x")
+    itShouldThrowOnMissingOptValue("--srcDigest")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dedupDir")
+    itShouldThrowOnMissingOptValue("--dedupDir", "x", "--srcDigest")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dedupDir", "x", "--root")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dedupDir", "x", "--mvDir")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dedupDir", "x", "--knownExt")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dedupDir", "x", "--unknownExt")
 
     describe("without --root") {
-
-      it("throws an exception when the source digest doesn't exist") {
-        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.DoesntExist, "--dedupDir", Small.src)
-        tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
-      }
-
-      it("throws an exception when the source digest is a directory") {
-        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.src, "--dedupDir", Small.src)
-        tSrc.getMessage shouldBe s"Source expected a file, found directory: ${Small.src}"
-      }
+      itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dedupDir", Small.src)
+      itShouldBeAnExistingDir.args(tag = "Deduplication directory")("--srcDigest", ExistingFile, "--dedupDir", "<>")
+      itShouldBeAnExistingDir.args(tag = "Duplicate destination directory")(
+        "--srcDigest",
+        ExistingFile,
+        "--dedupDir",
+        Tmp,
+        "--mvDir",
+        "<>"
+      )
 
       ignore("throws an exception when the source digest is not a JSON file") {
         // TODO
         val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src)
         tSrc.getMessage shouldBe s"Source is not a digest file: ${Small.src / "ids.txt"}"
-      }
-
-      it("throws an exception when the dedup directory doesn't exist") {
-        val tSrc = interceptGoDocoptEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.DoesntExist)
-        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
-      }
-
-      it("throws an exception when the dedup directory expected a directory, found file") {
-        val tSrc =
-          interceptGoDocoptEx("dedup", "--srcDigest", Small.src / "ids.txt", "--dedupDir", Small.src / "ids.txt")
-        tSrc.getMessage shouldBe s"Deduplication directory expected a directory, found file: ${Small.src / "ids.txt"}"
-      }
-
-      it("throws an exception when the dedup move directory doesn't exist") {
-        val tSrc = interceptGoDocoptEx(
-          "dedup",
-          "--srcDigest",
-          Small.src / "ids.txt",
-          "--dedupDir",
-          Small.src,
-          "--mvDir",
-          Small.DoesntExist
-        )
-        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
-      }
-
-      it("throws an exception when the dedup move directory expected a directory, found file") {
-        val tSrc = interceptGoDocoptEx(
-          "dedup",
-          "--srcDigest",
-          Small.src / "ids.txt",
-          "--dedupDir",
-          Small.src.toString,
-          "--mvDir",
-          Small.src / "ids.txt"
-        )
-        tSrc.getMessage shouldBe s"Duplicate destination directory expected a directory, found file: ${Small.src / "ids.txt"}"
       }
     }
 
@@ -102,7 +60,7 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
       val dedupExistingArgs = Seq(
         "dedup",
         "--root",
-        Small.DoesntExist,
+        NonExistingPath,
         "--srcDigest",
         Small.src / "ids.txt",
         "--dedupDir",
@@ -113,32 +71,32 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
 
       it("throws an exception when a relative --srcDigest doesn't exist") {
         val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(4, "nox"): _*)
-        tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}/nox"
+        tSrc.getMessage shouldBe s"Source doesn't exist: $NonExistingPath/nox"
       }
 
       it("throws an exception when an absolute --srcDigest doesn't exist") {
-        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(4, Small.DoesntExist): _*)
-        tSrc.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(4, NonExistingPath): _*)
+        tSrc.getMessage shouldBe s"Source doesn't exist: $NonExistingPath"
       }
 
       it("throws an exception when a relative --dedupDir doesn't exist") {
         val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(6, "nox"): _*)
-        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}/nox"
+        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: $NonExistingPath/nox"
       }
 
       it("throws an exception when an absolute --dedupDir doesn't exist") {
-        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(6, Small.DoesntExist): _*)
-        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: ${Small.DoesntExist}"
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(6, NonExistingPath): _*)
+        tSrc.getMessage shouldBe s"Deduplication directory doesn't exist: $NonExistingPath"
       }
 
       it("throws an exception when a relative --mvDir doesn't exist") {
         val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(8, "nox"): _*)
-        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}/nox"
+        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: $NonExistingPath/nox"
       }
 
       it("throws an exception when an absolute --mvDir doesn't exist") {
-        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(8, Small.DoesntExist): _*)
-        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: ${Small.DoesntExist}"
+        val tSrc = interceptGoDocoptEx(dedupExistingArgs.updated(8, NonExistingPath): _*)
+        tSrc.getMessage shouldBe s"Duplicate destination directory doesn't exist: $NonExistingPath"
       }
     }
   }

@@ -1,35 +1,23 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGoSpec._
-import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
+import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
 
 import scala.reflect.io.File
 
 /** Unit tests for [[ReportTask]] */
-class ReportTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ReportTask)) with TmpDir {
+class ReportTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ReportTask)) with FileValidator {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
-  describe(s"${Main.Name} $TaskCmd command line") {
+  describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
+    itShouldHandleHelpAndVersionFlags()
+    itShouldThrowOnUnknownOptKey()
+    itShouldThrowOnIncompleteArgs()
+    itShouldThrowOnMissingOptValue("--srcDigest")
 
-    itShouldThrowOnHelpAndVersionFlags()
-
-    itShouldThrowOnUnknownFlag()
-
-    itShouldThrowOnIncompleteArgs(Seq.empty)
-
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
-
-    it("throws an exception when the source digest doesn't exist") {
-      val tSrc = interceptGoDocoptEx(TaskCmd, "--srcDigest", NonExistingPath)
-      tSrc.getMessage shouldBe s"Source doesn't exist: $NonExistingPath"
-    }
-
-    it("throws an exception when the source digest is a directory") {
-      val tSrc = interceptGoDocoptEx(TaskCmd, "--srcDigest", Small.src)
-      tSrc.getMessage shouldBe s"Source expected a file, found directory: ${Small.src}"
-    }
+    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>")
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO

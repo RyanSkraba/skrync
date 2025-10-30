@@ -1,46 +1,28 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.CompareTask.DupFiles
-import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
+import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[CompareTask]] */
-class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) with TmpDir {
+class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) with FileValidator {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
-  describe(s"${Main.Name} $TaskCmd command line") {
-
-    itShouldThrowOnHelpAndVersionFlags()
-
-    itShouldThrowOnUnknownFlag()
-
-    itShouldThrowOnIncompleteArgs(Seq.empty)
-    itShouldThrowOnIncompleteArgs(Seq("--dstDigest", "x"))
-    itShouldThrowOnIncompleteArgs(Seq("--srcDigest", "x"))
-
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--dstDigest", "x", "--srcDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dstDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--dstDigest"))
-
-    it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = interceptGoDocoptEx("compare", "--srcDigest", "/doesnt-exist", "--dstDigest", Small.ExistingFile)
-      tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
-
-      val tDst = interceptGoDocoptEx("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", "/doesnt-exist")
-      tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
-    }
-
-    it("throws an exception when the source or destination is a directory") {
-      val tSrc = interceptGoDocoptEx("compare", "--srcDigest", Small.src, "--dstDigest", Small.ExistingFile)
-      tSrc.getMessage shouldBe s"Source expected a file, found directory: ${Small.src}"
-
-      val tDst = interceptGoDocoptEx("compare", "--srcDigest", Small.ExistingFile, "--dstDigest", Small.src)
-      tDst.getMessage shouldBe s"Destination expected a file, found directory: ${Small.src}"
-    }
+  describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
+    itShouldHandleHelpAndVersionFlags()
+    itShouldThrowOnUnknownOptKey()
+    itShouldThrowOnIncompleteArgs()
+    itShouldThrowOnIncompleteArgs("--srcDigest", "x")
+    itShouldThrowOnIncompleteArgs("--dstDigest", "x")
+    itShouldThrowOnMissingOptValue("--srcDigest")
+    itShouldThrowOnMissingOptValue("--dstDigest")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dstDigest")
+    itShouldThrowOnMissingOptValue("--dstDigest", "x", "--srcDigest")
+    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dstDigest", Small.ExistingFile)
+    itShouldBeAnExistingFile.args(tag = "Destination")("--srcDigest", Small.ExistingFile, "--dstDigest", "<>")
   }
 
   describe("SkryncGo compare two identical folders") {

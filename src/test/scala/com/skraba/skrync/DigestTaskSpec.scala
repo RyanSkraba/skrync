@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
+import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
 import org.scalatest.OptionValues._
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
@@ -8,35 +8,23 @@ import java.time.format.DateTimeFormatter
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DigestTask]] */
-class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with TmpDir {
+class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with FileValidator {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
-  describe(s"${Main.Name} $TaskCmd command line") {
-
-    itShouldThrowOnHelpAndVersionFlags()
-
-    itShouldThrowOnUnknownFlag()
-
-    itShouldThrowOnIncompleteArgs(Seq.empty)
-
-    itShouldThrowOnMissingFlagValue(Seq("--srcDir"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDir", "x", "--root"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDir", "x", "--dstDigest"))
+  describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
+    itShouldHandleHelpAndVersionFlags()
+    itShouldThrowOnUnknownOptKey()
+    itShouldThrowOnIncompleteArgs()
+    itShouldThrowOnMissingOptValue("--srcDir")
+    itShouldThrowOnMissingOptValue("--srcDir", "x", "--root")
+    itShouldThrowOnMissingOptValue("--srcDir", "x", "--dstDigest")
 
     describe("without --root") {
+      itShouldBeAnExistingPath.args(tag = "Source")("--srcDir", "<>")
 
-      it("throws an exception when the source doesn't exist") {
-        val t = interceptGoDocoptEx("digest", "--srcDir", Small.DoesntExist)
-        t.getMessage shouldBe s"Source doesn't exist: ${Small.DoesntExist}"
-      }
-
-      it("throws an exception when the source is a file") {
-        val t = interceptGoDocoptEx("digest", "--srcDir", Small.ExistingFile.toString)
-        t.getMessage shouldBe s"Source expected a directory, found file: ${Small.ExistingFile}"
-      }
-
+      // TODO: itShouldBeACreatableDir
       it("throws an exception when the dst exists") {
         val t =
           interceptGoDocoptEx("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())

@@ -1,46 +1,28 @@
 package com.skraba.skrync
 
-import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, TmpDir}
-
-import scala.reflect.io.{Directory, File, Path, Streamable}
+import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
 
 /** Unit tests for [[ExecuteTask]] */
-class ExecuteTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ExecuteTask)) with TmpDir {
+class ExecuteTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ExecuteTask)) with FileValidator {
 
-  describe(s"${Main.Name} $TaskCmd command line") {
+  describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
+    itShouldHandleHelpAndVersionFlags()
+    itShouldThrowOnUnknownOptKey()
+    itShouldThrowOnIncompleteArgs()
+    itShouldThrowOnIncompleteArgs("--srcDigest", "x")
+    itShouldThrowOnIncompleteArgs("--dstDigest", "x")
+    itShouldThrowOnIncompleteArgs("--backup", "x")
+    itShouldThrowOnMissingOptValue("--srcDigest")
+    itShouldThrowOnMissingOptValue("--dstDigest", "x", "--srcDigest")
+    itShouldThrowOnMissingOptValue("--dstDigest")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dstDigest")
+    itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dstDigest", "x", "--backup")
+    itShouldThrowOnMissingOptValue("--backup")
+    itShouldThrowOnMissingOptValue("--plan")
+    itShouldThrowOnMissingOptValue("--plan", "x", "--backup")
+    itShouldThrowOnMissingOptValue("--backup", "x", "--plan")
 
-    itShouldThrowOnHelpAndVersionFlags()
-
-    itShouldThrowOnUnknownFlag()
-
-    itShouldThrowOnIncompleteArgs(Seq.empty)
-    itShouldThrowOnIncompleteArgs(Seq("--dstDigest", "x"))
-    itShouldThrowOnIncompleteArgs(Seq("--srcDigest", "x"))
-    itShouldThrowOnIncompleteArgs(Seq("--backup", "x"))
-
-    itShouldThrowOnMissingFlagValue(Seq("--dstDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--dstDigest", "x", "--srcDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dstDigest"))
-    itShouldThrowOnMissingFlagValue(Seq("--srcDigest", "x", "--dstDigest", "x", "--backup"))
-    itShouldThrowOnMissingFlagValue(Seq("--plan"))
-    itShouldThrowOnMissingFlagValue(Seq("--plan", "x", "--backup"))
-    itShouldThrowOnMissingFlagValue(Seq("--backup", "x", "--plan"))
-
-    it("throws an exception when the source or destination doesn't exist") {
-      val tSrc = interceptGoDocoptEx("execute", "--srcDigest", "/doesnt-exist", "--dstDigest", ExistingFile)
-      tSrc.getMessage shouldBe "Source doesn't exist: /doesnt-exist"
-
-      val tDst = interceptGoDocoptEx("execute", "--srcDigest", ExistingFile, "--dstDigest", "/doesnt-exist")
-      tDst.getMessage shouldBe "Destination doesn't exist: /doesnt-exist"
-    }
-
-    it("throws an exception when the source or destination is a directory") {
-      val tSrc = interceptGoDocoptEx("execute", "--srcDigest", Tmp, "--dstDigest", ExistingFile)
-      tSrc.getMessage shouldBe s"Source expected a file, found directory: $Tmp"
-
-      val tDst = interceptGoDocoptEx("execute", "--srcDigest", ExistingFile, "--dstDigest", Tmp)
-      tDst.getMessage shouldBe s"Destination expected a file, found directory: $Tmp"
-    }
+    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dstDigest", ExistingFile)
+    itShouldBeAnExistingFile.args(tag = "Destination")("--srcDigest", ExistingFile, "--dstDigest", "<>")
   }
 }
