@@ -44,14 +44,6 @@ import scala.reflect.io._
   */
 class ScenarioSmallFiles(val root: Directory) {
 
-  /** A pre-existing file outside the small scenario. */
-  val ExistingFile: File = root / File("exists")
-  Streamable.closing(ExistingFile.outputStream())(_.write(1))
-
-  /** A path inside the small scenario that doesn't exist. */
-  // TODO: @deprecated("use tmpdir")
-  val DoesntExist: String = (root / "doesnt-exist").toString()
-
   /** A directory with the initial scenario:
     *
     *   - small/ids.txt

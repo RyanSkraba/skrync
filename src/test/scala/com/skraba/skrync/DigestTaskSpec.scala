@@ -26,19 +26,18 @@ class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with 
 
       // TODO: itShouldBeACreatableDir
       it("throws an exception when the dst exists") {
-        val t =
-          interceptGoDocoptEx("digest", "--srcDir", Small.src.toString, "--dstDigest", Small.ExistingFile.toString())
-        t.getMessage shouldBe s"Destination digest already exists: ${Small.ExistingFile}"
+        val t = interceptGoDocoptEx("digest", "--srcDir", Small.src.toString, "--dstDigest", ExistingFile)
+        t.getMessage shouldBe s"Destination digest already exists: $ExistingFile"
       }
 
       it("throws an exception when the dstDigest path is inside a file") {
-        val fileExists = (Small.ExistingFile / "impossible").toString()
+        val fileExists = ExistingFile / "impossible"
         val t = interceptGoDocoptEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileExists)
-        t.getMessage shouldBe s"Destination digest is uncreatable, ${Small.ExistingFile} exists: $fileExists"
+        t.getMessage shouldBe s"Destination digest is uncreatable, $ExistingFile exists: $fileExists"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {
-        val fileStructure = (Small.root / "does" / "not" / "exist").toString()
+        val fileStructure = Small.root / "does" / "not" / "exist"
         val t = interceptGoDocoptEx("digest", "--srcDir", Small.src.toString, "--dstDigest", fileStructure)
         t.getMessage shouldBe s"Destination digest parent directory doesn't exist: $fileStructure"
       }
@@ -69,9 +68,8 @@ class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with 
       }
 
       it("throws an exception when the source is a file") {
-        val t =
-          interceptGoDocoptEx("digest", "--root", Small.ExistingFile.parent.path, "--srcDir", Small.ExistingFile.name)
-        t.getMessage shouldBe s"Source expected a directory, found file: ${Small.ExistingFile}"
+        val t = interceptGoDocoptEx("digest", "--root", ExistingFile.parent.path, "--srcDir", ExistingFile.name)
+        t.getMessage shouldBe s"Source expected a directory, found file: $ExistingFile"
       }
 
       it("throws an exception when the dst exists") {
@@ -92,13 +90,13 @@ class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with 
         val t = interceptGoDocoptEx(
           "digest",
           "--root",
-          Small.ExistingFile.parent.path,
+          ExistingFile.parent.path,
           "--srcDir",
           Small.src.path,
           "--dstDigest",
-          "exists/impossible"
+          ExistingFile.name + "/nox"
         )
-        t.getMessage shouldBe s"Destination digest is uncreatable, ${Small.ExistingFile} exists: ${Small.ExistingFile}/impossible"
+        t.getMessage shouldBe s"Destination digest is uncreatable, $ExistingFile exists: $ExistingFile/nox"
       }
 
       it("throws an exception when the dst directory folder structure doesn't exist") {

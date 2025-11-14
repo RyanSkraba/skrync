@@ -21,8 +21,8 @@ class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) wit
     itShouldThrowOnMissingOptValue("--dstDigest")
     itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dstDigest")
     itShouldThrowOnMissingOptValue("--dstDigest", "x", "--srcDigest")
-    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dstDigest", Small.ExistingFile)
-    itShouldBeAnExistingFile.args(tag = "Destination")("--srcDigest", Small.ExistingFile, "--dstDigest", "<>")
+    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dstDigest", ExistingFile)
+    itShouldBeAnExistingFile.args(tag = "Destination")("--srcDigest", ExistingFile, "--dstDigest", "<>")
   }
 
   describe("SkryncGo compare two identical folders") {
