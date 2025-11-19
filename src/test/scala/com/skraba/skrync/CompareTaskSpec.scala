@@ -1,18 +1,18 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.CompareTask.DupFiles
-import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, WithFileTests}
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[CompareTask]] */
-class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) with FileValidator {
+class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) with WithFileTests {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
-    itShouldHandleHelpAndVersionFlags()
+    itShouldHandleVersionAndHelpFlags()
     itShouldThrowOnUnknownOptKey()
     itShouldThrowOnIncompleteArgs()
     itShouldThrowOnIncompleteArgs("--srcDigest", "x")
@@ -21,8 +21,8 @@ class CompareTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(CompareTask)) wit
     itShouldThrowOnMissingOptValue("--dstDigest")
     itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dstDigest")
     itShouldThrowOnMissingOptValue("--dstDigest", "x", "--srcDigest")
-    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dstDigest", ExistingFile)
-    itShouldBeAnExistingFile.args(tag = "Destination")("--srcDigest", ExistingFile, "--dstDigest", "<>")
+    itShouldBeAnExistingFile("Source")("--srcDigest", "<>", "--dstDigest", ExistingFile)
+    itShouldBeAnExistingFile("Destination")("--srcDigest", ExistingFile, "--dstDigest", "<>")
   }
 
   describe("SkryncGo compare two identical folders") {

@@ -2,12 +2,12 @@ package com.skraba.skrync
 
 import com.skraba.skrync.DeduplicateTask.DedupPathReport
 import com.skraba.skrync.SkryncGoSpec._
-import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, WithFileTests}
 
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DeduplicateTask]] */
-class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTask)) with FileValidator {
+class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTask)) with WithFileTests {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
@@ -19,7 +19,7 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
   )
 
   describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
-    itShouldHandleHelpAndVersionFlags()
+    itShouldHandleVersionAndHelpFlags()
     itShouldThrowOnUnknownOptKey()
     itShouldThrowOnIncompleteArgs()
     itShouldThrowOnIncompleteArgs("--srcDigest", "x")
@@ -33,9 +33,9 @@ class DeduplicateTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DeduplicateTa
     itShouldThrowOnMissingOptValue("--srcDigest", "x", "--dedupDir", "x", "--unknownExt")
 
     describe("without --root") {
-      itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dedupDir", Small.src)
-      itShouldBeAnExistingDir.args(tag = "Deduplication directory")("--srcDigest", ExistingFile, "--dedupDir", "<>")
-      itShouldBeAnExistingDir.args(tag = "Duplicate destination directory")(
+      itShouldBeAnExistingFile("Source")("--srcDigest", "<>", "--dedupDir", Small.src)
+      itShouldBeAnExistingDir("Deduplication directory")("--srcDigest", ExistingFile, "--dedupDir", "<>")
+      itShouldBeAnExistingDir("Duplicate destination directory")(
         "--srcDigest",
         ExistingFile,
         "--dedupDir",

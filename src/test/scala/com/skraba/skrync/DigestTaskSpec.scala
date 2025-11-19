@@ -1,6 +1,6 @@
 package com.skraba.skrync
 
-import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, WithFileTests}
 import org.scalatest.OptionValues._
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
@@ -8,13 +8,13 @@ import java.time.format.DateTimeFormatter
 import scala.reflect.io.{Directory, File, Path}
 
 /** Unit tests for [[DigestTask]] */
-class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with FileValidator {
+class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with WithFileTests {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
-    itShouldHandleHelpAndVersionFlags()
+    itShouldHandleVersionAndHelpFlags()
     itShouldThrowOnUnknownOptKey()
     itShouldThrowOnIncompleteArgs()
     itShouldThrowOnMissingOptValue("--srcDir")
@@ -22,7 +22,7 @@ class DigestTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(DigestTask)) with 
     itShouldThrowOnMissingOptValue("--srcDir", "x", "--dstDigest")
 
     describe("without --root") {
-      itShouldBeAnExistingPath.args(tag = "Source")("--srcDir", "<>")
+      itShouldBeAnExistingPath("Source")("--srcDir", "<>")
 
       // TODO: itShouldBeACreatableDir
       it("throws an exception when the dst exists") {

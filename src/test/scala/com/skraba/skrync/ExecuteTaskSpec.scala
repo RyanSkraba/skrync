@@ -1,12 +1,12 @@
 package com.skraba.skrync
 
-import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, WithFileTests}
 
 /** Unit tests for [[ExecuteTask]] */
-class ExecuteTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ExecuteTask)) with FileValidator {
+class ExecuteTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ExecuteTask)) with WithFileTests {
 
   describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
-    itShouldHandleHelpAndVersionFlags()
+    itShouldHandleVersionAndHelpFlags()
     itShouldThrowOnUnknownOptKey()
     itShouldThrowOnIncompleteArgs()
     itShouldThrowOnIncompleteArgs("--srcDigest", "x")
@@ -22,7 +22,7 @@ class ExecuteTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ExecuteTask)) wit
     itShouldThrowOnMissingOptValue("--plan", "x", "--backup")
     itShouldThrowOnMissingOptValue("--backup", "x", "--plan")
 
-    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>", "--dstDigest", ExistingFile)
-    itShouldBeAnExistingFile.args(tag = "Destination")("--srcDigest", ExistingFile, "--dstDigest", "<>")
+    itShouldBeAnExistingFile("Source")("--srcDigest", "<>", "--dstDigest", ExistingFile)
+    itShouldBeAnExistingFile("Destination")("--srcDigest", ExistingFile, "--dstDigest", "<>")
   }
 }

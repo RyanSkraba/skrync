@@ -1,23 +1,23 @@
 package com.skraba.skrync
 
 import com.skraba.skrync.SkryncGoSpec._
-import com.tinfoiled.docopt4s.testkit.MultiTaskMainSpec
+import com.tinfoiled.docopt4s.testkit.{MultiTaskMainSpec, WithFileTests}
 
 import scala.reflect.io.File
 
 /** Unit tests for [[ReportTask]] */
-class ReportTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ReportTask)) with FileValidator {
+class ReportTaskSpec extends MultiTaskMainSpec(SkryncGo, Some(ReportTask)) with WithFileTests {
 
   /** Temporary directory root for all tests. */
   val Small: ScenarioSmallFiles = new ScenarioSmallFiles(Tmp)
 
   describe(s"Standard $MainName $TaskCmd command line help, versions and exceptions") {
-    itShouldHandleHelpAndVersionFlags()
+    itShouldHandleVersionAndHelpFlags()
     itShouldThrowOnUnknownOptKey()
     itShouldThrowOnIncompleteArgs()
     itShouldThrowOnMissingOptValue("--srcDigest")
 
-    itShouldBeAnExistingFile.args(tag = "Source")("--srcDigest", "<>")
+    itShouldBeAnExistingFile("Source")("--srcDigest", "<>")
 
     ignore("throws an exception when the source digest is not a JSON file") {
       // TODO

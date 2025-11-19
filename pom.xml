@@ -45,7 +45,7 @@
     <exec.mainClass>com.skraba.skrync.SkryncGo</exec.mainClass>
 
     <!-- Dependencies -->
-    <docopt4s.version>0.0.6</docopt4s.version>
+    <docopt4s.version>0.0.7</docopt4s.version>
     <gson.version>2.13.1</gson.version>
     <scala.binary.version>2.13</scala.binary.version>
     <scala.version>2.13.16</scala.version>

@@ -7,7 +7,7 @@ import scala.reflect.io.{Directory, File, Path}
 /** Unit tests for [[SkryncGo]] */
 class SkryncGoSpec extends MultiTaskMainSpec(SkryncGo) {
   describe(s"Standard $MainName command line help, versions and exceptions") {
-    itShouldHandleHelpAndVersionFlags()
+    itShouldHandleVersionAndHelpFlags()
     itShouldThrowOnMissingTaskCommand("--debug")
     itShouldThrowOnUnknownTaskCommand()
   }
