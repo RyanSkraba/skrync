@@ -70,7 +70,7 @@
     <plugin.maven.scalatest.version>2.2.0</plugin.maven.scalatest.version>
     <plugin.maven.spotless.version>2.46.1</plugin.maven.spotless.version>
     <plugin.report.surefire.maven.version>3.5.0</plugin.report.surefire.maven.version>
-    <plugin.resources.maven.version>3.3.1</plugin.resources.maven.version>
+    <plugin.resources.maven.version>3.4.0</plugin.resources.maven.version>
     <plugin.shade.maven.version>3.6.1</plugin.shade.maven.version>
     <plugin.site.maven.version>4.0.0-M16</plugin.site.maven.version>
     <plugin.source.maven.version>3.3.1</plugin.source.maven.version>
