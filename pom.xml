@@ -74,7 +74,7 @@
     <plugin.shade.maven.version>3.6.1</plugin.shade.maven.version>
     <plugin.site.maven.version>4.0.0-M16</plugin.site.maven.version>
     <plugin.source.maven.version>3.3.1</plugin.source.maven.version>
-    <plugin.surefire.maven.version>3.2.5</plugin.surefire.maven.version>
+    <plugin.surefire.maven.version>3.5.4</plugin.surefire.maven.version>
     <plugin.war.maven.version>3.4.0</plugin.war.maven.version>
   </properties>
 
