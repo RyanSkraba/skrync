@@ -64,7 +64,7 @@
     <plugin.jar.maven.version>3.4.2</plugin.jar.maven.version>
     <plugin.javadoc.maven.version>3.12.0</plugin.javadoc.maven.version>
     <plugin.maven.docker.version>0.45.1</plugin.maven.docker.version>
-    <plugin.maven.publishing.central.version>0.8.0</plugin.maven.publishing.central.version>
+    <plugin.maven.publishing.central.version>0.9.0</plugin.maven.publishing.central.version>
     <plugin.maven.scala.version>4.9.6</plugin.maven.scala.version>
     <plugin.maven.scalatest.exclude>org.scalatest.tags.Slow</plugin.maven.scalatest.exclude>
     <plugin.maven.scalatest.version>2.2.0</plugin.maven.scalatest.version>
